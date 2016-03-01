@@ -23,6 +23,7 @@
 #include "windows.h"
 #include "string.h"
 #include "copyfill.h"
+#include "constexp.h"
 
 // C++11 fest: SCOPE_EXIT
 template<class F>
@@ -144,13 +145,6 @@ int strncmp(const T* str1, const T(& str2)[size])
 template<typename T, int size>
 int strnicmp(const T* str1, const T(& str2)[size])
 	{ return strnicmp(str1, str2, size-1); }
-	
-REGCALL(1) static int toUpper(int ch){ 
-	return((ch>='a') &&(ch<='z'))?ch-32:ch;}
-REGCALL(1) static int toLower(int ch){ 
-	return((ch>='A') &&(ch<='Z'))?ch+32:ch;}
-inline bool isPathSep(int ch) {
-	return (ch == '\\')||(ch == '/'); }
 
 #ifndef no_xstrfmt
 template <class TCH>
