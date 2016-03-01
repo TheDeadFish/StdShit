@@ -71,26 +71,22 @@ bool is_one_of(const Type& needle, const Next& next, const Rest&... haystack)
 {return needle==next || is_one_of(needle, haystack...);}
 
 // endian functions
-static uint bswap32(uint val) 
-	{	return __builtin_bswap32(val); }
-static uint swap_endian32(uint val)
-	{	return __builtin_bswap32(val); }
-static u16 swap_endian16(u16 in)
-	{	return (in >> 8) | (in << 8); }
+#define bswap32 __builtin_bswap32
+#define bswap16 __builtin_bswap16
 #ifndef no_endian
 struct big_u32 {
 	big_u32(const big_u32& in) {	data = in.data;	}
-	big_u32(u32 in) {	data = swap_endian32(in); }
-	operator u32() {	return swap_endian32(data); }
+	big_u32(u32 in) {	data = bswap32(in); }
+	operator u32() {	return bswap32(data); }
 	template <class screb>
-	operator screb() {	return swap_endian32(data); }
+	operator screb() {	return bswap32(data); }
 	private: u32 data; };
 struct big_u16 {
 	big_u16(const big_u16& in) {	data = in.data;	}
-	big_u16(u16 in) {	data = swap_endian16(in); }
-	operator u16() {	return swap_endian16(data); }
+	big_u16(u16 in) {	data = bswap16(in); }
+	operator u16() {	return bswap16(data); }
 	template <class screb>
-	operator screb() {	return swap_endian16(data); }
+	operator screb() {	return bswap16(data); }
 	private: u16 data; };
 #endif
 
