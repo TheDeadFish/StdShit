@@ -6,6 +6,7 @@
 template <class T, typename... Args>
 T* pNew(T* ptr, Args&& ... args) { __assume(ptr != NULL);
 	return new(ptr) T(args...); }
+TMPL(T) void pDel(T* ptr) { ptr->~T(); }
 
 struct xvector_ {
 	Void dataPtr; size_t dataSize, allocSize; 
