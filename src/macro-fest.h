@@ -2,13 +2,6 @@
 #ifndef _BASIC_DEFS_H_
 #define _BASIC_DEFS_H_
 
-// macro evil
-#define MCAT2(name, ...) name##__VA_ARGS__
-#define MCAT(name, ...) MCAT2(name, __VA_ARGS__)
-#define EXTRACT(...) EXTRACT __VA_ARGS__
-#define NOTHING_EXTRACT
-#define UNPAREN(x) MCAT(NOTHING_, EXTRACT x)
-
 // strict aliasing fix
 template <class T, class U>
 union _CAST_{T src; U dst; };
@@ -42,6 +35,8 @@ union _CAST_{T src; U dst; };
 #define TMPL2(t,u) template <class t, class u>
 
 // Macro fest
+#define _MCSE(arg) case arg:
+#define MCSE(...) MAP(_MCSE, __VA_ARGS__)
 #define HOTCALL(ftype, addr) (*((typeof(&ftype))(size_t(addr))))
 #define __assume(cond) do { if (!(cond)) __builtin_unreachable(); } while (0)
 #define ARRAYSIZE(a) \
@@ -66,14 +61,6 @@ static inline size_t ALIGN(size_t arg, size_t bound)
 #define RANGE2_ARG(src, m1, m2) (byte*)&m1, src, RangeOf(m1,m2)
 #define RANGE_ARGX(m1, m2) &m1, RangeOf(m1,m2)
 #define RANGE2_ARGX(src, m1, m2) &m1, src, RangeOf(m1,m2)
-
-// varidac macros, by Anonymous Coward
-// http://stackoverflow.com/a/6936114
-#define VA_NARGS_IMPL(_1, _2, _3, _4, _5, N, ...) N
-#define VA_NARGS(...) VA_NARGS_IMPL(X,##__VA_ARGS__, 4, 3, 2, 1, 0)
-#define VARARG_IMPL2(base, count, ...) base##count(__VA_ARGS__)
-#define VARARG_IMPL(base, count, ...) VARARG_IMPL2(base, count, __VA_ARGS__) 
-#define VARARG(base, ...) VARARG_IMPL(base, VA_NARGS(__VA_ARGS__), __VA_ARGS__)
 
 // the fest continues
 #define TMPNAME(name) MCAT(name,__LINE__)

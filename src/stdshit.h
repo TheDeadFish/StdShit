@@ -10,6 +10,7 @@
 #include <ctype.h>
 #include <assert.h>
 #include <math.h>
+#include "macro-evil.h"
 #include "macro-fest.h"
 #include "type_traits.h"
 #ifndef no_delagates
