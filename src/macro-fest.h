@@ -111,8 +111,8 @@ TMPL2(T,U=T) T release(T& ptr, U newPtr = 0) {
 TMPL2(T,U=T) T replace(T& ptr, U newPtr) {
 	free(ptr); return ptr = newPtr; }
 #define free_repl(ptr, newPtr) (::free(ptr), ptr = newPtr)
-#define ADDP(ptr, len) asm(".if %c1 == 1\n\tinc %0\n\t.elseif %c1 == -1\n\t" \
-	"dec %0\n\t.else\n\tlea %c1(%0),%0\n\t.endif" : "+r"(ptr) : "e"(len));
+#define ADDP(ptr, len) asm volatile(".if %c1 == 1;inc %0;.elseif %c1 == -1;" \
+	"dec %0;.else;lea %c1(%0),%0;.endif" : "+r"(ptr) : "e"(len));
 #define INCP(ptr) ADDP(ptr, sizeof(*ptr))
 #define WRI(ptr, data) ({ VARFIX(ptr); *ptr = data; INCP(ptr); })
 #define RDI(ptr) ({ RDI2(ptr, auto ret); ret;})
