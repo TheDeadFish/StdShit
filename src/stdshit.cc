@@ -6,6 +6,7 @@
  #include "utfconv.cpp"
 #endif
 #include "memalloc.cpp"
+#include "windows\windows.cpp"
 
 // tristi quod ad hunc, const strings
 #define DEF_RDTEXT(name, text) \

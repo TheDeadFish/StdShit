@@ -8,6 +8,14 @@ union _CAST_{T src; U dst; };
 #define CAST(type, x) (((_CAST_<typeof(x), type>*)&(x))->dst)
 #define PCST(type, x) (((_CAST_<typeof(*x), type>*)(x))->dst)
 
+// inline asm macros
+#define GLOB_LAB(name) ".globl " name "; " name ":"
+#define ASM_LOCAL(name, ...) asm(".section .text$" \
+	name ";" name ":" __VA_ARGS__);
+#define ASM_FUNC(name, ...) asm(".section .text$" \
+	name ";" GLOB_LAB(name) __VA_ARGS__);
+#define REF_SYMBOL(symb) asm(".def _"#symb";.scl 2;.type 32;.endef");
+
 // Function/Variable Attributes
 #define ALWAYS_INLINE __inline__ __attribute__((always_inline))
 #define NEVER_INLINE __attribute__ ((noinline))
@@ -28,7 +36,6 @@ union _CAST_{T src; U dst; };
 #define unlikely(x)     __builtin_expect((x),0)
 #define ARGFIX(arg) asm("" : "+m"(arg));
 #define VARFIX(var) asm("" : "+g"(var));
-#define REF_SYMBOL(symb)  asm(".def	_"#symb";	.scl	2;	.type	32;	.endef")
 #define VOIDPROC(proc) Void((void*)&proc)
 #define PACK1(...) _Pragma("pack(push, 1)") __VA_ARGS__ _Pragma("pop")
 #define TMPL(t) template <class t>

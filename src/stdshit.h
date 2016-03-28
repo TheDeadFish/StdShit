@@ -21,7 +21,7 @@
 #include "algorithm.h"
 #include "void.h"
 #include "memalloc.h"
-#include "windows.h"
+#include "windows\windows.h"
 #include "string.h"
 #include "copyfill.h"
 #include "constexp.h"
