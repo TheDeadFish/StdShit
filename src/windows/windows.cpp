@@ -31,35 +31,43 @@ asm(".section .text$cmd_esc_cpyW;"
 	"je 6f; movw $94, (%eax); addl $2, %eax; 5:"
 	"movw %bx, (%eax); addl $2, %eax; 6: ret;" );
 	
-ASM_FUNC("__Z14cmd_escape_lenPKcPci@12",
+ASM_FUNC("__Z14cmd_escape_lenPKcji@12",
 	"movl $_cmd_esc_lenA, %edx; xor %eax, %eax; jmp _cmd_escape@20");
-ASM_FUNC("__Z14cmd_escape_lenPKwPwi@12",
+ASM_FUNC("__Z14cmd_escape_lenPKwji@12",
 	"movl $_cmd_esc_lenW, %edx; xor %eax, %eax; jmp _cmd_escape@20");
-ASM_FUNC("__Z10cmd_escapePcPKcS_i@16",
+ASM_FUNC("__Z10cmd_escapePcPKcji@16",
 	"movl $_cmd_esc_cpyA, %edx; jmp _cmd_escape@20");
-ASM_FUNC("__Z10cmd_escapePwPKwS_i@16",
+ASM_FUNC("__Z10cmd_escapePwPKwji@16",
 	"movl $_cmd_esc_cpyW, %edx; jmp _cmd_escape@20");
 	
 extern "C"
 size_t REGCALL(2) cmd_escape(size_t dstLen, void* vtable,
-	const void* src, const void* end, byte flags)
+	const void* src, size_t len, byte flags)
 {
-	asm("movl %%ecx, %%ebp; andl $16, %%ebp; loop: orl $-1, %%esi;"
+	len += (size_t)src;
+	asm("movl %%ecx, %%ebp; andl $2, %%ebp; loop: orl $-1, %%esi;"
 		"1: incl %%esi; cmpl %3, %%edi; je end; call *8(%%edx);"
 		"cmpl $92, %%ebx; je 1b; cmpl $127, %%ebx; ja norm;"
-		"bt %%ebx, _cmd_esc_msk(%%ebp); jnc norm;"
+		"bt %%ebx, _cmd_esc_msk(,%%ebp,8); jnc norm;"
 		"testl %%ebx, %%ebx; je end; cmpl $34, %%ebx; je quot;"
 		"cmpl $37, %%ebx; je pcnt; testb %%cl, %%cl; jns chg_quot;"
 		"norm: call *(%%edx); jmp loop; quot: leal 1(%%esi,%%esi),"
 		"%%esi; testl %%ebp, %%ebp; jne norm; jmp esc_char;"
-		"pcnt: testb $8, %%cl; jne norm; esc_char:"
+		"pcnt: testb $32, %%cl; jne norm; esc_char:"
 		"bts $31, %%ebx; testb %%cl, %%cl; jns norm;"
 		"chg_quot: xorb $128, %%cl; call *4(%%edx); jmp loop;"
 		"end: xorl %%ebx, %%ebx; testb %%cl,%%cl; js in_quot;"
-		"testb $6, %%cl; je done; testb $2, %%cl; jne en_quot;"
+		"testb $5, %%cl; je done; testb $1, %%cl; jne en_quot;"
 		"testl %%esi, %%esi; je done; en_quot: addl $4, %%edx;"
-		"in_quot: testb $2, %%cl; jne done;" 
+		"in_quot: testb $1, %%cl; jne done;" 
 		"add %%esi, %%esi; movb $34, %%bl; done: call *(%%edx);"
-	: "+a"(dstLen) : "c"(flags), "D"(src), "m"(end), "d"(vtable) :
+	: "+a"(dstLen) : "c"(flags), "D"(src), "m"(len), "d"(vtable) :
 		"ebx", "esi", "ebp", "memory"); return dstLen;
 }
+
+int sysfmt(const char* fmt, ...) {
+	VA_ARG_FWD(fmt); char* str = xstrfmt(va);
+	SCOPE_EXIT(free(str)); return system(str);  }
+int sysfmt(const WCHAR* fmt, ...) {
+	VA_ARG_FWD(fmt); WCHAR* str = xstrfmt(va);
+	SCOPE_EXIT(free(str)); return _wsystem(str);  }

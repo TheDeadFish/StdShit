@@ -232,11 +232,12 @@ int sprintf_s(wchar_t *buffer, size_t sizeOfBuffer,
 #endif
 
 // sprintf replacement
+SHITCALL cstr_<NCHAR> xstrfmt(VaArgFwd<const NCHAR*> va);
 SHITCALL cstr_<NCHAR> xstrfmt(const NCHAR*, ...);
 SHITCALL int strfmt(NCHAR* buffer, const NCHAR* fmt, ...);
-SHITCALL int xstrfmt_len(const NCHAR* fmt, va_list ap);
+SHITCALL int xstrfmt_len(VaArgFwd<const NCHAR*> va);
 SHITCALL NCHAR* xstrfmt_fill(NCHAR* buffer,
-	const NCHAR* fmt, va_list ap);
+	VaArgFwd<const NCHAR*> va);
 
 // File handling
 SHITCALL FILE* xfopen(const NCHAR*, const NCHAR*);

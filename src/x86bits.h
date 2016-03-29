@@ -22,9 +22,9 @@
 // string lods
 #define lodsx(ptr, ax) ({if(sizeof(ax) == 1) lodsb(ptr, ax); \
 	ei(sizeof(ax) == 2) lodsw(ptr, ax); else lodsl(ptr, ax);})
-#define lodsb(ptr, ax) ({ asm ("lodsb" :"=a"(ax), "=S"(ptr) : "a"(ax), "S"(ptr)); })
-#define lodsw(ptr, ax) ({ asm ("lodsw" :"=a"(ax), "=S"(ptr) : "a"(ax), "S"(ptr)); })
-#define lodsl(ptr, ax) ({ asm ("lodsl" :"=a"(ax), "=S"(ptr) : "a"(ax), "S"(ptr)); })
+#define lodsb(ptr, ax) ({ asm ("lodsb" :"=a"(ax), "=S"(ptr) : "S"(ptr)); })
+#define lodsw(ptr, ax) ({ asm ("lodsw" :"=a"(ax), "=S"(ptr) : "S"(ptr)); })
+#define lodsl(ptr, ax) ({ asm ("lodsl" :"=a"(ax), "=S"(ptr) : "S"(ptr)); })
 
 // string stos
 #define stosx(ptr, ax) ({if(sizeof(ax) == 1) stosb(ptr, ax); \

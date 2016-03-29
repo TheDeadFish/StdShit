@@ -3,11 +3,7 @@
 #define xstrfmt_fmt_ MCAT(xstrfmt_fmt_,NCHAR)
 
 struct xstrfmt_fmt_ : xstrfmt_fmt<NCHAR>
-{	
-	xstrfmt_fmt_(NCHAR* dstPos, va_list ap1) {
-		flags=0, dstPosArg=dstPos; ap = ap1; }
-
-
+{
 	NCHAR getFillCh() {
 		char fillCh = ' '; 
 		if(flags&PADD_ZEROS)
@@ -16,16 +12,12 @@ struct xstrfmt_fmt_ : xstrfmt_fmt<NCHAR>
 		
 	size_t ext_mode() { size_t (__thiscall *funcPtr)
 		(void* ctx) = va_arg(ap, Void);	return funcPtr(this); }
-	size_t res_mode() { size_t	extraLen = (size_t)dstPosArg;
-		if(extraLen == 0) extraLen = width;
-		ei(flags & UPPER_CASE) extraLen += width;
-		return extraLen; }
 
 	size_t str_mode(bool fixed);
 	size_t dec_mode(bool sign);
-	size_t hex_mode();
+	size_t hex_mode(); size_t cmd_mode();
 	DEF_RETPAIR(core_t, size_t, extraLen, NCHAR*, str);
-	static core_t SHITCALL core(NCHAR* str, va_list* ap, NCHAR* dstPos);
+	core_t core(NCHAR* str);
 };
 
 size_t xstrfmt_fmt_::str_mode(bool fixed)
@@ -140,61 +132,82 @@ size_t xstrfmt_fmt_::hex_mode(void)
 	return (size_t)endPos;
 }
 
-xstrfmt_fmt_::core_t xstrfmt_fmt_::core(
-	NCHAR* str, va_list* ap, NCHAR* dstPos)
+size_t xstrfmt_fmt_::cmd_mode(void)
+{
+	char cmdFlag = 0;
+	asm("sar $3, %k1; rolb $2, %b0;" 
+		: "=Q"(cmdFlag) : "0"(flags));
+	NCHAR* src = va_arg(ap, NCHAR*);
+	size_t maxLen = (cmdFlag & ESC_FIXED) ?
+		va_arg(ap, size_t) : precision;
+	if(dstPosArg == NULL) return cmd_escape_len(src, maxLen, cmdFlag);
+	else return (size_t)cmd_escape(dstPosArg, src, maxLen, cmdFlag);
+}
+
+xstrfmt_fmt_::core_t xstrfmt_fmt_::core(NCHAR* str)
 {
 	// flag stage
-	xstrfmt_fmt_ ctx(dstPos, *ap);
-	SCOPE_EXIT(*ap = ctx.ap);
-	NCHAR ch; NCHAR ch2;
+	flags = 0; NCHAR ch; NCHAR ch2;
 	while(lodsx(str, ch), ch2 = ch-' ', 
 	(ch2 < 17)&&(ch != '*')&&(ch != '.'))
-		ctx.flags |= 1 << ch2;
+		flags |= 1 << ch2;
 	
 	// width/precision stage
-	int* dst = &ctx.width;
+	int* dst = &width;
 GET_INT_NEXT: { int result;
 		if(ch == '*') {	lodsx(str, ch);
-			result = va_arg(ctx.ap, int); }
+			result = va_arg(ap, int); }
 		else { result = 0; byte tmp;
 			while((tmp = ch-'0') < 10) { result *= 10;
 				result += tmp; lodsx(str, ch); }
 		} *dst = movfx(D, result);
-	if(dst == &ctx.width) {
-		dst = &ctx.precision; *dst = 0x7FFFFFFF;
+	if(dst == &width) {
+		dst = &precision; *dst = 0x7FFFFFFF;
 		if(ch == '.') { lodsx(str, ch); 
 			goto GET_INT_NEXT; }
 	}}
 			
 	// length stage
-	ctx.length = 0; LENGTH_NEXT:
-	if(ch == 'h') { ctx.length--; lodsx(str, ch); goto LENGTH_NEXT; }
-	if(ch == 'l') { ctx.length++; lodsx(str, ch); goto LENGTH_NEXT; }
-	if(ch < 'a') { asm("add $32, %0": "=r"(ch) : "r"(ch)); ctx.flags |= UPPER_CASE; }
+	length = 0; LENGTH_NEXT:
+	if(ch == 'h') { length--; lodsx(str, ch); goto LENGTH_NEXT; }
+	if(ch == 'l') { length++; lodsx(str, ch); goto LENGTH_NEXT; }
+	if(ch < 'a') { asm("add $32, %0": "=r"(ch) : "r"(ch)); flags |= UPPER_CASE; }
 	size_t extraLen;
 	
 	// tristi quod ad hunc
-	if(ch == 's') extraLen = ctx.str_mode(false);
-	ei(ch == 'v') extraLen = ctx.str_mode(true);
-	ei(ch > 's') extraLen = (ch == 'x') ? ctx.hex_mode() : ctx.dec_mode(false);
-	ei(ch == 'q') extraLen = ctx.ext_mode();
-	else extraLen = (ch > 'q') ? ctx.res_mode() : ctx.dec_mode(true);
+	switch(ch) {
+	case 's': extraLen = str_mode(false); break;
+	case 'v': extraLen = str_mode(false); break;
+	case 'x': extraLen = hex_mode(); break;
+	case 'd': extraLen = dec_mode(false); break;
+	case 'u': extraLen = dec_mode(true); break;
+	case 'q': extraLen = ext_mode(); break;
+	case 'z': extraLen = cmd_mode(); break;
+	default: UNREACH;
+	}
+	
+	
+	
+	
+
 	return core_t(extraLen, str);
 }
 
 SHITCALL
-int xstrfmt_len(const NCHAR* fmt, va_list ap)
+int xstrfmt_len(VaArgFwd<const NCHAR*> va)
 {
+	xstrfmt_fmt_ ctx; ctx.ap = va.start();
+	ctx.dstPosArg = 0;
+	
 	int extraLen = 1; NCHAR ch;
-	NCHAR* curPos = (NCHAR*)fmt;
+	DEF_ESI(NCHAR* curPos) = (NCHAR*)*va.pfmt;
 	while(lodsx(curPos, ch), ch) {
 		if(ch != '%') { 
 	ESCAPE_PERCENT:	extraLen++; }
 		ei(*curPos == '%') { curPos++;
 			goto ESCAPE_PERCENT; }
 		else {
-			auto result = xstrfmt_fmt_::core(
-				curPos, &ap, 0);
+			auto result = ctx.core(curPos);
 			curPos = result.str;
 			extraLen += result.extraLen; }
 	} return extraLen;
@@ -202,9 +215,11 @@ int xstrfmt_len(const NCHAR* fmt, va_list ap)
 
 SHITCALL
 NCHAR* xstrfmt_fill(NCHAR* buffer,
-	const NCHAR* fmt, va_list ap)
+	VaArgFwd<const NCHAR*> va)
 {
-	DEF_ESI(NCHAR* curPos) = (NCHAR*)fmt;
+	xstrfmt_fmt_ ctx; ctx.ap = va.start();
+	
+	DEF_ESI(NCHAR* curPos) = (NCHAR*)*va.pfmt;
 	DEF_EDI(NCHAR* dstPos) = buffer;
 	while(1) {
 		NCHAR ch; lodsx(curPos, ch);
@@ -214,8 +229,8 @@ NCHAR* xstrfmt_fill(NCHAR* buffer,
 		ei(*curPos == '%') { curPos++;
 			goto ESCAPE_PERCENT; }
 		else {
-			auto result = xstrfmt_fmt_::core(
-				curPos, &ap, dstPos);
+			ctx.dstPosArg = dstPos;
+			auto result = ctx.core(curPos);
 			curPos = result.str;
 			dstPos = (NCHAR*)result.extraLen;
 		}
@@ -224,28 +239,34 @@ NCHAR* xstrfmt_fill(NCHAR* buffer,
 }
 
 SHITCALL
+cstrT xstrfmt(VaArgFwd<const NCHAR*> va)
+{
+	va_list ap = va.start();
+	NCHAR* buffer = xMalloc(xstrfmt_len(va));
+	NCHAR* endPos = xstrfmt_fill(buffer, va);
+	return {buffer, (endPos-1)-buffer};
+}
+
+SHITCALL
 cstrT xstrfmt(const NCHAR* fmt, ...)
 {
-	va_list ap;  va_start(ap, fmt); 
-	NCHAR* buffer = xMalloc(xstrfmt_len(fmt, ap));
-	NCHAR* endPos = xstrfmt_fill(buffer, fmt, ap);
-	return {buffer, (endPos-1)-buffer};
+	VA_ARG_FWD(fmt); return xstrfmt(va);
 }
 
 SHITCALL int strfmt(NCHAR* buffer,
 	const NCHAR* fmt, ...)
 {
-	va_list ap;  va_start(ap, fmt); 
-	NCHAR* endPos = xstrfmt_fill(buffer, fmt, ap);
+	VA_ARG_FWD(fmt);
+	NCHAR* endPos = xstrfmt_fill(buffer, va);
 	return (endPos-1)-buffer;
 }
 
 void xvector_::fmtcat(const NCHAR* fmt, ...)
 {
-	va_list ap;  va_start(ap, fmt); 
-	int strLen = xstrfmt_len(fmt, ap)*sizeof(NCHAR);
+	VA_ARG_FWD(fmt);
+	int strLen = xstrfmt_len(va)*sizeof(NCHAR);
 	NCHAR* buffer = xnxalloc_(strLen); 
 	dataSize -= sizeof(NCHAR);
-	xstrfmt_fill(buffer, fmt, ap); 
+	xstrfmt_fill(buffer, va); 
 }
 #endif

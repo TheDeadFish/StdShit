@@ -134,4 +134,10 @@ DEF_PX(B,BYTE) DEF_PX(C,CHAR) DEF_PX(S,INT16) DEF_PX(W,WORD)
 DEF_PX(I,INT32) DEF_PX(U,DWORD) DEF_PX(L,INT64) DEF_PX(Q,UINT64)
 DEF_PX(T,SIZE_T) DEF_PX(R,SSIZE_T) DEF_PX(F,float) DEF_PX(D,double)
 
+// var-args forwarding
+TMPL(T) struct VaArgFwd { T* pfmt; va_list 
+	start() { return (va_list)(PT(pfmt)+1); }};
+#define VA_ARG_FWD(fmt) VaArgFwd<\
+	decltype (fmt)> va = {&fmt};
+
 #endif

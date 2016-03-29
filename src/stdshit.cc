@@ -6,7 +6,6 @@
  #include "utfconv.cpp"
 #endif
 #include "memalloc.cpp"
-#include "windows\windows.cpp"
 
 // tristi quod ad hunc, const strings
 #define DEF_RDTEXT(name, text) \
@@ -82,6 +81,7 @@ void errorDiskWrite() { (GetLastError() == ERROR_DISK_FULL)
 // ANSI/Unicode
 #include "stdshit.cc"
 #include "stdshit.h"
+#include "windows\windows.cpp"
 
 // File handling
 SHITCALL 

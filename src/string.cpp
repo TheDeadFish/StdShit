@@ -70,14 +70,14 @@ bstrT& bstrT::strcat(cstrT str) { memcpyX(xnalloc(
 	str.slen), str.data, str.slen); return *this; }
 template <>
 bstrT& bstrT::fmtcpy(const NCHAR* fmt, ...) {
-	va_list ap; va_start(ap, fmt);
-	NCHAR* buff = xresize(xstrfmt_len(fmt, ap)-1);
-	xstrfmt_fill(buff, fmt, ap); return *this; }
+	VA_ARG_FWD(fmt);
+	NCHAR* buff = xresize(xstrfmt_len(va)-1);
+	xstrfmt_fill(buff, va); return *this; }
 template <>
 bstrT& bstrT::fmtcat(const NCHAR* fmt, ...) {
-	va_list ap; va_start(ap, fmt);
-	NCHAR* buff = xnalloc(xstrfmt_len(fmt, ap)-1);
-	xstrfmt_fill(buff, fmt, ap); return *this; }
+	VA_ARG_FWD(fmt);
+	NCHAR* buff = xnalloc(xstrfmt_len(va)-1);
+	xstrfmt_fill(buff, va); return *this; }
 	
 // null-termination
 template <>
