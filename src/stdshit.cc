@@ -2,10 +2,8 @@
 #ifndef _STDSHIT_X_
 #include "stdshit.h"
 #include "math.cpp"
-#ifndef no_utf816
- #include "utfconv.cpp"
-#endif
 #include "memalloc.cpp"
+#include "utfconv.cpp"
 
 // tristi quod ad hunc, const strings
 #define DEF_RDTEXT(name, text) \
@@ -77,7 +75,12 @@ void errorDiskFail() { fatalError(str_io_fail); }
 void errorBadFile() { fatalError(str_bad_file); }
 void errorDiskWrite() { (GetLastError() == ERROR_DISK_FULL)
 	? errorDiskSpace() : errorDiskFail(); }
-	
+SHITCALL
+int fopen_ErrChk(void) { switch(errno)  { case ENOENT:
+	case EACCES: case EISDIR: case EINVAL: return 1;
+	case ENOSPC: return -1;  default: return 0; } 
+}
+
 // ANSI/Unicode
 #include "stdshit.cc"
 #include "stdshit.h"
@@ -273,27 +276,17 @@ LRETRY:
 	FILE* fp = fopen(fName, mode);
 	if(fp == NULL)
 	{
-		switch(errno)
-		{
-		case ENOENT:
-		case EACCES:
-		case EISDIR:
-		case EINVAL:
-			if(chkOpen)
+		int err = fopen_ErrChk();
+		if(err > 0) { if(chkOpen)
 		#if NWIDE
 			fatalError(str_open_fileW, fName);
 		#else
 			fatalError(str_open_fileA, fName);
 		#endif
-			break;
-		
-		case ENOSPC:
-			errorDiskSpace();
-			goto LRETRY;
-		
-		default:
-			errorAlloc();
 		}
+		ei(err < 0) { 
+			errorDiskSpace(); goto LRETRY; 
+		} else { errorAlloc(); }
 	}
 	return fp;
 }

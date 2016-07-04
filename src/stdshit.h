@@ -25,6 +25,7 @@
 #include "string.h"
 #include "copyfill.h"
 #include "constexp.h"
+#include "utfconv.h"
 
 // C++11 fest: SCOPE_EXIT
 template<class F>
@@ -202,6 +203,7 @@ FATALFUNC void errorDiskFail();
 FATALFUNC void errorBadFile();
 TMPL(T) T errorAlloc(T ptr)
 	{ if(!ptr) errorAlloc(); return ptr; }
+SHITCALL int fopen_ErrChk(void);
 
 // msvc/msvcrt compatibility
 Void memmem(const void *b1, const void *b2,
