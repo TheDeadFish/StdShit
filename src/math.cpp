@@ -10,32 +10,14 @@ const byte tableOfHex[2][16] = {
 	{'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'},
 	{'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'}};
 
-// integer floor/ceil
-int ifloor(float f) {	
-	asm(
-	"subl	$8, %esp				\n\t"
-	"fnstcw	6(%esp)					\n\t"
-	"flds	12(%esp)				\n\t"
-	"movw	6(%esp), %ax			\n\t"
-	"orb	$4, %ah					\n\t"
-	"movw	%ax, 4(%esp)			\n\t"
-	"fldcw	4(%esp)					\n\t"
-	"fistpl	(%esp)					\n\t"
-	"fldcw	6(%esp)					\n\t"
-	"movl	(%esp), %eax			\n\t"
-	"addl	$8, %esp				\n\t"); }
-int iceil(float f) {	
-	asm(
-	"subl	$8, %esp				\n\t"
-	"fnstcw	6(%esp)					\n\t"
-	"flds	12(%esp)				\n\t"
-	"movw	6(%esp), %ax			\n\t"
-	"orb	$8, %ah					\n\t"
-	"movw	%ax, 4(%esp)			\n\t"
-	"fldcw	4(%esp)					\n\t"
-	"fistpl	(%esp)					\n\t"
-	"fldcw	6(%esp)					\n\t"
-	"movl	(%esp), %eax			\n\t"
-	"addl	$8, %esp				\n\t"); }
+// fast floor/ceil
+#ifndef __SSE4_1__
+ #define _DFC_(n, v) ASM_FUNC("_f"#n, "pushl $"#v"; fnstcw 2(%esp); " \
+ "fldcw (%esp); frndint; fldcw 2(%esp); addl $4, %esp; ret; "); \
+ ASM_FUNC("_i"#n, "pushl $"#v"; push %eax; fnstcw 6(%esp); fldcw 4(%esp);" \
+ "fistpl (%esp); fldcw 6(%esp); pop %eax; addl $4, %esp; ret;");
+ _DFC_(ceil, 0xB7F) _DFC_(floor, 0x77F);
+ #undef _DFC_
+#endif
 
 #endif

@@ -26,6 +26,7 @@
 #include "copyfill.h"
 #include "constexp.h"
 #include "utfconv.h"
+#include "math.h"
 
 // C++11 fest: SCOPE_EXIT
 template<class F>
@@ -181,14 +182,6 @@ T* xMemdup(const T* src, int count) {
 	if((sizeof(T) % 4) == 0) return xmemdup32(src, count * (sizeof(T)/4));
 	ei((sizeof(T) % 2) == 0) return xmemdup16(src, count * (sizeof(T)/2));
 	else			  		 return xmemdup8(src, count * sizeof(T)); }
-	
-// fast math shit / tables
-int ifloor(float f); int iceil(float f);
-extern const uint powersOf10[10];
-extern const byte tableOfHex[2][16];
-static inline void lrintf (int& dst, float x) {
-  __asm__ __volatile__
-    ("fistpl %0"  : "=m" (dst) : "t" (x) : "st"); }
 	
 // Error handling
 extern const char progName[];
