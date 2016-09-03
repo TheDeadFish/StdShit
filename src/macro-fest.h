@@ -46,9 +46,6 @@ union _CAST_{T src; U dst; };
 #define MCSE(...) MAP(_MCSE, __VA_ARGS__)
 #define HOTCALL(ftype, addr) (*((typeof(&ftype))(size_t(addr))))
 #define __assume(cond) do { if (!(cond)) __builtin_unreachable(); } while (0)
-#define ARRAYSIZE(a) \
-  ((sizeof(a) / sizeof(*(a))) / \
-  static_cast<size_t>(!(sizeof(a) % sizeof(*(a)))))
 #define ZINIT memfillX(*this);
 #define ei else if 
 #define THIS_NULL_CHECK() if(this == NULL) return 0;

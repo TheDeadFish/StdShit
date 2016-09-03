@@ -236,12 +236,11 @@ SHITCALL NCHAR* strstri(const NCHAR* str1, const NCHAR* str2, int maxLen)
 	return NULL;
 }
 
-SHITCALL size_t strnlen(const NCHAR* str, size_t maxLen)
-{
-	size_t len = 0;
-	for(; str[len] && (len < maxLen); len++);
-	return len;
-}
+#ifdef _OLDMINGW_
+SHITCALL size_t MIF(NWIDE, wcsnlen, strnlen)(
+	const NCHAR* str, size_t maxLen) { size_t len = 0;
+	for(; str[len] && (len < maxLen); len++); return len; }
+#endif
 
 SHITCALL cstrT xstrdup(const NCHAR* str)
 {
@@ -277,14 +276,9 @@ LRETRY:
 	if(fp == NULL)
 	{
 		int err = fopen_ErrChk();
-		if(err > 0) { if(chkOpen)
-		#if NWIDE
-			fatalError(str_open_fileW, fName);
-		#else
-			fatalError(str_open_fileA, fName);
-		#endif
-		}
-		ei(err < 0) { 
+		if(err > 0) { if(chkOpen) fatalError(
+			NCHFN(str_open_file), fName);
+		} ei(err < 0) { 
 			errorDiskSpace(); goto LRETRY; 
 		} else { errorAlloc(); }
 	}
@@ -302,19 +296,10 @@ NCHAR* xfgets(NCHAR* str, int num, FILE* fp)
 
 SHITCALL
 loadFile_t loadFile(const NCHAR* fileName, int extra){
-#if NWIDE
-	return loadFile(xfopen(fileName, str_rbW), extra); }
-#else
-	return loadFile(xfopen(fileName, str_rbA), extra); }
-#endif
-
+	return loadFile(xfopen(fileName, NCHFN(str_rb)), extra); }
 SHITCALL
 char** loadText(const NCHAR* fileName, int& LineCount){
-#if NWIDE
-	return loadText(xfopen(fileName, str_rbW), LineCount); }
-#else
-	return loadText(xfopen(fileName, str_rbA), LineCount); }
-#endif
+	return loadText(xfopen(fileName, NCHFN(str_rb)), LineCount); }
 
 // String Handling
 SHITCALL
@@ -488,11 +473,8 @@ bool isFullPath(const NCHAR* path)
 int _vsnprintf_s(NCHAR *buffer, size_t sizeOfBuffer,
 	const NCHAR *format, va_list ap) {
 	if(sizeOfBuffer != 0) {
-	#if NWIDE
-		size_t result = _vsnwprintf(buffer, sizeOfBuffer, format, ap);
-	#else
-		size_t result = _vsnprintf(buffer, sizeOfBuffer, format, ap);
-	#endif
+	size_t result =  MIF(NWIDE, _vsnwprintf, _vsnprintf)
+		(buffer, sizeOfBuffer, format, ap);
 		if(result < sizeOfBuffer)
 			return result;
 		buffer[sizeOfBuffer-1] = '\0'; }

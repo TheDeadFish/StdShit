@@ -12,3 +12,8 @@
 #define VARARG_IMPL2(base, count, ...) base##count(__VA_ARGS__)
 #define VARARG_IMPL(base, count, ...) VARARG_IMPL2(base, count, __VA_ARGS__) 
 #define VARARG(base, ...) VARARG_IMPL(base, VA_NARGS(__VA_ARGS__), __VA_ARGS__)
+
+// conditional logic
+#define _MIF_0(a, b) UNPAREN(b)
+#define _MIF_1(a, b) UNPAREN(a)
+#define MIF(c,a,b) MCAT(_MIF_, c)(a,b)

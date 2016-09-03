@@ -1,4 +1,6 @@
-	
+
+#define NCHFN(x) MCAT(x, MIF(NWIDE,W,A))
+
 TMPL(T) struct cstr_;
 typedef cstr_<char> cstrA;
 typedef cstr_<wchar_t> cstrW;

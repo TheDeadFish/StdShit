@@ -1,4 +1,6 @@
 // fast math shit / tables
+#ifndef _DF_MATH_H_
+#define _DF_MATH_H_
 #ifdef __SSE4_1__
 #define _DFC_(n, t, x, m) static t MCAT(f,n)(t f) { \
 	asm("ROUNDP" #x " $" #m ", %1, %0" : "=x"(f) : "x"(f)); return f; } \
@@ -18,4 +20,5 @@ extern const byte tableOfHex[2][16];
 static inline void lrintf (int& dst, float x) {
   __asm__ __volatile__
     ("fistpl %0"  : "=m" (dst) : "t" (x) : "st"); }
-	
+
+#endif

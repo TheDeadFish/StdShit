@@ -27,6 +27,7 @@
 #include "constexp.h"
 #include "utfconv.h"
 #include "math.h"
+#include "compat.h"
 
 // C++11 fest: SCOPE_EXIT
 template<class F>
@@ -129,6 +130,7 @@ inline FILE* fopen(const wchar_t* fName, const wchar_t* mode)
 inline wchar_t* fgets (wchar_t* str, int num, FILE* fp)
 	{ return fgetws(str, num, fp); }
 inline size_t strlen (const wchar_t * str)	{ return wcslen(str); }
+inline size_t strnlen(const wchar_t *s, size_t l) { return wcsnlen(s, l); }
 inline wchar_t* strcpy(wchar_t* d, const wchar_t* s) { return wcscpy(d, s); }
 inline int strcmp (const wchar_t* str1, const wchar_t* str2) { return wcscmp(str1, str2); }
 inline int stricmp (const wchar_t* str1, const wchar_t* str2) { return wcsicmp(str1, str2); }
@@ -197,23 +199,6 @@ FATALFUNC void errorBadFile();
 TMPL(T) T errorAlloc(T ptr)
 	{ if(!ptr) errorAlloc(); return ptr; }
 SHITCALL int fopen_ErrChk(void);
-
-// msvc/msvcrt compatibility
-Void memmem(const void *b1, const void *b2,
-	size_t len1, size_t len2);
-#define __forceinline inline
-#define _vsnwprintf_s _vsnprintf_s
-#define swprintf_s sprintf_s
-#define _vsntprintf_s _vsnprintf_s
-#define _stprintf_s sprintf_s
-int _vsnprintf_s(char *buffer, size_t sizeOfBuffer,
-	const char *format, va_list ap);
-int sprintf_s(char *buffer, size_t sizeOfBuffer,
-	const char *format, ... );
-int _vsnprintf_s(wchar_t *buffer, size_t sizeOfBuffer,
-	const wchar_t *format, va_list ap);
-int sprintf_s(wchar_t *buffer, size_t sizeOfBuffer,
-	const wchar_t *format, ... );
 	
 #include "arrayMem.h"
 	
@@ -252,7 +237,6 @@ SHITCALL int strEicmp(const NCHAR*, const NCHAR*);
 SHITCALL int strNcpy(NCHAR*, const NCHAR*, int);
 SHITCALL int removeCrap(NCHAR*);
 SHITCALL int strmove(NCHAR*, const NCHAR*);
-SHITCALL size_t strnlen(const NCHAR*, size_t maxLen);
 SHITCALL NCHAR* strstr(const NCHAR*, const NCHAR*, int maxLen);
 SHITCALL NCHAR* strstri(const NCHAR*, const NCHAR*, int maxLen);
 SHITCALL int strcmp2(const NCHAR* str1, const NCHAR* str2);
