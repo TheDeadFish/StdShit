@@ -177,7 +177,7 @@ GET_INT_NEXT: { int result;
 	// tristi quod ad hunc
 	switch(ch) {
 	case 's': extraLen = str_mode(false); break;
-	case 'v': extraLen = str_mode(false); break;
+	case 'v': extraLen = str_mode(true); break;
 	case 'x': extraLen = hex_mode(); break;
 	case 'd': extraLen = dec_mode(false); break;
 	case 'u': extraLen = dec_mode(true); break;

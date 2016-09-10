@@ -140,19 +140,14 @@ loadFile_t loadFile(FILE* fp, int extra)
 
 char** loadText(FILE* fp, int& LineCount)
 {
-	// load file	
+	// load file
+	auto file = loadFile(fp, 1);
 	if( fp == NULL ) { LineCount = -1;
 		return NULL; } LineCount = 0;
-	int fileSize = fsize(fp); Void fileData;
-	{ SCOPE_EXIT(if(!(fp->_flag & 0x82)) fclose(fp)); 	
-	if(fileSize == 0 ) return NULL;
-	fileData = xmalloc(fileSize+1);
-	xfread(fileData, 1, fileSize, fp); }
-
 	
 	// split into lines 
-	Void curPos = fileData;
-	Void endPos = curPos+fileSize;
+	Void curPos = file.data;
+	Void endPos = curPos+file.size;
 	char** lineData = NULL;
 	while(curPos < endPos)
 	{
