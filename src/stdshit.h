@@ -204,11 +204,11 @@ SHITCALL int fopen_ErrChk(void);
 	
 // ANSI/Unicode
 #endif
-#include "nchar_undef.cpp"
+#undef NWIDE
 #if defined(UNICODE) ^ defined(_STDSHIT_X_)
- #include "nchar_ansi.cpp"
+ #define NWIDE 0
 #else
- #include "nchar_wide.cpp"
+ #define NWIDE 1
 #endif
 
 // sprintf replacement

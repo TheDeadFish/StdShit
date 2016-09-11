@@ -1,5 +1,11 @@
 
+// ansi/unicode macros
+#define NCHAR MIF(NWIDE, wchar_t, char)
+#define DCHAR MIF(NWIDE, DWORD, WORD)
+#define _N(str) MIF(NWIDE, MCAT(L,str), str)
 #define NCHFN(x) MCAT(x, MIF(NWIDE,W,A))
+
+
 
 TMPL(T) struct cstr_;
 typedef cstr_<char> cstrA;
