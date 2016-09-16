@@ -68,6 +68,38 @@ size_t REGCALL(2) cmd_escape(size_t dstLen, void* vtable,
 int sysfmt(const char* fmt, ...) {
 	VA_ARG_FWD(fmt); char* str = xstrfmt(va);
 	SCOPE_EXIT(free(str)); return system(str);  }
-int sysfmt(const WCHAR* fmt, ...) {
-	VA_ARG_FWD(fmt); WCHAR* str = xstrfmt(va);
-	SCOPE_EXIT(free(str)); return _wsystem(str);  }
+	
+extern "C" {
+// utf8 api, nowide functions
+FILE *freopen(cch* name, cch* mode, FILE *fp) {
+	WCHAR wmode[32]; utf816_cpy(wmode, mode);
+	return _wfreopen(widen(name), wmode, fp); }
+FILE* fopen(cch* name, cch* mode) {
+	WCHAR wmode[32]; utf816_cpy(wmode, mode);
+	return _wfopen(widen(name), wmode); }
+int rename(cch *old_name,cch *new_name) {
+	return _wrename(widen(old_name), widen(new_name)); }
+int remove(cch *name) { return _wremove(widen(name)); }
+int system(cch *cmd) { return _wsystem(widen(cmd)); }
+}
+
+HMODULE getModuleBase(void* ptr)
+{
+	MEMORY_BASIC_INFORMATION bmi;
+	VirtualQuery(ptr, &bmi, sizeof(bmi));
+	return (HMODULE)bmi.AllocationBase;
+}
+
+// utf8 api, __getmainargs
+extern char ** _acmdln;
+extern wchar_t ** _wcmdln;
+extern "C" void __getmainargs(int * argc, 
+	char *** argv, char *** envp, int mode, void * si)
+{
+	char** _acmdln2 = _acmdln; VARFIX(_acmdln2);
+	char* prev_acmdln = release(*_acmdln2, utf816_dup(*_wcmdln));
+	auto gma = (typeof(&__getmainargs))GetProcAddress(
+		getModuleBase(_acmdln2), "__getmainargs");
+	gma(argc, argv, envp, mode, si);
+	free_ref(*_acmdln2); *_acmdln2 = prev_acmdln;
+}

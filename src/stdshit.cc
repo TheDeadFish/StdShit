@@ -4,6 +4,7 @@
 #include "math.cpp"
 #include "memalloc.cpp"
 #include "utfconv.cpp"
+#include "windows\windows.cpp"
 
 // tristi quod ad hunc, const strings
 #define DEF_RDTEXT(name, text) \
@@ -81,10 +82,7 @@ int fopen_ErrChk(void) { switch(errno)  { case ENOENT:
 	case ENOSPC: return -1;  default: return 0; } 
 }
 
-// ANSI/Unicode
-#include "stdshit.cc"
-#include "stdshit.h"
-#include "windows\windows.cpp"
+
 
 // File handling
 SHITCALL 
@@ -192,70 +190,70 @@ void xfputs (const char * str, FILE * stream) {
 #include "string.cpp"
 #include "xstrfmt.cpp"
 
-RetEdx<int> xvector_::strcat2(const NCHAR* str)
+RetEdx<int> xvector_::strcat2(const char* str)
 {
 	return this->write(str, strlen(str)+1);
 }
 
-int xvector_::strcat(const NCHAR* str)
+int xvector_::strcat(const char* str)
 {
 	int strLen = strlen(str);
 	this->write(str, strLen+1);
-	dataSize -= sizeof(NCHAR); 
+	dataSize -= sizeof(char); 
 	return strLen;
 }
 
-SHITCALL NCHAR* strstr(const NCHAR* str1, const NCHAR* str2, int maxLen)
+SHITCALL char* strstr(const char* str1, const char* str2, int maxLen)
 {
 	int cmpLen = strlen(str2)-1;
 	if(cmpLen < 0) return NULL;
-	const NCHAR* endPos = (maxLen < 0) ? (NCHAR*)size_t(-1)
+	const char* endPos = (maxLen < 0) ? (char*)size_t(-1)
 		: str1 + (maxLen - cmpLen);
-	NCHAR findCh = *str2++; NCHAR ch;
+	char findCh = *str2++; char ch;
 	while((str1 < endPos)&&((lodsx(str1, ch), ch)))
 	  if((ch == findCh)&&(!strncmp(str1, str2, cmpLen)))
-		return (NCHAR*)str1-1;
+		return (char*)str1-1;
 	return NULL;
 }
 
-SHITCALL NCHAR* strstri(const NCHAR* str1, const NCHAR* str2, int maxLen)
+SHITCALL char* strstri(const char* str1, const char* str2, int maxLen)
 {
 	int cmpLen = strlen(str2)-1;
 	if(cmpLen < 0) return NULL;
-	const NCHAR* endPos = (maxLen < 0) ? (NCHAR*)size_t(-1)
+	const char* endPos = (maxLen < 0) ? (char*)size_t(-1)
 		: str1 + (maxLen - cmpLen);
-	NCHAR findCh = toUpper(*str2++); NCHAR ch;
+	char findCh = toUpper(*str2++); char ch;
 	while((str1 < endPos)&&((lodsx(str1, ch), ch = toUpper(ch))))
 	  if((ch == findCh)&&(!strnicmp(str1, str2, cmpLen)))
-		return (NCHAR*)str1-1;
+		return (char*)str1-1;
 	return NULL;
 }
 
 #ifdef _OLDMINGW_
-SHITCALL size_t MIF(NWIDE, wcsnlen, strnlen)(
-	const NCHAR* str, size_t maxLen) { size_t len = 0;
+SHITCALL size_t strnlen(
+	const char* str, size_t maxLen) { size_t len = 0;
 	for(; str[len] && (len < maxLen); len++); return len; }
 #endif
 
-SHITCALL cstrT xstrdup(const NCHAR* str)
+SHITCALL cstr xstrdup(const char* str)
 {
 	if(str == NULL) return {0,0};
 	int len = strlen(str);
-	NCHAR* ret = xMalloc(len+1);
+	char* ret = xMalloc(len+1);
 	return {strcpy(ret, str), len};
 }
 
-SHITCALL cstrT xstrdup(const NCHAR* str, size_t maxLen)
+SHITCALL cstr xstrdup(const char* str, size_t maxLen)
 {
 	if(str == NULL) return NULL;
 	int strLen = strnlen(str, maxLen);
-	NCHAR* buffer = xMalloc(strLen+1);
+	char* buffer = xMalloc(strLen+1);
 	return strcpyn(buffer, str, strLen);
 }
 
 // File handling
 SHITCALL
-FILE* xfopen(const NCHAR* fName, const NCHAR* mode)
+FILE* xfopen(const char* fName, const char* mode)
 {
 	// prepare mode
 	bool chkOpen = false;
@@ -272,7 +270,7 @@ LRETRY:
 	{
 		int err = fopen_ErrChk();
 		if(err > 0) { if(chkOpen) fatalError(
-			NCHFN(str_open_file), fName);
+			str_open_fileA, fName);
 		} ei(err < 0) { 
 			errorDiskSpace(); goto LRETRY; 
 		} else { errorAlloc(); }
@@ -281,77 +279,77 @@ LRETRY:
 }
 
 SHITCALL
-NCHAR* xfgets(NCHAR* str, int num, FILE* fp)
+char* xfgets(char* str, int num, FILE* fp)
 {
-	NCHAR* tmp = fgets(str, num, fp);
+	char* tmp = fgets(str, num, fp);
 	if((!tmp)&&(ferror(fp)))
 		errorDiskFail();
 	return tmp;
 }
 
 SHITCALL
-loadFile_t loadFile(const NCHAR* fileName, int extra){
-	return loadFile(xfopen(fileName, NCHFN(str_rb)), extra); }
+loadFile_t loadFile(const char* fileName, int extra){
+	return loadFile(xfopen(fileName, str_rbA), extra); }
 SHITCALL
-char** loadText(const NCHAR* fileName, int& LineCount){
-	return loadText(xfopen(fileName, NCHFN(str_rb)), LineCount); }
+char** loadText(const char* fileName, int& LineCount){
+	return loadText(xfopen(fileName, str_rbA), LineCount); }
 
 // String Handling
 SHITCALL
-NCHAR* xstrdupr(NCHAR*& str1, const NCHAR* str2) {
+char* xstrdupr(char*& str1, const char* str2) {
 	return free_repl(str1, xstrdup(str2)); }
 SHITCALL
-NCHAR* xstrdupr(NCHAR*& str1, const NCHAR* str2, size_t sz) {
+char* xstrdupr(char*& str1, const char* str2, size_t sz) {
 	return free_repl(str1, xstrdup(str2, sz)); }
 
 SHITCALL
-int strcmp2(const NCHAR* str1, const NCHAR* str2)
+int strcmp2(const char* str1, const char* str2)
 {
-	for(const NCHAR* curPos = str2;; curPos++) {
-		NCHAR ch1; lodsx(str1, ch1);
-		NCHAR ch2 = *curPos;
+	for(const char* curPos = str2;; curPos++) {
+		char ch1; lodsx(str1, ch1);
+		char ch2 = *curPos;
 		if(ch1 != ch2) return curPos-str2;
 		if(ch2 == 0) return -1;
 	}
 }
 
 SHITCALL
-int stricmp2(const NCHAR* str1, const NCHAR* str2)
+int stricmp2(const char* str1, const char* str2)
 {
-	for(const NCHAR* curPos = str2;; curPos++) {
-		NCHAR ch1; lodsx(str1, ch1); ch1 = toUpper(ch1);
-		NCHAR ch2 = toUpper(*curPos);
+	for(const char* curPos = str2;; curPos++) {
+		char ch1; lodsx(str1, ch1); ch1 = toUpper(ch1);
+		char ch2 = toUpper(*curPos);
 		if(ch1 != ch2) return curPos-str2;
 		if(ch2 == 0) return -1;
 	}
 }
 
 SHITCALL
-NCHAR* strScmp(const NCHAR* str1, const NCHAR* str2)
+char* strScmp(const char* str1, const char* str2)
 {
 	while(1) {
-		NCHAR ch2; lodsx(str2, ch2);
+		char ch2; lodsx(str2, ch2);
 		if( ch2 == 0 )
-			return (NCHAR*)str1;
+			return (char*)str1;
 		if( ch2 != *str1++ )
 			return NULL;
 	}
 }
 
 SHITCALL
-NCHAR* strSicmp(const NCHAR* str1, const NCHAR* str2)
+char* strSicmp(const char* str1, const char* str2)
 {
-	while(1) { NCHAR ch2; 
+	while(1) { char ch2; 
 		lodsx(str2, ch2); ch2 = toUpper(ch2);
 		if( ch2 == 0 )
-			return (NCHAR*)str1;
+			return (char*)str1;
 		if( ch2 != toUpper(*str1++) )
 			return NULL;
 	}
 }
 
 SHITCALL
-int strEcmp(const NCHAR* str1, const NCHAR* str2)
+int strEcmp(const char* str1, const char* str2)
 {
 	int diff = strlen(str1)-strlen(str2);
 	if(diff < 0)
@@ -360,7 +358,7 @@ int strEcmp(const NCHAR* str1, const NCHAR* str2)
 }
 
 SHITCALL
-int strEicmp(const NCHAR* str1, const NCHAR* str2)
+int strEicmp(const char* str1, const char* str2)
 {
 	int diff = strlen(str1)-strlen(str2);
 	if(diff < 0)
@@ -369,7 +367,7 @@ int strEicmp(const NCHAR* str1, const NCHAR* str2)
 }
 
 SHITCALL
-int strNcpy(NCHAR* dst, const NCHAR* src, int num)
+int strNcpy(char* dst, const char* src, int num)
 {
 	for(int i = 0; i < num; i++)
 	  if(!(dst[i] = src[i]))
@@ -379,15 +377,15 @@ int strNcpy(NCHAR* dst, const NCHAR* src, int num)
 	return num;
 }
 
-SHITCALL cstr_<NCHAR> strcpyn(
-	NCHAR* dst, const NCHAR* src, int len)
+SHITCALL cstr strcpyn(
+	char* dst, const char* src, int len)
 {
 	memcpyX(dst, src, len);
 	dst[len] = '\0'; return {dst, len};
 }
 
 SHITCALL
-bool strcmpn(const NCHAR* str1, const NCHAR* str2, int len)
+bool strcmpn(const char* str1, const char* str2, int len)
 {
 	if(strlen(str1) != len)
 		return false;
@@ -395,7 +393,7 @@ bool strcmpn(const NCHAR* str1, const NCHAR* str2, int len)
 }
 
 SHITCALL
-bool stricmpn(const NCHAR* str1, const NCHAR* str2, int len)
+bool stricmpn(const char* str1, const char* str2, int len)
 {
 	if(strlen(str1) != len)
 		return false;
@@ -403,7 +401,7 @@ bool stricmpn(const NCHAR* str1, const NCHAR* str2, int len)
 }
 
 SHITCALL
-int removeCrap(NCHAR* str)
+int removeCrap(char* str)
 {
 	int len = strlen(str);
 	while(len--)
@@ -414,16 +412,16 @@ int removeCrap(NCHAR* str)
 }
 
 SHITCALL 
-int strmove(NCHAR* dst, const NCHAR* src)
+int strmove(char* dst, const char* src)
 {
 	int len = strlen(src)+1;
-	memmove(dst, src, len*sizeof(NCHAR));
+	memmove(dst, src, len*sizeof(char));
 	return len;
 }
 
 // Path Handling
 SHITCALL
-int getPathLen(const NCHAR* fName)
+int getPathLen(const char* fName)
 {
 	int i = strlen(fName);
 	while(i--)
@@ -436,7 +434,7 @@ int getPathLen(const NCHAR* fName)
 }
 
 SHITCALL
-int getPath(NCHAR* fName)
+int getPath(char* fName)
 {
 	int len = getPathLen(fName);
 	fName[len] = '\0';
@@ -444,18 +442,18 @@ int getPath(NCHAR* fName)
 }
 
 SHITCALL
-NCHAR* getName(const NCHAR* fName)
-{	return (NCHAR*)fName+getPathLen(fName); }
+char* getName(const char* fName)
+{	return (char*)fName+getPathLen(fName); }
 
 SHITCALL
-int getName(NCHAR* dst, const NCHAR* src, size_t max)
+int getName(char* dst, const char* src, size_t max)
 {
-	NCHAR* name = getName(src);
+	char* name = getName(src);
 	return strNcpy(dst, src, max-1);
 }
 
 SHITCALL
-bool isFullPath(const NCHAR* path)
+bool isFullPath(const char* path)
 {
 	if( path
 	&&((isPathSep(path[0]))
@@ -465,17 +463,17 @@ bool isFullPath(const NCHAR* path)
 }
 
 // msvc2005 compatibility
-int _vsnprintf_s(NCHAR *buffer, size_t sizeOfBuffer,
-	const NCHAR *format, va_list ap) {
+int _vsnprintf_s(char *buffer, size_t sizeOfBuffer,
+	const char *format, va_list ap) {
 	if(sizeOfBuffer != 0) {
-	size_t result =  MIF(NWIDE, _vsnwprintf, _vsnprintf)
+	size_t result =  _vsnprintf
 		(buffer, sizeOfBuffer, format, ap);
 		if(result < sizeOfBuffer)
 			return result;
 		buffer[sizeOfBuffer-1] = '\0'; }
 	return -1; }
-int sprintf_s(NCHAR *buffer, size_t sizeOfBuffer,
-	const NCHAR *format, ... ) {
+int sprintf_s(char *buffer, size_t sizeOfBuffer,
+	const char *format, ... ) {
     int count;  va_list ap;
     va_start(ap, format);
     count = _vsnprintf_s(buffer, sizeOfBuffer, format, ap);

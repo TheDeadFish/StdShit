@@ -11,4 +11,11 @@ char* REGCALL(1) cmd_escape(char* dst, const char* src, size_t len, int flags);
 wchar_t* REGCALL(1) cmd_escape(wchar_t* dst, 
 	const wchar_t* src, size_t len, int flags);
 int sysfmt(const char* fmt, ...);
-int sysfmt(const WCHAR* fmt, ...);
+
+// UTF8/UTF16 conversion
+static inline CstrW widen(cch* s) { return utf816_dup(s); }
+static inline CstrW widen(cch* s, int l) { return utf816_dup(s, l); }
+static inline Cstr narrow(LPWSTR s) { return utf816_dup(s); }
+static inline Cstr narrow(LPCWSTR s, int l) { return utf816_dup(s, l); }
+
+HMODULE _stdcall getModuleBase(void* ptr);

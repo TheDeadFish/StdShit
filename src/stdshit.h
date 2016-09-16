@@ -1,5 +1,5 @@
 #ifndef _STDSHIT_H_
-#ifndef _STDSHIT_X_
+#define _STDSHIT_H_
 #include <windows.h>
 #include <tchar.h>
 #include <stdio.h>
@@ -21,12 +21,12 @@
 #include "algorithm.h"
 #include "void.h"
 #include "memalloc.h"
-#include "windows\windows.h"
-#include "string.h"
 #include "copyfill.h"
 #include "constexp.h"
-#include "utfconv.h"
 #include "math.h"
+#include "string.h"
+#include "utfconv.h"
+#include "windows\windows.h"
 #include "compat.h"
 
 // C++11 fest: SCOPE_EXIT
@@ -201,66 +201,48 @@ TMPL(T) T errorAlloc(T ptr)
 SHITCALL int fopen_ErrChk(void);
 	
 #include "arrayMem.h"
-	
-// ANSI/Unicode
-#endif
-#undef NWIDE
-#if defined(UNICODE) ^ defined(_STDSHIT_X_)
- #define NWIDE 0
-#else
- #define NWIDE 1
-#endif
 
 // sprintf replacement
-SHITCALL cstr_<NCHAR> xstrfmt(VaArgFwd<const NCHAR*> va);
-SHITCALL cstr_<NCHAR> xstrfmt(const NCHAR*, ...);
-SHITCALL int strfmt(NCHAR* buffer, const NCHAR* fmt, ...);
-SHITCALL int xstrfmt_len(VaArgFwd<const NCHAR*> va);
-SHITCALL NCHAR* xstrfmt_fill(NCHAR* buffer,
-	VaArgFwd<const NCHAR*> va);
+SHITCALL cstr xstrfmt(VaArgFwd<const char*> va);
+SHITCALL cstr xstrfmt(const char*, ...);
+SHITCALL int strfmt(char* buffer, const char* fmt, ...);
+SHITCALL int xstrfmt_len(VaArgFwd<const char*> va);
+SHITCALL char* xstrfmt_fill(char* buffer,
+	VaArgFwd<const char*> va);
 
 // File handling
-SHITCALL FILE* xfopen(const NCHAR*, const NCHAR*);
-SHITCALL NCHAR* xfgets(NCHAR*, int, FILE*);
-SHITCALL loadFile_t loadFile(const NCHAR* fileName, int extra = 0);
-SHITCALL char** loadText(const NCHAR* fileName, int& LineCount);
+SHITCALL FILE* xfopen(const char*, const char*);
+SHITCALL char* xfgets(char*, int, FILE*);
+SHITCALL loadFile_t loadFile(const char* fileName, int extra = 0);
+SHITCALL char** loadText(const char* fileName, int& LineCount);
 
 // String handling
-SHITCALL cstr_<NCHAR> xstrdup(const NCHAR*);
-SHITCALL cstr_<NCHAR> xstrdup(const NCHAR*, size_t);
-SHITCALL NCHAR* xstrdupr(NCHAR*&, const NCHAR*);	
-SHITCALL NCHAR* xstrdupr(NCHAR*&, const NCHAR*, size_t);
-SHITCALL NCHAR* strScmp(const NCHAR*, const NCHAR*);
-SHITCALL NCHAR* strSicmp(const NCHAR*, const NCHAR*);
-SHITCALL int strEcmp(const NCHAR*, const NCHAR*);
-SHITCALL int strEicmp(const NCHAR*, const NCHAR*);
-SHITCALL int strNcpy(NCHAR*, const NCHAR*, int);
-SHITCALL int removeCrap(NCHAR*);
-SHITCALL int strmove(NCHAR*, const NCHAR*);
-SHITCALL NCHAR* strstr(const NCHAR*, const NCHAR*, int maxLen);
-SHITCALL NCHAR* strstri(const NCHAR*, const NCHAR*, int maxLen);
-SHITCALL int strcmp2(const NCHAR* str1, const NCHAR* str2);
-SHITCALL int stricmp2(const NCHAR* str1, const NCHAR* str2);
+SHITCALL cstr xstrdup(const char*);
+SHITCALL cstr xstrdup(const char*, size_t);
+SHITCALL char* xstrdupr(char*&, const char*);	
+SHITCALL char* xstrdupr(char*&, const char*, size_t);
+SHITCALL char* strScmp(const char*, const char*);
+SHITCALL char* strSicmp(const char*, const char*);
+SHITCALL int strEcmp(const char*, const char*);
+SHITCALL int strEicmp(const char*, const char*);
+SHITCALL int strNcpy(char*, const char*, int);
+SHITCALL int removeCrap(char*);
+SHITCALL int strmove(char*, const char*);
+SHITCALL char* strstr(const char*, const char*, int maxLen);
+SHITCALL char* strstri(const char*, const char*, int maxLen);
+SHITCALL int strcmp2(const char* str1, const char* str2);
+SHITCALL int stricmp2(const char* str1, const char* str2);
 
 // strings: non-null terminated source 
-SHITCALL cstrT strcpyn(NCHAR*, const NCHAR*, int);
-SHITCALL bool strcmpn(const NCHAR*, const NCHAR*, int);
-SHITCALL bool stricmpn(const NCHAR*, const NCHAR*, int);
+SHITCALL cstr strcpyn(char*, const char*, int);
+SHITCALL bool strcmpn(const char*, const char*, int);
+SHITCALL bool stricmpn(const char*, const char*, int);
 
 // Path Handling
-SHITCALL int getPathLen(const NCHAR*);
-SHITCALL int getPath(NCHAR*);
-SHITCALL NCHAR* getName(const NCHAR*);
-SHITCALL int getName(NCHAR* dst, const NCHAR* src, size_t max);
-SHITCALL bool isFullPath(const NCHAR*);
+SHITCALL int getPathLen(const char*);
+SHITCALL int getPath(char*);
+SHITCALL char* getName(const char*);
+SHITCALL int getName(char* dst, const char* src, size_t max);
+SHITCALL bool isFullPath(const char*);
 
-#ifndef _STDSHIT_X_
- #define _STDSHIT_X_
- #ifndef _STDSHIT_CC_
-  #include "stdshit.h"
- #endif
-#else
- _ARRAY_MEM_FIX // tristi quod ad hunc
- #define _STDSHIT_H_
-#endif
 #endif

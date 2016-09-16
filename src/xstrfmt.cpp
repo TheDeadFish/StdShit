@@ -1,10 +1,10 @@
 #ifndef no_xstrfmt
 #undef xstrfmt_fmt_
-#define xstrfmt_fmt_ MCAT(xstrfmt_fmt_,NCHAR)
+#define xstrfmt_fmt_ MCAT(xstrfmt_fmt_,char)
 
-struct xstrfmt_fmt_ : xstrfmt_fmt<NCHAR>
+struct xstrfmt_fmt_ : xstrfmt_fmt<char>
 {
-	NCHAR getFillCh() {
+	char getFillCh() {
 		char fillCh = ' '; 
 		if(flags&PADD_ZEROS)
 			movb2(fillCh, '0');
@@ -16,36 +16,20 @@ struct xstrfmt_fmt_ : xstrfmt_fmt<NCHAR>
 	size_t str_mode(bool fixed);
 	size_t dec_mode(bool sign);
 	size_t hex_mode(); size_t cmd_mode();
-	DEF_RETPAIR(core_t, size_t, extraLen, NCHAR*, str);
-	core_t core(NCHAR* str);
+	DEF_RETPAIR(core_t, size_t, extraLen, char*, str);
+	core_t core(char* str);
 };
 
 size_t xstrfmt_fmt_::str_mode(bool fixed)
 {
-	NCHAR* dstPos = dstPosArg;
+	char* dstPos = dstPosArg;
 	size_t data = va_arg(ap, size_t);
 	if(fixed) precision = va_arg(ap, size_t);
 
-#ifndef no_utf816
-	if(flags & UPPER_CASE) {
-  #ifdef NWIDE
-		if(data == 0) data = (size_t)"(null)";
-		if(dstPos == NULL) return utf8To16_size((char*)data)-1;
-		dstPos = utf8To16_cpy(dstPos, (char*)data);
-		nothing(); return (size_t)dstPos;
-  #else
-		if(data == 0) data = (size_t)L"(null)";
- 		if(dstPos == NULL) return utf16To8_size((wchar_t*)data)-1;
-		dstPos = utf16To8_cpy(dstPos, (wchar_t*)data);
-		nothing(); return (size_t)dstPos;
-  #endif
-	}
-#endif
-
 	// calculate lenth
 	movfx(S, data);
-	NCHAR* str = (NCHAR*)data;
-	if(str == NULL) str = (NCHAR*)_N("(null)");
+	char* str = (char*)data;
+	if(str == NULL) str = (char*)"(null)";
 	size_t strLen = precision;
 	if(!fixed && (!dstPos || width))
 		strLen = strnlen(str, strLen);
@@ -55,7 +39,7 @@ size_t xstrfmt_fmt_::str_mode(bool fixed)
 	// output string padding
 	int len = width - strLen;
 	if(len > 0) { ARGFIX(flags);
-		NCHAR fillCh = getFillCh();
+		char fillCh = getFillCh();
 		do { stosx(dstPos, fillCh);
 		} while(--len > 0);}
 		
@@ -63,9 +47,9 @@ size_t xstrfmt_fmt_::str_mode(bool fixed)
 	if(fixed == true) {
 		memcpy_ref(dstPos, str, strLen);
 		return (size_t)dstPos; }
-	NCHAR* endPos = str+strLen; asm goto ( 
+	char* endPos = str+strLen; asm goto ( 
 		"jmp %l1" :: "r"(endPos):: LOOP_START);
-	do { {NCHAR ch; lodsx(str, ch);
+	do { {char ch; lodsx(str, ch);
 		if(ch == '\0') break;
 		stosx(dstPos, ch); }
 LOOP_START:;
@@ -75,11 +59,11 @@ LOOP_START:;
 
 size_t xstrfmt_fmt_::dec_mode(bool sign)
 {
-	NCHAR* dstPos = dstPosArg;
+	char* dstPos = dstPosArg;
 	size_t data = va_arg(ap, size_t);
 
 	// calculate length
-	NCHAR signCh = 0;
+	char signCh = 0;
 	if(sign != 0) {	if(int(data) < 0) {
 			signCh = '-'; data = -data; }
 		ei(flags & SPACE_POSI) signCh = ' ';
@@ -91,12 +75,12 @@ size_t xstrfmt_fmt_::dec_mode(bool sign)
 	if(dstPos == NULL) return strLen;
 	
 	// output string
-	NCHAR* endPos = dstPos + strLen;
-	NCHAR* curPos = endPos;
+	char* endPos = dstPos + strLen;
+	char* curPos = endPos;
 	do { *(--curPos) = '0'+data%10;
 	} while(data /= 10);
 	if(curPos > dstPos) {
-		NCHAR fillCh;
+		char fillCh;
 		if(flags & PADD_ZEROS) {
 			if(signCh) stosx(dstPos, signCh);
 			fillCh = '0';
@@ -120,13 +104,13 @@ size_t xstrfmt_fmt_::hex_mode(void)
 	if(dstPosArg == NULL) return strLen;
 
 	// output string
-	NCHAR* endPos = dstPosArg + strLen;
-	NCHAR* curPos = endPos;
+	char* endPos = dstPosArg + strLen;
+	char* curPos = endPos;
 	const byte* hexTab = (flags & UPPER_CASE) ?
 		tableOfHex[1] : tableOfHex[0];
 	do { *(--curPos) = hexTab[data&15];
 	} while(data >>= 4);
-	NCHAR fillCh = getFillCh();
+	char fillCh = getFillCh();
 	while(curPos-- > dstPosArg)
 		*curPos = fillCh;
 	return (size_t)endPos;
@@ -137,17 +121,17 @@ size_t xstrfmt_fmt_::cmd_mode(void)
 	char cmdFlag = 0;
 	asm("sar $3, %k1; rolb $2, %b0;" 
 		: "=Q"(cmdFlag) : "0"(flags));
-	NCHAR* src = va_arg(ap, NCHAR*);
+	char* src = va_arg(ap, char*);
 	size_t maxLen = (cmdFlag & ESC_FIXED) ?
 		va_arg(ap, size_t) : precision;
 	if(dstPosArg == NULL) return cmd_escape_len(src, maxLen, cmdFlag);
 	else return (size_t)cmd_escape(dstPosArg, src, maxLen, cmdFlag);
 }
 
-xstrfmt_fmt_::core_t xstrfmt_fmt_::core(NCHAR* str)
+xstrfmt_fmt_::core_t xstrfmt_fmt_::core(char* str)
 {
 	// flag stage
-	flags = 0; NCHAR ch; NCHAR ch2;
+	flags = 0; char ch; char ch2;
 	while(lodsx(str, ch), ch2 = ch-' ', 
 	(ch2 < 17)&&(ch != '*')&&(ch != '.'))
 		flags |= 1 << ch2;
@@ -194,13 +178,13 @@ GET_INT_NEXT: { int result;
 }
 
 SHITCALL
-int xstrfmt_len(VaArgFwd<const NCHAR*> va)
+int xstrfmt_len(VaArgFwd<const char*> va)
 {
 	xstrfmt_fmt_ ctx; ctx.ap = va.start();
 	ctx.dstPosArg = 0;
 	
-	int extraLen = 1; NCHAR ch;
-	DEF_ESI(NCHAR* curPos) = (NCHAR*)*va.pfmt;
+	int extraLen = 1; char ch;
+	DEF_ESI(char* curPos) = (char*)*va.pfmt;
 	while(lodsx(curPos, ch), ch) {
 		if(ch != '%') { 
 	ESCAPE_PERCENT:	extraLen++; }
@@ -214,15 +198,15 @@ int xstrfmt_len(VaArgFwd<const NCHAR*> va)
 }
 
 SHITCALL
-NCHAR* xstrfmt_fill(NCHAR* buffer,
-	VaArgFwd<const NCHAR*> va)
+char* xstrfmt_fill(char* buffer,
+	VaArgFwd<const char*> va)
 {
 	xstrfmt_fmt_ ctx; ctx.ap = va.start();
 	
-	DEF_ESI(NCHAR* curPos) = (NCHAR*)*va.pfmt;
-	DEF_EDI(NCHAR* dstPos) = buffer;
+	DEF_ESI(char* curPos) = (char*)*va.pfmt;
+	DEF_EDI(char* dstPos) = buffer;
 	while(1) {
-		NCHAR ch; lodsx(curPos, ch);
+		char ch; lodsx(curPos, ch);
 		if(ch != '%') { ESCAPE_PERCENT:
 			stosx(dstPos, ch);
 			if(ch == '\0') return dstPos; }
@@ -232,41 +216,41 @@ NCHAR* xstrfmt_fill(NCHAR* buffer,
 			ctx.dstPosArg = dstPos;
 			auto result = ctx.core(curPos);
 			curPos = result.str;
-			dstPos = (NCHAR*)result.extraLen;
+			dstPos = (char*)result.extraLen;
 		}
 	}
 	return dstPos;
 }
 
 SHITCALL
-cstrT xstrfmt(VaArgFwd<const NCHAR*> va)
+cstr xstrfmt(VaArgFwd<const char*> va)
 {
 	va_list ap = va.start();
-	NCHAR* buffer = xMalloc(xstrfmt_len(va));
-	NCHAR* endPos = xstrfmt_fill(buffer, va);
+	char* buffer = xMalloc(xstrfmt_len(va));
+	char* endPos = xstrfmt_fill(buffer, va);
 	return {buffer, (endPos-1)-buffer};
 }
 
 SHITCALL
-cstrT xstrfmt(const NCHAR* fmt, ...)
+cstr xstrfmt(const char* fmt, ...)
 {
 	VA_ARG_FWD(fmt); return xstrfmt(va);
 }
 
-SHITCALL int strfmt(NCHAR* buffer,
-	const NCHAR* fmt, ...)
+SHITCALL int strfmt(char* buffer,
+	const char* fmt, ...)
 {
 	VA_ARG_FWD(fmt);
-	NCHAR* endPos = xstrfmt_fill(buffer, va);
+	char* endPos = xstrfmt_fill(buffer, va);
 	return (endPos-1)-buffer;
 }
 
-void xvector_::fmtcat(const NCHAR* fmt, ...)
+void xvector_::fmtcat(const char* fmt, ...)
 {
 	VA_ARG_FWD(fmt);
-	int strLen = xstrfmt_len(va)*sizeof(NCHAR);
-	NCHAR* buffer = xnxalloc_(strLen); 
-	dataSize -= sizeof(NCHAR);
+	int strLen = xstrfmt_len(va)*sizeof(char);
+	char* buffer = xnxalloc_(strLen); 
+	dataSize -= sizeof(char);
 	xstrfmt_fill(buffer, va); 
 }
 #endif
