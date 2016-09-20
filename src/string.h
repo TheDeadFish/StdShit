@@ -48,18 +48,6 @@ struct Cstr : cstr {
 	Cstr(Cstr&& that) = default;
 	Cstr(const Cstr& that) = delete;
 	~Cstr() { free(this->data); } };
-	
-	
-	
-
-
-
-
-
-		
-// path operations
-SHITCALL cstr getPath(cstr);
-SHITCALL cstr getName(cstr);
 
 struct bstr : cstr
 {

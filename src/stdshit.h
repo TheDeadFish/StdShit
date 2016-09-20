@@ -148,18 +148,15 @@ int strnicmp(const T* str1, const T(& str2)[size])
 	{ return strnicmp(str1, str2, size-1); }
 
 #ifndef no_xstrfmt
-template <class TCH>
 struct xstrfmt_fmt { enum { FLAG_ABSLEN = 1<<16,
 		SPACE_POSI = 1,		FLAG_XCLMTN = 2, 	FLAG_QUOTE = 4,		FLAG_HASH = 8,	 
 		FLAG_DOLAR = 16,	FLAG_PRCNT = 32,	FLAG_AMPRSND = 64,	FLAG_APOSTR = 128,
 		FLAG_LBRACE = 256,	FLAG_RBRACE = 512, 	UPPER_CASE = 1024, 	FORCE_SIGN = 2048,
 		FLAG_COMMA = 4096,	LEFT_JUSTIFY = 8192, FLAG_SLASH = 1<<15, PADD_ZEROS = 1<<16	};
 		
-	va_list ap; TCH* dstPosArg;	uint flags;
+	va_list ap; char* dstPosArg; uint flags;
 	int width; int precision; int length;
 };
-#define xstrfmt_fmtA xstrfmt_fmt<char>
-#define xstrfmt_fmtW xstrfmt_fmt<wchar_t>
 
 #endif
 
@@ -239,10 +236,15 @@ SHITCALL bool strcmpn(const char*, const char*, int);
 SHITCALL bool stricmpn(const char*, const char*, int);
 
 // Path Handling
-SHITCALL int getPathLen(const char*);
-SHITCALL int getPath(char*);
-SHITCALL char* getName(const char*);
-SHITCALL int getName(char* dst, const char* src, size_t max);
+REGCALL(2) cstr getPath(cstr str);
+SHITCALL cstr getPath(cch* str);
+REGCALL(2) cstr getName(cstr str);
+SHITCALL cstr getName(cch* str);
+REGCALL(2) cstr replName(cstr name1, cch* name2);
+SHITCALL cstr replName(cch* name1, cch* name2);
+REGCALL(2) cstr pathCat(cstr name1, cch* name2);
+SHITCALL cstr pathCat(cch* name1, cch* name2);
+
 SHITCALL bool isFullPath(const char*);
 
 #endif

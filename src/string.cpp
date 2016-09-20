@@ -6,20 +6,6 @@ cstr cstr_len(const char* str) {
 	"=d"(len) : "g"(str) : "ecx"); } return {str, len};
 }
 
-SHITCALL cstr getPath(cstr str)
-{
-	int i = str.slen;
-	while(i--) { if(isPathSep(
-		str[i])) return str.left(i+1); }
-	return cstr(str, 0);
-}
-
-SHITCALL cstr getName(cstr str)
-{
-	auto tmp = getPath(str);
-	return tmp.endRel(str.slen);
-}
-
 #define BSTR_ALLOC() auto* This = this; if(mlen<= len) {\
 	GET_RETPAIR(This, len, alloc(len)); } char* data = \
 	This->data; int slen = This->slen; data[len] = 0;

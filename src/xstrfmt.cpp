@@ -1,8 +1,6 @@
 #ifndef no_xstrfmt
-#undef xstrfmt_fmt_
-#define xstrfmt_fmt_ MCAT(xstrfmt_fmt_,char)
 
-struct xstrfmt_fmt_ : xstrfmt_fmt<char>
+struct xstrfmt_fmt_ : xstrfmt_fmt
 {
 	char getFillCh() {
 		char fillCh = ' '; 
@@ -13,40 +11,61 @@ struct xstrfmt_fmt_ : xstrfmt_fmt<char>
 	size_t ext_mode() { size_t (__thiscall *funcPtr)
 		(void* ctx) = va_arg(ap, Void);	return funcPtr(this); }
 
-	size_t str_mode(bool fixed);
+	size_t str_mode(void);
 	size_t dec_mode(bool sign);
 	size_t hex_mode(); size_t cmd_mode();
+	size_t sep_mode(); 
+	
+	static REGCALL(1) void slash(void);
+	
 	DEF_RETPAIR(core_t, size_t, extraLen, char*, str);
 	core_t core(char* str);
+	
+	
 };
 
-size_t xstrfmt_fmt_::str_mode(bool fixed)
-{
-	char* dstPos = dstPosArg;
-	size_t data = va_arg(ap, size_t);
-	if(fixed) precision = va_arg(ap, size_t);
+// tristi quod ad hunc
+#define APPEND_SLASH asm("call xstrfmt_slash" : "+D"(dstPos))
+asm(".section .text$_ZN12xstrfmt_fmt_8str_modeEv,\"x\";"
+	"xstrfmt_slash: movb -1(%edi), %al;"
+	"cmp $92, %al; jz 1f; cmp $47, %al; jz 1f;"
+	"movb $92, %al; stosb; 1: ret");
 
+size_t xstrfmt_fmt_::str_mode(void)
+{
+	char* dstPos = dstPosArg;	
+	char* str = (char*)va_arg(ap, char*);
+	movfx(S, str); movfx(b, flags);
+	if(!str) str = (char*)"";
+	
 	// calculate lenth
-	movfx(S, data);
-	char* str = (char*)data;
-	if(str == NULL) str = (char*)"(null)";
-	size_t strLen = precision;
-	if(!fixed && (!dstPos || width))
-		strLen = strnlen(str, strLen);
-	if(dstPos == 0)
-		return max(strLen, width);
+	size_t strLen; 
+	if(flags & FLAG_DOLAR) {
+		strLen = va_arg(ap, size_t);
+	} else { strLen = precision;
+		if(!dstPos || width) strLen
+			= strnlen(str, strLen);
+	}
+	
+	// dir seperator / return length
+	if((flags & FLAG_XCLMTN) && !(strLen && *str))
+		{ strLen = 1; str = (char*)"."; }
+	if(!dstPos)	return max(strLen, width)
+		+ !!(flags & FLAG_SLASH)
+		+ !!(flags & FLAG_COMMA);
+	if(flags & FLAG_COMMA) APPEND_SLASH;
 		
 	// output string padding
 	int len = width - strLen;
-	if(len > 0) { ARGFIX(flags);
+	if(len > 0) { //ARGFIX(flags);
 		char fillCh = getFillCh();
 		do { stosx(dstPos, fillCh);
 		} while(--len > 0);}
 		
 	// output string data
-	if(fixed == true) {
+	VARFIX(flags); if(flags & FLAG_DOLAR)
 		memcpy_ref(dstPos, str, strLen);
-		return (size_t)dstPos; }
+	else {		
 	char* endPos = str+strLen; asm goto ( 
 		"jmp %l1" :: "r"(endPos):: LOOP_START);
 	do { {char ch; lodsx(str, ch);
@@ -54,6 +73,10 @@ size_t xstrfmt_fmt_::str_mode(bool fixed)
 		stosx(dstPos, ch); }
 LOOP_START:;
 	} while(str != endPos);
+	}
+	
+	if(flags & FLAG_SLASH)
+		APPEND_SLASH;
 	return (size_t)dstPos;
 }
 
@@ -128,6 +151,14 @@ size_t xstrfmt_fmt_::cmd_mode(void)
 	else return (size_t)cmd_escape(dstPosArg, src, maxLen, cmdFlag);
 }
 
+size_t xstrfmt_fmt_::sep_mode(void)
+{
+	if(dstPosArg == NULL) return 1;
+	else { WRI(dstPosArg, '\\');
+		return (size_t)dstPosArg;
+	}
+}
+
 xstrfmt_fmt_::core_t xstrfmt_fmt_::core(char* str)
 {
 	// flag stage
@@ -150,23 +181,29 @@ GET_INT_NEXT: { int result;
 		if(ch == '.') { lodsx(str, ch); 
 			goto GET_INT_NEXT; }
 	}}
-			
+
 	// length stage
 	length = 0; LENGTH_NEXT:
 	if(ch == 'h') { length--; lodsx(str, ch); goto LENGTH_NEXT; }
 	if(ch == 'l') { length++; lodsx(str, ch); goto LENGTH_NEXT; }
-	if(ch < 'a') { asm("add $32, %0": "=r"(ch) : "r"(ch)); flags |= UPPER_CASE; }
+	if((ch >= 'A')&&(ch <= 'Z')) { asm("add $32, %0": 
+		"=r"(ch) : "r"(ch)); flags |= UPPER_CASE; }
 	size_t extraLen;
 	
-	// tristi quod ad hunc
 	switch(ch) {
-	case 's': extraLen = str_mode(false); break;
-	case 'v': extraLen = str_mode(true); break;
+	if(0) { case 'j': flags |= FLAG_XCLMTN; }
+	if(0) { case 'k': flags |= FLAG_COMMA; }
+	if(0) { case 'v': flags |= FLAG_DOLAR; }
+	case 's': extraLen = str_mode(); break;
+	
 	case 'x': extraLen = hex_mode(); break;
 	case 'd': extraLen = dec_mode(false); break;
 	case 'u': extraLen = dec_mode(true); break;
 	case 'q': extraLen = ext_mode(); break;
 	case 'z': extraLen = cmd_mode(); break;
+	case ':': extraLen = sep_mode(); break;
+	
+	
 	default: UNREACH;
 	}
 	
@@ -231,14 +268,14 @@ cstr xstrfmt(VaArgFwd<const char*> va)
 	return {buffer, (endPos-1)-buffer};
 }
 
-SHITCALL
+SHITCALL NEVER_INLINE
 cstr xstrfmt(const char* fmt, ...)
 {
 	VA_ARG_FWD(fmt); return xstrfmt(va);
 }
 
-SHITCALL int strfmt(char* buffer,
-	const char* fmt, ...)
+SHITCALL NEVER_INLINE int strfmt(
+	char* buffer, const char* fmt, ...)
 {
 	VA_ARG_FWD(fmt);
 	char* endPos = xstrfmt_fill(buffer, va);

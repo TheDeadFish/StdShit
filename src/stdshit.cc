@@ -420,37 +420,26 @@ int strmove(char* dst, const char* src)
 }
 
 // Path Handling
-SHITCALL
-int getPathLen(const char* fName)
-{
-	int i = strlen(fName);
-	while(i--)
-	{
-		if((fName[i] == '\\')
-		||(fName[i] == '/'))
-			return i+1;
-	}
-	return 0;
-}
-
-SHITCALL
-int getPath(char* fName)
-{
-	int len = getPathLen(fName);
-	fName[len] = '\0';
-	return len;
-}
-
-SHITCALL
-char* getName(const char* fName)
-{	return (char*)fName+getPathLen(fName); }
-
-SHITCALL
-int getName(char* dst, const char* src, size_t max)
-{
-	char* name = getName(src);
-	return strNcpy(dst, src, max-1);
-}
+REGCALL(2) cstr getPath(cstr str) {
+	for(;str.slen && !isPathSep(
+		str[str.slen-1]); str.slen--);
+	return str; }
+SHITCALL cstr getPath(cch* str) {
+	return getPath(cstr(str)); }
+REGCALL(2) cstr getName(cstr str) {
+	int i = str.slen; for(; i && 
+		!isPathSep(str[i-1]); i--);
+	return str.right(i); }
+SHITCALL cstr getName(cch* str) {
+	return getName(cstr(str)); }
+REGCALL(2) cstr replName(cstr name1, cch* name2) { 
+	return xstrfmt("%$j%k", getPath(name1), name2); }
+SHITCALL  cstr replName(cch* name1, cch* name2) { 
+	return replName(cstr(name1), name2); }
+REGCALL(2) cstr pathCat(cstr name1, cch* name2) { 
+	return xstrfmt("%$j%k", name1, name2); }
+SHITCALL  cstr pathCat(cch* name1, cch* name2) { 
+	return replName(cstr(name1), name2); }
 
 SHITCALL
 bool isFullPath(const char* path)
