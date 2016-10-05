@@ -124,7 +124,7 @@ TMPL2(T,U=T) T replace(T& ptr, U newPtr) {
 #define swapReg(x, y) asm("XCHG %0, %1" : "+r"(x), "+r"(y));
 
 // pointer casting helpers
-#define DEF_PX(n,T) TMPL(Z) T*& MCAT(P,n)(Z& p) { return CAST(T*, p); } \
+#define DEF_PX(n,T) TMPL(Z) T*& MCAT(P,n)(const Z& p) { return CAST(T*, p); } \
 	TMPL(Z) T& MCAT(R,n)(Z p, size_t o=0,size_t n=0) { return ((T*)(PB(p)+o))[n]; } \
 	TMPL(Z) T* MCAT(P,n)(Z p, size_t o,size_t n=0) { return &MCAT(R,n)(PB(p), o, n); }
 DEF_PX(B,BYTE) DEF_PX(C,CHAR) DEF_PX(S,INT16) DEF_PX(W,WORD)

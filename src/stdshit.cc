@@ -3,7 +3,7 @@
 #include "stdshit.h"
 #include "math.cpp"
 #include "memalloc.cpp"
-#include "utfconv.cpp"
+#include "windows\utfconv.cpp"
 #include "windows\windows.cpp"
 
 // tristi quod ad hunc, const strings

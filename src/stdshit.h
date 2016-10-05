@@ -25,7 +25,7 @@
 #include "constexp.h"
 #include "math.h"
 #include "string.h"
-#include "utfconv.h"
+#include "windows\utfconv.h"
 #include "windows\windows.h"
 #include "compat.h"
 
