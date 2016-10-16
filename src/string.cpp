@@ -6,6 +6,13 @@ cstr cstr_len(const char* str) {
 	"=d"(len) : "g"(str) : "ecx"); } return {str, len};
 }
 
+cstr cstr_dup(cstr str)
+{
+	char* buff = xmalloc(str.slen+1);
+	buff[str.slen] = '\0'; return { (char*)memcpy(
+	buff, str.data, str.slen), str.slen};
+}
+
 #define BSTR_ALLOC() auto* This = this; if(mlen<= len) {\
 	GET_RETPAIR(This, len, alloc(len)); } char* data = \
 	This->data; int slen = This->slen; data[len] = 0;

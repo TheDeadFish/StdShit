@@ -420,26 +420,19 @@ int strmove(char* dst, const char* src)
 }
 
 // Path Handling
-REGCALL(2) cstr getPath(cstr str) {
-	for(;str.slen && !isPathSep(
-		str[str.slen-1]); str.slen--);
-	return str; }
-SHITCALL cstr getPath(cch* str) {
-	return getPath(cstr(str)); }
-REGCALL(2) cstr getName(cstr str) {
-	int i = str.slen; for(; i && 
-		!isPathSep(str[i-1]); i--);
-	return str.right(i); }
-SHITCALL cstr getName(cch* str) {
-	return getName(cstr(str)); }
-REGCALL(2) cstr replName(cstr name1, cch* name2) { 
-	return xstrfmt("%$j%k", getPath(name1), name2); }
-SHITCALL  cstr replName(cch* name1, cch* name2) { 
-	return replName(cstr(name1), name2); }
-REGCALL(2) cstr pathCat(cstr name1, cch* name2) { 
-	return xstrfmt("%$j%k", name1, name2); }
-SHITCALL  cstr pathCat(cch* name1, cch* name2) { 
-	return replName(cstr(name1), name2); }
+SHITCALL cstr pathCat(cstr name1, cstr name2) { 
+	if(!isRelPath(name2)) return name2.xdup();
+	return xstrfmt("%$j%$k", name1, name2); }
+SHITCALL cstr replName(cstr name1, cstr name2) { 
+	return pathCat(getPath(name1), name2); }
+SHITCALL cstr fullNameRepl(cstr base, cstr name) {
+	return getFullPath(replName(base, name), true); }
+SHITCALL cstr fullNameCat(cstr base, cstr name) {
+	return getFullPath(pathCat(base, name), true); }
+CSTRTH1_(getPath) CSTRTH1_(getName)
+CSTRTH2_(pathCat) CSTRTH2_(replName)
+CSTRTH2_(fullNameRepl)
+CSTRTH2_(fullNameCat)
 
 SHITCALL
 bool isFullPath(const char* path)

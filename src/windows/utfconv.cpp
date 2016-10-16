@@ -51,7 +51,7 @@ ASM_FUNC("_UTF16_GET1", "orl $-1, %edx; _UTF16_GET2: "
 #define UTF816SZ(z,n,x) int __stdcall MCAT(utf816_size,x)(cch* str MIF(n, \
 	(,int len),)) { int r = 0; asm("1: inc %0;" MIF(n, "cmp %2,%1; " \
 	"jz 3f;",) "movzbl (%1),%%eax; inc %1; testb %%al,%%al;" MIF(z, \
-	"je 3f;",) "jns 1b;" MIF(n, "movl %2,tdx; call _UTF8_GET2", "call " \
+	"je 3f;",) "jns 1b;" MIF(n, "movl %2,%%edx; call _UTF8_GET2", "call " \
 	"_UTF8_GET1") ";shrl $16, %%eax; je 1b; inc %0; jmp 1b; 3:" : "+b"(r) \  
 	: "S"(str) MIF(n,(,"c"(str+len)),) : "eax", "edx" ); return r*2; }
 UTF816SZ(1, 0, ); UTF816SZ(1, 1, );
@@ -64,7 +64,7 @@ ASM_FUNC("__Z10utf816_cpyPwPKc@8", "pushl %esi; pushl %edi; movl 16(%esp), %esi;
 #define UTF816CP(n, z) WCHAR* __stdcall n(WCHAR* dst, cch* str, int len) \
 	{ asm("jmp 0f; 1: stosw; 0: cmp %2,%1; jz 3f; movzbl (%1),%%eax;" \
 	"inc %1; testb %%al,%%al;" MIF(z,"je 3f;",) "jns 1b; movl " \
-	"%2,tdx; call _UTF8_GET2; call _UTF8_PUT1; jmp 0b; 3:" : "+D"(dst) : \
+	"%2,%%edx; call _UTF8_GET2; call _UTF8_PUT1; jmp 0b; 3:" : "+D"(dst) : \
 	"S"(str) ,"c"(str+len) : "eax", "edx" ); *dst = '\0'; return dst; }
 UTF816CP(utf816_cpy, 1)
 

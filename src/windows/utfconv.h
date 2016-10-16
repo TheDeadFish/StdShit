@@ -1,13 +1,10 @@
 
 // wide string struct
-struct cstrW { WCHAR* data; int slen; 
-	operator WCHAR*() { return data; } };
-struct CstrW : cstrW { 
-	CstrW(const cstrW& that) : cstrW(that) {}
-	CstrW(CstrW&& that) = default;
-	CstrW(const CstrW& that) = delete;
-	~CstrW() { free(this->data); } };
-	
+struct cstrW { WCHAR* data; int slen; operator WCHAR*(){return data;}};
+#define AUTFDRVCLS_(nm,bs,fr)  struct nm : bs { nm(const bs& t) : bs(t){} \
+	nm(nm&& t) = default; nm(const nm& t) = delete; ~nm() { fr; } };
+AUTFDRVCLS_(CstrW, cstrW, free(this->data));	
+
 // UTF8/UTF16 conversion
 #define UTF816A(rt,fn,ty) rt __stdcall fn(const ty* mbstr_); \
 	rt __stdcall fn(const ty* mbstr_, int len);
@@ -16,8 +13,6 @@ UTF816A(cstrW, utf816_dup, char); UTF816A(cstr, utf816_dup, wchar_t);
 #define UTF816B(t1, t2) t1* __stdcall utf816_cpy(t1* wstr_, t2* mbstr_); \
 	t1* __stdcall utf816_cpy(t1* wstr_, t2* mbstr_, int len);
 UTF816B(wchar_t, const char); UTF816B(char, const wchar_t);
-
-
 
 #define UNICODE_MAX 0x10FFFF
 static inline int utf8_len1(int ch) { asm(

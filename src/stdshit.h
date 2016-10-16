@@ -235,16 +235,4 @@ SHITCALL cstr strcpyn(char*, const char*, int);
 SHITCALL bool strcmpn(const char*, const char*, int);
 SHITCALL bool stricmpn(const char*, const char*, int);
 
-// Path Handling
-REGCALL(2) cstr getPath(cstr str);
-SHITCALL cstr getPath(cch* str);
-REGCALL(2) cstr getName(cstr str);
-SHITCALL cstr getName(cch* str);
-REGCALL(2) cstr replName(cstr name1, cch* name2);
-SHITCALL cstr replName(cch* name1, cch* name2);
-REGCALL(2) cstr pathCat(cstr name1, cch* name2);
-SHITCALL cstr pathCat(cch* name1, cch* name2);
-
-SHITCALL bool isFullPath(const char*);
-
 #endif

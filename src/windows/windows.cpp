@@ -73,14 +73,15 @@ extern "C" {
 // utf8 api, nowide functions
 FILE *freopen(cch* name, cch* mode, FILE *fp) {
 	WCHAR wmode[32]; utf816_cpy(wmode, mode);
-	return _wfreopen(widen(name), wmode, fp); }
+	FNWIDEN(1,name); return _wfreopen(cs1, wmode, fp); }
 FILE* fopen(cch* name, cch* mode) {
 	WCHAR wmode[32]; utf816_cpy(wmode, mode);
-	return _wfopen(widen(name), wmode); }
-int rename(cch *old_name,cch *new_name) {
-	return _wrename(widen(old_name), widen(new_name)); }
-int remove(cch *name) { return _wremove(widen(name)); }
-int system(cch *cmd) { return _wsystem(widen(cmd)); }
+	FNWIDEN(1,name); return _wfopen(cs1, wmode); }
+int rename(cch *old_name,cch *new_name) { FNWIDEN(1,old_name);
+	FNWIDEN(2,new_name); return _wrename(cs1, cs2); }
+#define _FWNDFN1(n,wn) int n(cch *s) { FNWIDEN(1,s); return wn(cs1); }
+_FWNDFN1(remove, _wremove); _FWNDFN1(system, _wsystem);
+_FWNDFN1(_mkdir, _wmkdir); _FWNDFN1(_rmdir, _wrmdir);
 }
 
 HMODULE getModuleBase(void* ptr)
@@ -103,3 +104,32 @@ extern "C" void __getmainargs(int * argc,
 	gma(argc, argv, envp, mode, si);
 	free_ref(*_acmdln2); *_acmdln2 = prev_acmdln;
 }
+
+// the final abomination, getFullPath utf8
+ASM_FUNC("getFullPath_", "push %ebx; movl 12(%esp), %ebx; pushl 16(%esp);"
+	"push %ebx; call __Z10utf816_dupPKci@8; shrb 20(%esp); movl %eax, %ecx;"
+	"jnc 1f; push %ebx; call _sfree; 1: cmpl $0x5C005C, (%eax); jnz 1f; cmpl "
+	"$0x2F003F, 4(%eax); jz 0f; 1: push %eax; add $260, %edx; pushl $0;"
+	"lea 12(%edx,%edx), %eax; push %eax; call _xmalloc; lea 12(%eax), %ebx;"
+	"push %ebx; push %edx; push %ecx; call _GetFullPathNameW@16; call _sfree;"
+	"movl %eax, %edx; movl %ebx, %eax; lea -12(%ebx), %ecx; 0: pop %ebx; ret;");
+ASM_FUNC("__Z11getFullPathPKcii@12", "call getFullPath_; push %ecx;"
+	"push %eax; call __Z10utf816_dupPKw@4; call _sfree; ret $12");
+ASM_FUNC("__Z14getNtPathName_PKcii@12", "call getFullPath_; cmp %eax, %ecx; jz 1f;"
+	"cmpl $0x005C005C, (%eax); jnz 2f; cmpl $0x005C002E, 4(%eax); jz 3f;"
+	"sub $4, %eax; movl $0x004E0055, (%eax); movb $0x43, 4(%eax);"
+	"2: sub $8, %eax; movl $0x005C005C, (%eax); 3: movl $0x005C003F,"
+	"4(%eax); 1: shrb 12(%esp); jnc 1f; movb $63, 2(%eax); 1: ret $12;");
+	
+// simple path handling helpers
+ASM_FUNC("_isRelPath0", "test %eax, %eax; jz 1f;"
+	"cmpb $0, (%eax); jz 1f; jmp 4f;"
+GLOB_LAB("_isRelPath") "cmp $1, %edx; jbe 2f; 4:cmpb $58, 1(%eax); jnz 3f;"
+	"0: movb $0, %cl; ret; 2: test %edx, %edx; jz 1f; 3: cmpb $92, (%eax);"
+	"jz 0b; cmpb $47, (%eax); jz 0b; 1: movb $1, %cl; ret;");
+ASM_FUNC("__Z7getPath4cstr@8", "mov %edx, %ecx; 0: test %edx, %edx; "
+	"jz 1f; cmpb $92, -1(%eax,%edx); jz 1f; cmpb $47, -1(%eax,%edx);"
+	"jz 1f; dec %edx; jmp 0b; 1: test %edx, %edx; jz 1f; 0: ret; 1:"
+	"cmp $2, %ecx; jb 0b; cmpb $58, 1(%eax); jnz 0b; add $2, %edx; ret;" 
+GLOB_LAB("__Z7getName4cstr@8") "call __Z7getPath4cstr@8;"
+	"subl %edx, %ecx; add %edx, %eax; mov %ecx, %edx; ret;");

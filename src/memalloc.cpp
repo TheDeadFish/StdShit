@@ -1,10 +1,21 @@
 
+// register preserving allocators
+ASM_FUNC("_sfree", "push %eax; push %edx; push %ecx; push 16(%esp);"
+	"call _free; add $4, %esp; pop %ecx; pop %edx; pop %eax; ret $4");
+ASM_FUNC("_sfreer", "push %eax; movl 8(%esp), %eax; cmp $0, (%eax);"
+	"jz 1f; push (%eax); call _sfree; and $0, (%eax); 1: pop %eax; ret $4;");
+ASM_FUNC("_smalloc", "push %edx; push %ecx; push %eax;"
+	"call _malloc; add $4, %esp; pop %ecx; pop %edx; ret");
+ASM_FUNC("_xmalloc", "movl 4(%esp), %eax; test %eax,%eax; jz 1f; call "
+	"_smalloc; test %eax,%eax; jnz 1f; call __Z10errorAllocv; 1: ret $4;");
+
+
 SHITCALL uint snapNext(uint val) { if(val&(val-1)) return 0;
 	if(val>=2) return val<<1; return val+1; }
 
 // resource freeing functions
-SHITCALL void free_ref(Void& ptr) {
-	if(ptr != NULL) {free(ptr);	ptr = NULL; }}
+//SHITCALL void free_ref(Void& ptr) {
+//	if(ptr != NULL) {free(ptr);	ptr = NULL; }}
 SHITCALL void fclose_ref(FILE*& stream) {		
 	if(stream != NULL) { fclose(stream); stream = NULL; }}
 #undef fclose
@@ -35,9 +46,9 @@ SKIP_ALLOC:
 }
 
 // succeed or die allocators
-SHITCALL2 Void xmalloc(size_t size){ if(size == 0) return NULL;	return errorAlloc( malloc(size) ); }
+//SHITCALL2 Void xmalloc(size_t size){ if(size == 0) return NULL;	return errorAlloc( malloc(size) ); }
 SHITCALL2 Void xcalloc(size_t size) { if(size == 0) return NULL; return errorAlloc(calloc(1, size)); }
-SHITCALL2 Void xrealloc(Void& ptr, size_t size){ if(size == 0) { free_ref(ptr); return NULL; }
+REGCALL(2) Void xrealloc(Void& ptr, size_t size){ if(size == 0) { free_ref(ptr); return NULL; }
 	return ptr = errorAlloc( realloc(ptr, size) ); }
 SHITCALL2 Void xrecalloc(Void& ptr, size_t size){ if(ptr == NULL) return (ptr = xcalloc(size));
 	return xrealloc(ptr, size); }

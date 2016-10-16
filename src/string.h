@@ -1,6 +1,20 @@
 
+// prototype builders
+#define CSTRFN0_(nm) REGCALL(2) bool nm(cstr str); SHITCALL bool nm(cch* str); 
+#define CSTRFN1_(nm) SHITCALL cstr nm(cstr str); SHITCALL cstr nm(cch* str);
+#define CSTRFN2_(nm) SHITCALL cstr nm(cstr n1, cstr n2); SHITCALL  \
+	cstr nm(cstr n1, cch* n2); SHITCALL cstr nm(cch* n1, cch* n2); 
+	
+// ??
+#define CSTRTH1_(nm) SHITCALL cstr nm(cch* str) { return nm(cstr(str)); }
+#define CSTRTH2_(nm)  SHITCALL cstr nm(cstr n1, cch* n2) { return \
+	nm(n1, cstr(n2)); } SHITCALL cstr nm(cch* n1, cch* n2) { \
+	return nm(cstr(n1), n2); }
+
 struct cstr;
 SHITCALL cstr cstr_len(const char*);
+SHITCALL cstr cstr_dup(cstr str);
+
 typedef const char cch;
 
 
@@ -13,7 +27,7 @@ struct cstr
 
 	// creation / assignment
 	cstr() = default; cstr(const cstr& that) = default;
-	cstr(cch* d) : cstr(cstr_len(d)) {} 
+	ALWAYS_INLINE cstr(cch* d) : cstr(cstr_len(d)) {} 
 	cstr(cch* d, int l) : data((char*)d), slen(l) {}
 	cstr(cch* d, cch* e) : data((char*)d), slen(e-d) {}
 	template<int l> cstr(cch(& d)[l]) : cstr(d, l-1) {}
@@ -41,6 +55,10 @@ struct cstr
 	ALWAYS_INLINE Ptr ptr() { return Ptr{data, end()}; }
 	ALWAYS_INLINE void set(Ptr ptr) { init(ptr.data, ptr.end); }
 	ALWAYS_INLINE void sete(Ptr ptr) { setend(ptr.end); }	
+		
+	// various functions
+	cstr xdup(void) { return
+		cstr_dup(*this); }
 };
 
 struct Cstr : cstr { 
@@ -75,3 +93,9 @@ struct bstr : cstr
 		This, int, len_);
 	REGCALL(2) alloc_t alloc(int len);
 };
+
+// Path Handling
+CSTRFN1_(getPath) CSTRFN1_(getName)
+CSTRFN2_(replName) CSTRFN2_(pathCat)
+//CSTRFN2_(fullNameRepl) 
+//CSTRFN2_(fullNameCat)

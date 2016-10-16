@@ -36,6 +36,7 @@ union _CAST_{T src; U dst; };
 #define unlikely(x)     __builtin_expect((x),0)
 #define ARGFIX(arg) asm("" : "+m"(arg));
 #define VARFIX(var) asm("" : "+g"(var));
+#define VALFIX(v)({auto r = v; VARFIX(r); r;})
 #define VOIDPROC(proc) Void((void*)&proc)
 #define PACK1(...) _Pragma("pack(push, 1)") __VA_ARGS__ _Pragma("pop")
 #define TMPL(t) template <class t>

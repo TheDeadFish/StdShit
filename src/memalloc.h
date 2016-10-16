@@ -2,10 +2,21 @@
 // implments basic allocators and container
 // allocators
 
+// register preserving allocators
+#define free free_
+ALWAYS_INLINE void free_(void* mem) { asm("push %0;"
+	"call _sfree;" :: "g"(mem) : "memory"); }
+ALWAYS_INLINE void free_ref(Void& ptr) { asm("push %0;"
+	"call _sfreer;" :: "g"(&ptr) : "memory"); }
+ALWAYS_INLINE Void malloc_(size_t sz) { Void r; asm(
+	"call _smalloc;" : "=a"(r) : "a"(sz)); return r; }
+ALWAYS_INLINE Void xmalloc(size_t sz) { Void r; asm("push %1;"
+	"call _xmalloc;" : "=a"(r) : "g"(sz)); return r; }
+
 static uint snapUpSize(uint val) {	return 2 << (__builtin_clz(val-1)^31); }
 
 // resource freeing functions
-SHITCALL void free_ref(Void& ptr); SHITCALL uint snapNext(uint val);
+/*SHITCALL void free_ref(Void& ptr);*/ SHITCALL uint snapNext(uint val);
 SHITCALL void freeLst(Void ptr, int count); 
 SHITCALL void freeLst_ref(Void& ptr, int count);
 #define fclose fclose_
@@ -16,13 +27,13 @@ SHITCALL void fclose_ref( FILE*& stream );
 SHITCALL Void calloc (size_t size);
 TMPL(T) static inline Void realloc2(T& ptr, size_t size) { Void tmp =
 	realloc(ptr, size); if(tmp) ptr = tmp; return tmp; }
-static inline Void malloc_(size_t size) { return malloc(size); }
+//static inline Void malloc_(size_t size) { return malloc(size); }
 static inline Void realloc_(void* ptr, size_t size) { return realloc(ptr, size); }
 #define malloc malloc_
 #define realloc realloc_
 
 // Memory allocation functions
-SHITCALL2 Void xmalloc(size_t size); SHITCALL2 Void xrealloc(Void& ptr, size_t size);
+/*SHITCALL2 Void xmalloc(size_t size);*/ REGCALL(2) Void xrealloc(Void& ptr, size_t size); 
 SHITCALL2 Void xcalloc(size_t size); SHITCALL2 Void xrecalloc(Void& ptr, size_t size);
 SHITCALL2 Void xnxalloc(Void& ptr, size_t& count, size_t size);
 SHITCALL2 Void nxalloc(Void& ptr, size_t& count, size_t size);

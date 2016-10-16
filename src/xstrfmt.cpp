@@ -29,7 +29,7 @@ struct xstrfmt_fmt_ : xstrfmt_fmt
 asm(".section .text$_ZN12xstrfmt_fmt_8str_modeEv,\"x\";"
 	"xstrfmt_slash: movb -1(%edi), %al;"
 	"cmp $92, %al; jz 1f; cmp $47, %al; jz 1f;"
-	"movb $92, %al; stosb; 1: ret");
+	"cmp $58, %al; jz 1f; movb $92, %al; stosb; 1: ret");
 
 size_t xstrfmt_fmt_::str_mode(void)
 {
