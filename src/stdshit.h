@@ -115,6 +115,8 @@ SHITCALL char** loadText(FILE* fp, int& LineCount);
 int xvfprintf ( FILE * stream, const char * format, va_list arg );
 int xfprintf ( FILE * stream, const char * format, ... );
 void xfputs (const char * str, FILE * stream);
+SHITCALL void xfclose(FILE* fp); 
+SHITCALL void xfclose_ref(FILE*& fp);
 
 // File handling overloads
 TMPL(T) void xfread(T* ptr, size_t size, FILE* fp) {	xfread(ptr, sizeof(T), size, fp); }
@@ -200,6 +202,7 @@ SHITCALL int fopen_ErrChk(void);
 #include "arrayMem.h"
 
 // sprintf replacement
+#define Xstrfmt(...) Cstr(xstrfmt( __VA_ARGS__))
 SHITCALL cstr xstrfmt(VaArgFwd<const char*> va);
 SHITCALL cstr xstrfmt(const char*, ...);
 SHITCALL int strfmt(char* buffer, const char* fmt, ...);

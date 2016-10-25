@@ -16,8 +16,8 @@ SHITCALL uint snapNext(uint val) { if(val&(val-1)) return 0;
 // resource freeing functions
 //SHITCALL void free_ref(Void& ptr) {
 //	if(ptr != NULL) {free(ptr);	ptr = NULL; }}
-SHITCALL void fclose_ref(FILE*& stream) {		
-	if(stream != NULL) { fclose(stream); stream = NULL; }}
+SHITCALL int fclose_ref(FILE*& stream) { if(!stream) 
+	return (int)stream; return fclose(release(stream)); }
 #undef fclose
 SHITCALL int fclose_ ( FILE * stream ){
 	if( stream == NULL ) return 0; return fclose(stream); }

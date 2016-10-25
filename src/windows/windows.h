@@ -20,11 +20,24 @@ ALWAYS_INLINE cstr getFullPath(cstr s, int f = 0) {
 	return getFullPath(s.data, s.slen, f); }
 
 // getNtPathName, (support > 260 filenames)
+cstrW __stdcall getNtPathName_(cch* s);
 cstrW __stdcall getNtPathName_(cch* s, int l, int f);
-#define GETNTPNM_(s,l,f,so,bo) so = getNtPathName_(\
-	s, l, f); asm volatile("" : "+A"(so), "=c"(bo));
+#define GETNTPNM_(so,bo, ...) so = getNtPathName_(\
+	__VA_ARGS__); asm volatile("" : "+A"(so), "=c"(bo));
 #define FNWIDEN(x,s) cstrW MCAT(cs,x); WCHAR* MCAT(bs,x); GETNTPNM_\
-	(s,-1,0,MCAT(cs,x),MCAT(bs,x)); SCOPE_EXIT(free(MCAT(bs,x)));
+	(MCAT(cs,x),MCAT(bs,x),s); SCOPE_EXIT(free(MCAT(bs,x)));
+	
+// utf8 wide apis, output
+HANDLE WINAPI createFile(LPCSTR,DWORD,DWORD,
+	LPSECURITY_ATTRIBUTES,DWORD,DWORD,HANDLE);
+BOOL WINAPI setWindowText(HWND,cch*);
+BOOL WINAPI setDlgItemText(HWND,int,cch*);
+
+// utf8 wide apis, intput
+cstr __stdcall getModuleFileName(HMODULE hModule);
+cstr __stdcall getProgramDir(void);
+cstr WINAPI getWindowText(HWND); 
+cstr WINAPI getDlgItemText(HWND,int);
 
 // UTF8/UTF16 conversion
 ALWAYS_INLINE Cstr narrow(LPWSTR s) { return utf816_dup(s); }

@@ -16,6 +16,8 @@ cstr cstr_dup(cstr str)
 #define BSTR_ALLOC() auto* This = this; if(mlen<= len) {\
 	GET_RETPAIR(This, len, alloc(len)); } char* data = \
 	This->data; int slen = This->slen; data[len] = 0;
+	
+bstr::bstr(const cstr& that) : bstr(ZT()) { *this = that; }
 
 bstr::alloc_t bstr::alloc(int len)
 {

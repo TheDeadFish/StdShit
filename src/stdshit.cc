@@ -85,6 +85,11 @@ int fopen_ErrChk(void) { switch(errno)  { case ENOENT:
 
 
 // File handling
+SHITCALL void xfclose(FILE* fp) {
+	if(fclose(fp)) errorDiskFail(); }
+SHITCALL void xfclose_ref(FILE*& fp) {
+	if(fclose_ref(fp)) errorDiskFail(); }
+
 SHITCALL 
 void xfread(void* ptr, size_t size, size_t num, FILE* fp)
 {
@@ -232,7 +237,7 @@ SHITCALL char* strstri(const char* str1, const char* str2, int maxLen)
 #ifdef _OLDMINGW_
 SHITCALL size_t strnlen(
 	const char* str, size_t maxLen) { size_t len = 0;
-	for(; str[len] && (len < maxLen); len++); return len; }
+	for(;(len < maxLen) && str[len]; len++); return len; }
 #endif
 
 SHITCALL cstr xstrdup(const char* str)

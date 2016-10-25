@@ -35,6 +35,7 @@ size_t xstrfmt_fmt_::str_mode(void)
 {
 	char* dstPos = dstPosArg;	
 	char* str = (char*)va_arg(ap, char*);
+	char* str0 = str;
 	movfx(S, str); movfx(b, flags);
 	if(!str) str = (char*)"";
 	
@@ -75,8 +76,8 @@ LOOP_START:;
 	} while(str != endPos);
 	}
 	
-	if(flags & FLAG_SLASH)
-		APPEND_SLASH;
+	if(flags & FLAG_SLASH) 	APPEND_SLASH;
+	if(flags & FLAG_HASH) free(str0);
 	return (size_t)dstPos;
 }
 

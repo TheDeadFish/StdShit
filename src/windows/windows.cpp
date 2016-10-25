@@ -70,7 +70,7 @@ int sysfmt(const char* fmt, ...) {
 	SCOPE_EXIT(free(str)); return system(str);  }
 	
 extern "C" {
-// utf8 api, nowide functions
+// utf8 api, c/posix functions
 FILE *freopen(cch* name, cch* mode, FILE *fp) {
 	WCHAR wmode[32]; utf816_cpy(wmode, mode);
 	FNWIDEN(1,name); return _wfreopen(cs1, wmode, fp); }
@@ -83,6 +83,18 @@ int rename(cch *old_name,cch *new_name) { FNWIDEN(1,old_name);
 _FWNDFN1(remove, _wremove); _FWNDFN1(system, _wsystem);
 _FWNDFN1(_mkdir, _wmkdir); _FWNDFN1(_rmdir, _wrmdir);
 }
+
+// utf8 api, simple WIN32 functions
+BOOL WINAPI setWindowText(HWND h,cch* s) {
+	return SetWindowTextW(h, widen(s)); }
+BOOL WINAPI setDlgItemText(HWND h,int i,cch* s) {
+	return SetDlgItemTextW(h,i,widen(s)); }
+#define W32SARD_(l,g) WCHAR* ws; { int sz = l+1; ws = xMalloc \
+	(sz); g; } SCOPE_EXIT(free(ws)); return utf816_dup(ws);
+cstr WINAPI getWindowText(HWND h) { W32SARD_(
+	GetWindowTextLengthW(h), GetWindowTextW(h, ws, sz)) }
+cstr WINAPI getDlgItemText(HWND h, int i) {
+	return getWindowText(GetDlgItem(h, i)); }
 
 HMODULE getModuleBase(void* ptr)
 {
@@ -120,6 +132,8 @@ ASM_FUNC("__Z14getNtPathName_PKcii@12", "call getFullPath_; cmp %eax, %ecx; jz 1
 	"sub $4, %eax; movl $0x004E0055, (%eax); movb $0x43, 4(%eax);"
 	"2: sub $8, %eax; movl $0x005C005C, (%eax); 3: movl $0x005C003F,"
 	"4(%eax); 1: shrb 12(%esp); jnc 1f; movb $63, 2(%eax); 1: ret $12;");
+ASM_FUNC("__Z14getNtPathName_PKc@4", "push $0; push $-1; push 12(%esp);"
+	"call __Z14getNtPathName_PKcii@12; ret $4;");
 	
 // simple path handling helpers
 ASM_FUNC("_isRelPath0", "test %eax, %eax; jz 1f;"
@@ -133,3 +147,28 @@ ASM_FUNC("__Z7getPath4cstr@8", "mov %edx, %ecx; 0: test %edx, %edx; "
 	"cmp $2, %ecx; jb 0b; cmpb $58, 1(%eax); jnz 0b; add $2, %edx; ret;" 
 GLOB_LAB("__Z7getName4cstr@8") "call __Z7getPath4cstr@8;"
 	"subl %edx, %ecx; add %edx, %eax; mov %ecx, %edx; ret;");
+	
+cstr getModuleFileName(HMODULE hModule) {
+	WCHAR buff[MAX_PATH];
+	if(!GetModuleFileNameW(hModule, buff, MAX_PATH))
+		return {0,0}; return utf816_dup(buff); }
+cstr getProgramDir(void) {
+	return getPath0(getModuleFileName(NULL)); }
+
+
+
+	
+	
+	
+// utf8 wide apis
+HANDLE WINAPI createFile(LPCSTR a,DWORD b,DWORD c,
+	LPSECURITY_ATTRIBUTES d,DWORD e,DWORD f,HANDLE g) 
+{ 	return CreateFileW(widen(a), b, c, d, e, f, g); }
+
+
+	
+	
+
+	
+	
+	

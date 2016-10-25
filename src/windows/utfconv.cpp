@@ -64,7 +64,7 @@ ASM_FUNC("__Z10utf816_cpyPwPKc@8", "pushl %esi; pushl %edi; movl 16(%esp), %esi;
 #define UTF816CP(n, z) WCHAR* __stdcall n(WCHAR* dst, cch* str, int len) \
 	{ asm("jmp 0f; 1: stosw; 0: cmp %2,%1; jz 3f; movzbl (%1),%%eax;" \
 	"inc %1; testb %%al,%%al;" MIF(z,"je 3f;",) "jns 1b; movl " \
-	"%2,%%edx; call _UTF8_GET2; call _UTF8_PUT1; jmp 0b; 3:" : "+D"(dst) : \
+	"%2,%%edx; call _UTF8_GET2; call _UTF16_PUT1; jmp 0b; 3:" : "+D"(dst) : \
 	"S"(str) ,"c"(str+len) : "eax", "edx" ); *dst = '\0'; return dst; }
 UTF816CP(utf816_cpy, 1)
 

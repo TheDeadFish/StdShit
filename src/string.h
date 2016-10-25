@@ -1,7 +1,7 @@
 
 // prototype builders
 #define CSTRFN0_(nm) REGCALL(2) bool nm(cstr str); SHITCALL bool nm(cch* str); 
-#define CSTRFN1_(nm) SHITCALL cstr nm(cstr str); SHITCALL cstr nm(cch* str);
+#define CSTRFN1_(nm) REGCALL(2) cstr nm(cstr str); SHITCALL cstr nm(cch* str);
 #define CSTRFN2_(nm) SHITCALL cstr nm(cstr n1, cstr n2); SHITCALL  \
 	cstr nm(cstr n1, cch* n2); SHITCALL cstr nm(cch* n1, cch* n2); 
 	
@@ -11,13 +11,16 @@
 	nm(n1, cstr(n2)); } SHITCALL cstr nm(cch* n1, cch* n2) { \
 	return nm(cstr(n1), n2); }
 
+	
+	
+	
 struct cstr;
 SHITCALL cstr cstr_len(const char*);
-SHITCALL cstr cstr_dup(cstr str);
+REGCALL(2) cstr cstr_dup(cstr str);
 
 typedef const char cch;
-
-
+static inline bool isNull(cch* str) {
+	return !str || !str[0]; }
 
 struct cstr
 {
@@ -57,19 +60,29 @@ struct cstr
 	ALWAYS_INLINE void sete(Ptr ptr) { setend(ptr.end); }	
 		
 	// various functions
-	cstr xdup(void) { return
-		cstr_dup(*this); }
+	cstr nterm(void) { if(data) 
+		*end() = '\0'; return *this; }
+	cstr xdup(void) {
+		return cstr_dup(*this); }
 };
 
 struct Cstr : cstr { 
 	Cstr(const cstr& that) : cstr(that) {}
 	Cstr(Cstr&& that) = default;
 	Cstr(const Cstr& that) = delete;
-	~Cstr() { free(this->data); } };
+	ALWAYS_INLINE ~Cstr() { free(this->data); } };
 
 struct bstr : cstr
 {
 	int mlen;
+	
+	// construction
+	bstr() = default;
+	bstr(const cstr& that);
+	bstr& operator=(const cstr& that) {
+		return strcpy(that); }
+	struct ZT {}; bstr(ZT zt) :
+		cstr(0,0), mlen(0) {}
 	
 	// basic copy/concat
 	bstr& strcpy(const char*); bstr& strcpy(cstr);
@@ -94,8 +107,17 @@ struct bstr : cstr
 	REGCALL(2) alloc_t alloc(int len);
 };
 
+struct Bstr : bstr
+{
+	// constructors
+	Bstr() : bstr(ZT()) {}
+	~Bstr() { free(this->data); }
+	Bstr(const cstr& that) : bstr(that) {}
+};
+
+
 // Path Handling
 CSTRFN1_(getPath) CSTRFN1_(getName)
 CSTRFN2_(replName) CSTRFN2_(pathCat)
-//CSTRFN2_(fullNameRepl) 
-//CSTRFN2_(fullNameCat)
+static inline cstr getPath0(cstr str) {
+	return getPath(str).nterm(); }
