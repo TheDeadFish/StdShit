@@ -47,13 +47,11 @@ bstr& bstr::strcat(const char* str) { ::strcpy(xnalloc(
 bstr& bstr::strcat(cstr str) { memcpyX(xnalloc(
 	str.slen), str.data, str.slen); return *this; }
 bstr& bstr::fmtcpy(const char* fmt, ...) {
-	VA_ARG_FWD(fmt);
-	char* buff = xresize(xstrfmt_len(va)-1);
-	xstrfmt_fill(buff, va); return *this; }
+	VA_ARG_FWD(fmt);  setend(xstrfmt_fill(xreserve(
+		xstrfmt_len(va)-1), va)); return *this; }
 bstr& bstr::fmtcat(const char* fmt, ...) {
-	VA_ARG_FWD(fmt);
-	char* buff = xnalloc(xstrfmt_len(va)-1);
-	xstrfmt_fill(buff, va); return *this; }
+	VA_ARG_FWD(fmt); setend(xstrfmt_fill(xralloc(
+		xstrfmt_len(va)-1), va)); return *this; }
 	
 // null-termination
 cstr bstr::nullTerm(void) { int len = slen; 

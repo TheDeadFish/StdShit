@@ -248,7 +248,7 @@ void processFile(const char* src, const char* dst,
 	CParse cParse;
 	char line[512];
 	FILE* fpIn = xfopen(src, "!r");
-	FILE* fpOut = xfopen(dst, "!w");
+	FILE* fpOut = xfopen(dst, "!wb");
 	fprintf(fpOut, "// stdshit.h: Single file version\n");
 	fprintf(fpOut, "// DeadFish Shitware 2013-2014\n");
 	buildDate(fpOut);

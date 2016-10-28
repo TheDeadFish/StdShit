@@ -15,6 +15,8 @@ struct xstrfmt_fmt_ : xstrfmt_fmt
 	size_t dec_mode(bool sign);
 	size_t hex_mode(); size_t cmd_mode();
 	size_t sep_mode(); 
+	size_t flt_mode(char* fmt);
+	
 	
 	static REGCALL(1) void slash(void);
 	
@@ -79,6 +81,27 @@ LOOP_START:;
 	if(flags & FLAG_SLASH) 	APPEND_SLASH;
 	if(flags & FLAG_HASH) free(str0);
 	return (size_t)dstPos;
+}
+
+size_t xstrfmt_fmt_::flt_mode(char* fmt)
+{
+	// determin length
+	char* dstPos = dstPosArg;
+	SCOPE_EXIT(va_arg(ap, double));
+	if(!dstPos) { 
+		int exp = (((int*)ap)[1] >> 20) & 2047;
+		int len = max(3,(exp*19728-19965287)>>16);
+		len += max(s8(precision), 6); 
+		max_ref(len, length); return len;
+	}
+	
+	// forward call to vsprintf
+	va_list va = ap; char buff[32]; 
+	char* dp = buff+32; *dp = '\0';
+	while((*--dp = *--fmt) != '%') { if(*fmt
+		== '*') va -= sizeof(size_t); }
+	return size_t(dstPos + 
+		vsprintf(dstPos, dp, va));
 }
 
 size_t xstrfmt_fmt_::dec_mode(bool sign)
@@ -203,7 +226,7 @@ GET_INT_NEXT: { int result;
 	case 'q': extraLen = ext_mode(); break;
 	case 'z': extraLen = cmd_mode(); break;
 	case ':': extraLen = sep_mode(); break;
-	
+	case 'f': extraLen = flt_mode(str); break;
 	
 	default: UNREACH;
 	}
@@ -247,7 +270,7 @@ char* xstrfmt_fill(char* buffer,
 		char ch; lodsx(curPos, ch);
 		if(ch != '%') { ESCAPE_PERCENT:
 			stosx(dstPos, ch);
-			if(ch == '\0') return dstPos; }
+			if(ch == '\0') return dstPos-1; }
 		ei(*curPos == '%') { curPos++;
 			goto ESCAPE_PERCENT; }
 		else {
@@ -257,7 +280,6 @@ char* xstrfmt_fill(char* buffer,
 			dstPos = (char*)result.extraLen;
 		}
 	}
-	return dstPos;
 }
 
 SHITCALL
@@ -266,7 +288,7 @@ cstr xstrfmt(VaArgFwd<const char*> va)
 	va_list ap = va.start();
 	char* buffer = xMalloc(xstrfmt_len(va));
 	char* endPos = xstrfmt_fill(buffer, va);
-	return {buffer, (endPos-1)-buffer};
+	return {buffer, endPos};
 }
 
 SHITCALL NEVER_INLINE
@@ -280,7 +302,7 @@ SHITCALL NEVER_INLINE int strfmt(
 {
 	VA_ARG_FWD(fmt);
 	char* endPos = xstrfmt_fill(buffer, va);
-	return (endPos-1)-buffer;
+	return endPos-buffer;
 }
 
 void xvector_::fmtcat(const char* fmt, ...)
