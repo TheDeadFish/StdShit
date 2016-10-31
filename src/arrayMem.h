@@ -3,6 +3,38 @@
 #define _ARRAY_MEM_H_
 #define _ARRAY_MEM_FIX
 
+TMPL(T) struct xRngPtr 
+{ 
+	T* data; T* end_; 
+
+	// construction
+	xRngPtr() = default; 
+	xRngPtr(const xRngPtr& that) = default;
+	xRngPtr(T* d, int l) : data(d), end_(d+l) {}
+	xRngPtr(T* d, T* e) : data(d), end_(e) {}
+	
+	// pointer / length access
+	T* begin() { return data; }
+	T* end() { return end_; }
+	operator T*() { return data; }
+	int count() { return end_-data; }
+	int offset(T* pos) { return pos-data; }
+	T* operator->() { return data; }
+	xRngPtr& operator++() { data++; return *this; }
+
+	// trimming operations	
+	ALWAYS_INLINE bool chk() { return end_ > data; }
+	ALWAYS_INLINE T& f() { return *data; } 
+	ALWAYS_INLINE T& l() { return end_[-1]; }
+	ALWAYS_INLINE T& fi() { return *data++; }
+	ALWAYS_INLINE T& ld() { return *--end_; };
+	
+	// reference trimming helpers
+	ALWAYS_INLINE bool chk(T* cp) { return end_ > cp; }
+	ALWAYS_INLINE bool chk2() { ARGFIX(end_); return chk(); }
+	ALWAYS_INLINE bool chk2(T* cp) { ARGFIX(end_); return chk(cp); }
+};
+
 template <class T, typename... Args>
 T* pNew(T* ptr, Args&& ... args) { __assume(ptr != NULL);
 	return new(ptr) T(args...); }

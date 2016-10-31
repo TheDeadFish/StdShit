@@ -1,4 +1,9 @@
 
+// range comparison
+template <class T, class U, class V> constexpr bool inRng(
+	T t, U u, V v) { return (t >= u)&&(t <= v); }
+template <class T, class U, class V> constexpr bool inRng1(
+	T t, U u, V v) { return (t >= u)&&(t < v); }
 
 // rotate operations
 constexpr u8 rol_8(u8 val, int shift) { return (val << shift) | (val >> (8-shift)); }
@@ -14,3 +19,5 @@ REGCALL(1) constexpr static T toUpper(T ch){ return((ch>='a') &&(ch<='z'))?ch-32
 REGCALL(1) constexpr static T toLower(T ch){ return((ch>='A') &&(ch<='Z'))?ch+32:ch;}\
 constexpr static bool isPathSep(T ch) { return (ch == '\\')||(ch == '/'); }
 _CEXPCHOP_(char) _CEXPCHOP_(int)
+REGCALL(1) constexpr static bool isAlpha(int ch) {
+	return inRng(ch, 'A', 'Z') || inRng(ch, 'a', 'z'); }
