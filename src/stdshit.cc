@@ -44,8 +44,7 @@ void* operator new  (unsigned len) __attribute__((alias("emulate_cc_new")));
 void* operator new[](unsigned len) __attribute__((alias("emulate_cc_new")));   
 void  operator delete  (void* p)   __attribute__((alias("emulate_delete")));
 void  operator delete[](void* p)   __attribute__((alias("emulate_delete")));
-__attribute__((section(".bss$cxa_pure_virtual")))
-void* __cxa_pure_virtual = 0;
+ASM_FUNC("___cxa_pure_virtual", "int $3");
 
 // Error handling
 void comnError(HWND hwnd, bool fatal,

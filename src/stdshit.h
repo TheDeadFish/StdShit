@@ -1,8 +1,8 @@
 #ifndef _STDSHIT_H_
 #define _STDSHIT_H_
-#include <windows.h>
 #include <tchar.h>
 #include <stdio.h>
+#include <windows.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdarg.h>

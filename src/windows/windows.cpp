@@ -104,17 +104,20 @@ HMODULE getModuleBase(void* ptr)
 }
 
 // utf8 api, __getmainargs
-extern char ** _acmdln;
-extern wchar_t ** _wcmdln;
+extern "C" void __wgetmainargs(int * argc, 
+	wchar_t *** argv_, wchar_t *** envp, int mode, void * si);
 extern "C" void __getmainargs(int * argc, 
-	char *** argv, char *** envp, int mode, void * si)
+	char *** argv_, char *** envp, int mode, void * si)
 {
-	char** _acmdln2 = _acmdln; VARFIX(_acmdln2);
-	char* prev_acmdln = release(*_acmdln2, utf816_dup(*_wcmdln));
-	auto gma = (typeof(&__getmainargs))GetProcAddress(
-		getModuleBase(_acmdln2), "__getmainargs");
-	gma(argc, argv, envp, mode, si);
-	free_ref(*_acmdln2); *_acmdln2 = prev_acmdln;
+	wchar_t** wargv; __wgetmainargs(argc, 
+		&wargv, (wchar_t***)envp, mode, si); 
+	int size = 0; for(wchar_t** wargv_ = wargv; *wargv_;
+		wargv_++) size += utf816_size(*wargv_);
+	char** argv = *argv_ = xMalloc((*argc)+1);
+	char* curPos = xmalloc(size);
+	for(wchar_t** wargv_ = wargv; *wargv_;
+		wargv_++, argv++) { *argv = curPos; curPos =
+		utf816_cpy(curPos, *wargv_)+1; } *argv = 0;		
 }
 
 // the final abomination, getFullPath utf8
