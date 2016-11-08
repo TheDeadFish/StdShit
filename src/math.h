@@ -2,13 +2,13 @@
 #ifndef _DF_MATH_H_
 #define _DF_MATH_H_
 #ifdef __SSE4_1__
-#define _DFC_(n, t, x, m) static t MCAT(f,n)(t f) { \
+#define _DFC_(n, t, x, m) static inline t MCAT(f,n)(t f) { \
 	asm("ROUNDP" #x " $" #m ", %1, %0" : "=x"(f) : "x"(f)); return f; } \
-	int MCAT(i,n)(t f) { f = MCAT(f,n)(f); int y; asm( \
+	static inline int MCAT(i,n)(t f) { f = MCAT(f,n)(f); int y; asm( \
 		"cvtts"#x"2si %1, %0" : "=g"(y) : "x"(f)); return y; }
 #else
-#define _DFC_(n, t, x, m) static t MCAT(f,n)(t f) { asm("call _f"\
-	#n : "+t"(f)); return f; } static int MCAT(i,n)(t f) { int y; \
+#define _DFC_(n, t, x, m) static inline t MCAT(f,n)(t f) { asm("call _f"\
+	#n : "+t"(f)); return f; } static inline int MCAT(i,n)(t f) { int y; \
 	asm("call _i"#n : "=a"(y) : "t"(f) : "st"); return y; }
 #endif
 _DFC_(floor, float, S, 1); _DFC_(floor, double, D, 1);
