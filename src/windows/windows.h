@@ -1,3 +1,6 @@
+
+#include <shlobj.h>
+
 static inline void setTxtMode(FILE* fp, bool ena) {
 	_setmode(fp->_file, ena ? 0x4000 : 0x8000); }
 
@@ -38,6 +41,7 @@ cstr __stdcall getModuleFileName(HMODULE hModule);
 cstr __stdcall getProgramDir(void);
 cstr WINAPI getWindowText(HWND); 
 cstr WINAPI getDlgItemText(HWND,int);
+cstr WINAPI shGetFolderPath(int nFolder);
 
 // UTF8/UTF16 conversion
 ALWAYS_INLINE Cstr narrow(LPWSTR s) { return utf816_dup(s); }
@@ -52,3 +56,18 @@ static inline bool isRelPath(cstr str) { bool ret; asm(
 	"call _isRelPath;" : "=c"(ret) : "A"(str)); return ret; }
 
 HMODULE _stdcall getModuleBase(void* ptr);
+
+
+
+// find file functions
+struct WIN32_FIND_DATAU { DWORD dwFileAttributes;
+	FILETIME ftCreationTime; FILETIME ftLastAccessTime;
+	FILETIME ftLastWriteTime; u64p4 nFileSize;
+	DWORD reparseAttrib; char cFileName[MAX_PATH*3];
+	void init(WIN32_FIND_DATAW* src); bool isDir() {
+		return dwFileAttributes & 0x10;}
+	bool isDot() { return RW(cFileName) == 0x2E;}
+	bool isDot2() { return RI(cFileName) == 0x2E2E;}};
+DEF_RETPAIR(findFirstFile_t, int, status, HANDLE, hFind);
+findFirstFile_t WINAPI findFirstFile(cch* fileName, WIN32_FIND_DATAU* fd);
+int WINAPI findNextFile(HANDLE hFind, WIN32_FIND_DATAU* fd);

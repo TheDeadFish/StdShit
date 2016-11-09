@@ -168,10 +168,20 @@ HANDLE WINAPI createFile(LPCSTR a,DWORD b,DWORD c,
 	LPSECURITY_ATTRIBUTES d,DWORD e,DWORD f,HANDLE g) 
 { 	return CreateFileW(widen(a), b, c, d, e, f, g); }
 
-
+// findfirst/findnext file
+void WIN32_FIND_DATAU::init(WIN32_FIND_DATAW* src) { memcpy(this,
+	src, offsetof(WIN32_FIND_DATAW, dwReserved1)); PI(&nFileSize)
+	[0] = src->nFileSizeLow; PI(&nFileSize)[1] = src->nFileSizeHigh; 
+	RI(cFileName) &= 0; utf816_cpy(cFileName, src->cFileName); }
+findFirstFile_t WINAPI findFirstFile(cch* fileName, WIN32_FIND_DATAU* pfd)
+{	WIN32_FIND_DATAW fd; HANDLE hFind; { FNWIDEN(1,fileName); hFind = 
+	FindFirstFileW(cs1, &fd); } int status; if(hFind == INVALID_HANDLE_VALUE) {
+	status = (GetLastError() == ERROR_FILE_NOT_FOUND) ? 1 : -1; } else {
+		pfd->init(&fd); status = 0; } return {status, hFind}; }
+int WINAPI findNextFile(HANDLE hFind, WIN32_FIND_DATAU* pfd) {
+	WIN32_FIND_DATAW fd; if(FindNextFileW(hFind, &fd)) { pfd->init(&fd);
+	return 0; } return (GetLastError() == ERROR_NO_MORE_FILES) ? 1 : -1; }
 	
-	
-
-	
-	
-	
+cstr WINAPI shGetFolderPath(int nFolder) { WCHAR buff[MAX_PATH]; 
+	if(SHGetFolderPathW(0, nFolder, NULL, 0, buff)) 
+		return {0,0}; return utf816_dup(buff);  }
