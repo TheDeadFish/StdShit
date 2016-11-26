@@ -6,6 +6,8 @@ ASM_FUNC("_sfreer", "push %eax; movl 8(%esp), %eax; cmp $0, (%eax);"
 	"jz 1f; push (%eax); call _sfree; and $0, (%eax); 1: pop %eax; ret $4;");
 ASM_FUNC("_smalloc", "push %edx; push %ecx; push %eax;"
 	"call _malloc; add $4, %esp; pop %ecx; pop %edx; ret");
+ASM_FUNC("_srealloc", "push %ecx; push %edx; push 12(%esp);"
+	"call _realloc; add $4, %esp; pop %edx; pop %ecx; ret $4");
 ASM_FUNC("_xmalloc", "movl 4(%esp), %eax; test %eax,%eax; jz 1f; call "
 	"_smalloc; test %eax,%eax; jnz 1f; call __Z10errorAllocv; 1: ret $4;");
 
@@ -26,24 +28,21 @@ SHITCALL void freeLst(Void ptr, int count) { if(!ptr) return;
 SHITCALL void freeLst_ref(Void& ptr, int count) {
 	freeLst(ptr, count); free_ref(ptr); }
 	
+// xNextAlloc implementation
+#define NXALLOC_RLC1(p,c) ptr2 = xrealloc(p, msize);
+#define NXALLOC_RLC2(p,c) if(!(ptr2 = realloc(p,msize))) \
+	{ return ptr2; c--; } p = ptr2;
+#define NXALLOC_(p, c, rlc) size_t result = c; incml(c); \
+	size_t count = result; int count_1 = result-1; \
+	result *= size; Void ptr2; if(likely(count & count_1)) { \
+		ptr2 = p; goto SKIP_ALLOC; } { size_t msize = result << 1; \
+	if(!msize) msize = size; rlc(p,c); } SKIP_ALLOC: return ptr2+result;
+	
 // may-fail allocators
 SHITCALL Void calloc (size_t size) { return calloc(1, size); }
-
 SHITCALL2
-Void nxalloc(Void& ptr, size_t& count_, size_t size)
-{
-	size_t result = movrl(b, count_); incml(count_);
-	size_t count = movrl(d, result);
-	int count_1 = movfx(a, result-1);
-	result *= size; Void ptr2;
-	if(likely(count & count_1)) {
-		ptr2 = ptr; goto SKIP_ALLOC; }
-	count <<= 1; if(count == 0) count++;
-	if(!(ptr2 = realloc(ptr, size*count))) {
-		return ptr2; count_--; } ptr = ptr2;
-SKIP_ALLOC:
-	return ptr2+result;
-}
+Void nxalloc(Void& ptr, size_t& count_, size_t size) {
+	NXALLOC_(ptr, count_, NXALLOC_RLC2); }
 
 // succeed or die allocators
 //SHITCALL2 Void xmalloc(size_t size){ if(size == 0) return NULL;	return errorAlloc( malloc(size) ); }
@@ -60,25 +59,10 @@ SHITCALL2 Void xmemdup32(Void src, int count) {	if(count == 0) return NULL;
 	void* dst = xmalloc(count*4); memcpy32(dst, src, count); return dst; }
 	
 SHITCALL2
-Void xnxalloc(Void& ptr, size_t& count_, size_t size)
-{
-	size_t result = movrl(b, count_); incml(count_);
-	size_t count = movrl(d, result);
-	int count_1 = movfx(a, result-1);
-	result *= size; Void ptr2;
-	if(likely(count & count_1)) {
-		ptr2 = ptr; goto SKIP_ALLOC; }
-	count <<= 1; if(count == 0) count++;
-	ptr2 = xrealloc(ptr, size*count);
-SKIP_ALLOC:
-	return ptr2+result;
-}
-
-
-
-
-
-
+Void xnxalloc(Void& ptr, size_t& count_, size_t size) {
+	NXALLOC_(ptr, count_, NXALLOC_RLC1); }
+__thiscall Void xnxalloc2(void* p, size_t size) {
+	NXALLOC_((*(void**)p), PT(p)[1], NXALLOC_RLC1); }
 	
 // xvector
 Void xvector_::xalloc_(size_t size)

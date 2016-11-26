@@ -15,7 +15,8 @@
 	
 	
 struct cstr;
-SHITCALL cstr cstr_len(const char*);
+#define cstr_len(si)({ cstr so; asm("push %1;" \
+	"call _cstr_len;": "=A"(so): "g"(si)); so;})
 REGCALL(2) cstr cstr_dup(cstr str);
 
 typedef const char cch;
@@ -25,60 +26,39 @@ static inline bool isNull(cch* str) {
 struct cstr
 {
 	char* data; int slen;
-
-	
-
-	// creation / assignment
-	cstr() = default; cstr(const cstr& that) = default;
+	XARRAY_COMMON(cstr, char, slen);
 	ALWAYS_INLINE cstr(cch* d) : cstr(cstr_len(d)) {} 
-	cstr(cch* d, int l) : data((char*)d), slen(l) {}
-	cstr(cch* d, cch* e) : data((char*)d), slen(e-d) {}
 	template<int l> cstr(cch(& d)[l]) : cstr(d, l-1) {}
-	template<typename... Args> cstr& init(Args... args)
-		{ return *this = cstr(args...); }
-		
-	// unsafe indexed splitting
-	cstr left(int i) { return cstr(data, i); }
-	cstr right(int i) { return cstr(data+i, slen-i); }
-	cstr endRel(int i) { return cstr(end(), i-slen); }
-	
-	// pointer / length access
-	void setbase(char* pos) {
-		slen += data-pos; data = pos; }
-	void setend(char* pos) { slen = pos-data; }
-	int offset(char* pos) { pos - data; }
-	DEF_BEGINEND(char, data, slen);
 	DEF_RETPAIR(prn_t, int, slen, char*, data);
 	prn_t prn() { return prn_t(slen, data); }
-	
-	// trimming optimization
-	struct Ptr { char* data; char* end; bool chk() { return end > data; }
-	ALWAYS_INLINE char& f() { return *data; } char& l() { return end[-1]; }
-	ALWAYS_INLINE char& fi() { return *data++; } char& ld() { return *--end; }};
-	ALWAYS_INLINE Ptr ptr() { return Ptr{data, end()}; }
-	ALWAYS_INLINE void set(Ptr ptr) { init(ptr.data, ptr.end); }
-	ALWAYS_INLINE void sete(Ptr ptr) { setend(ptr.end); }	
 		
 	// various functions
 	cstr nterm(void) { if(data) 
 		*end() = '\0'; return *this; }
-	cstr xdup(void) {
+	bool chk(uint idx) { return (idx < slen); }
+	char get(uint idx) { return chk(idx) ? data[idx] : 0; }
+	char getr(uint idx) { return  get(idx+slen); }
+	bool sepReq() { return !isPathSep2(getr(-1), '\0'); }
+	
+	// dynamic functions
+	cstr xdup(void) const  {
 		return cstr_dup(*this); }
+	void free(cch* p) { if(p != data) free(); }
 };
 
 struct Cstr : cstr { 
 	Cstr(const cstr& that) : cstr(that) {}
-	Cstr(Cstr&& that) = default;
-	Cstr(const Cstr& that) = delete;
-	ALWAYS_INLINE ~Cstr() { free(this->data); } };
+	Cstr(Cstr&& that) { this->init(that.release()); }
+	Cstr(const Cstr& that) { this->init(cstr_dup(that)); }
+	ALWAYS_INLINE ~Cstr() { free(); } };
 
 struct bstr : cstr
 {
 	int mlen;
 	
 	// construction
-	bstr() = default;
-	bstr(const cstr& that);
+	bstr() = default; 
+	bstr(cch*); bstr(cstr that);
 	bstr& operator=(const cstr& that) {
 		return strcpy(that); }
 	struct ZT {}; bstr(ZT zt) :
@@ -89,6 +69,10 @@ struct bstr : cstr
 	bstr& strcat(const char*); bstr& strcat(cstr);
 	bstr& fmtcpy(const char*, ...);
 	bstr& fmtcat(const char*, ...);	
+	
+	// path handling
+	bstr& pathcat(cch*); bstr& pathcat(cstr);
+	bstr& pathend(cch*); bstr& pathend(cstr);
 	
 	// null-termination
 	REGCALL(1) cstr nullTerm(void);
@@ -110,14 +94,14 @@ struct bstr : cstr
 struct Bstr : bstr
 {
 	// constructors
+	using bstr::bstr;
 	Bstr() : bstr(ZT()) {}
-	~Bstr() { free(this->data); }
-	Bstr(const cstr& that) : bstr(that) {}
+	~Bstr() { ::free(this->data); }
 };
 
 
 // Path Handling
-CSTRFN1_(getPath) CSTRFN1_(getName)
+CSTRFN1_(getPath) CSTRFN1_(getName) CSTRFN1_(getName2)
 CSTRFN2_(replName) CSTRFN2_(pathCat)
 static inline cstr getPath0(cstr str) {
 	return getPath(str).nterm(); }

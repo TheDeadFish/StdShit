@@ -24,6 +24,7 @@
 #include "copyfill.h"
 #include "constexp.h"
 #include "math.h"
+#include "arrayMem.h"
 #include "string.h"
 #include "windows\utfconv.h"
 #include "windows\windows.h"
@@ -65,14 +66,6 @@ Range1_type<T> Range(T start, T end)
 template <typename T>
 Range2_type<T> Range(T* array, size_t size)
 {	return Range2_type<T>(array, size); }
-
-// C++11 fest: functional helpers
-template<class Type, class Next>
-bool is_one_of(const Type& needle, const Next& next)
-{return needle==next;}
-template<class Type, class Next, class ... Rest>
-bool is_one_of(const Type& needle, const Next& next, const Rest&... haystack)
-{return needle==next || is_one_of(needle, haystack...);}
 
 // endian functions
 #define bswap32 __builtin_bswap32
@@ -198,8 +191,6 @@ FATALFUNC void errorBadFile();
 TMPL(T) T errorAlloc(T ptr)
 	{ if(!ptr) errorAlloc(); return ptr; }
 SHITCALL int fopen_ErrChk(void);
-	
-#include "arrayMem.h"
 
 // sprintf replacement
 #define Xstrfmt(...) Cstr(xstrfmt( __VA_ARGS__))

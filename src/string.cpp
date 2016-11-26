@@ -1,10 +1,7 @@
 
-cstr cstr_len(const char* str) {
-	int len = 0; if(str != NULL) {
-	asm("push %2; call _strlen;"
-	"movl %%eax, %%edx; pop %%eax" : "=a"(str),
-	"=d"(len) : "g"(str) : "ecx"); } return {str, len};
-}
+ASM_FUNC("_cstr_len", "push %ecx; movl 8(%esp), %eax;"
+	"push %eax; test %eax, %eax; jz 1f; call _strlen;"
+	"1: movl %eax, %edx; pop %eax; pop %ecx; ret $4");
 
 cstr cstr_dup(cstr str)
 {
@@ -17,7 +14,8 @@ cstr cstr_dup(cstr str)
 	GET_RETPAIR(This, len, alloc(len)); } char* data = \
 	This->data; int slen = This->slen; data[len] = 0;
 	
-bstr::bstr(const cstr& that) : bstr(ZT()) { *this = that; }
+bstr::bstr(cch* str) : bstr(cstr(str)) {}
+bstr::bstr(cstr that) : cstr(that.xdup()) { mlen = slen; }
 
 bstr::alloc_t bstr::alloc(int len)
 {
@@ -58,13 +56,14 @@ cstr bstr::nullTerm(void) { int len = slen;
 	BSTR_ALLOC(); return {This->data, len}; }
 cstr bstr::calcLen(void) { cstr ret = cstr_len(data);
 	return {ret.data, slen = ret.slen}; }
-cstr bstr::updateLen(void) { cstr ret = cstr_len(data);
-	return {ret.data, slen += ret.slen}; }
-
-/*
-bstr::strcat(char* str)
-{
-	int len = strlen(str);
-	strcpy(xNalloc, str);
-}
-*/
+cstr bstr::updateLen(void) { slen +=
+	cstr_len(end()).slen; return *this; }
+	
+// path handling
+bstr& bstr::pathcat(cch* str) { return pathcat(cstr(str)); }
+bstr& bstr::pathend(cch* str) { return pathend(cstr(str)); }
+bstr& bstr::pathcat(cstr str) { int extra = sepReq();
+	char* buff = xnalloc(str.slen+extra); if(extra)
+	WRI(buff, '\\'); ::strcpy(buff, str.data); return *this; }
+bstr& bstr::pathend(cstr str) { int len = slen; bstr&
+	ret = pathcat(str); ret.slen = len; return ret; }

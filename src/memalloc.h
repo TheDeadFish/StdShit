@@ -10,6 +10,8 @@ ALWAYS_INLINE void free_ref(Void& ptr) { asm("push %0;"
 	"call _sfreer;" :: "g"(&ptr) : "memory"); }
 ALWAYS_INLINE Void malloc_(size_t sz) { Void r; asm(
 	"call _smalloc;" : "=a"(r) : "a"(sz)); return r; }
+ALWAYS_INLINE Void realloc_(void* ptr, size_t sz) { Void r; asm("push %1;"
+	"call _srealloc;" : "=a"(r) : "g"(ptr), "d"(sz)); return r; }
 ALWAYS_INLINE Void xmalloc(size_t sz) { Void r; asm("push %1;"
 	"call _xmalloc;" : "=a"(r) : "g"(sz)); return r; }
 
@@ -27,8 +29,6 @@ SHITCALL int fclose_ref( FILE*& stream );
 SHITCALL Void calloc (size_t size);
 TMPL(T) static inline Void realloc2(T& ptr, size_t size) { Void tmp =
 	realloc(ptr, size); if(tmp) ptr = tmp; return tmp; }
-//static inline Void malloc_(size_t size) { return malloc(size); }
-static inline Void realloc_(void* ptr, size_t size) { return realloc(ptr, size); }
 #define malloc malloc_
 #define realloc realloc_
 
@@ -37,6 +37,7 @@ static inline Void realloc_(void* ptr, size_t size) { return realloc(ptr, size);
 SHITCALL2 Void xcalloc(size_t size); SHITCALL2 Void xrecalloc(Void& ptr, size_t size);
 SHITCALL2 Void xnxalloc(Void& ptr, size_t& count, size_t size);
 SHITCALL2 Void nxalloc(Void& ptr, size_t& count, size_t size);
+__thiscall Void xnxalloc2(void* p, size_t size);
 
 // Memory allocation templates
 TMPL(T) void free_ref(T*& p) {	free_ref(*(Void*)&p); }

@@ -35,10 +35,69 @@ TMPL(T) struct xRngPtr
 	ALWAYS_INLINE bool chk2(T* cp) { ARGFIX(end_); return chk(cp); }
 };
 
+// constructor helpers
 template <class T, typename... Args>
 T* pNew(T* ptr, Args&& ... args) { __assume(ptr != NULL);
 	return new(ptr) T(args...); }
 TMPL(T) void pDel(T* ptr) { ptr->~T(); }
+TMPL(T) constexpr bool hasDtor(T* p) { return
+	!std::is_trivially_destructible<T>::value; }
+	
+#define XARRAY_COMMON(C, T, len) \
+	C() = default; C(const C& that) = default; \
+	C(const T* d, int l) : data((T*)d), len(l) {} \
+	C(const T* d, const T* e) : data((T*)d), len(e-d) {} \
+	template<typename... Args> C& init(Args... args) \
+		{ return *this = C(args...); } \
+	void init(){ data=0; len=0; } void free() { ::free(data); } \
+	C release() { return {::release(data), ::release(len) }; } \
+	void setbase( T* pos) { len += data-pos; data = pos; } \
+	void setend(T* pos) { len = pos-data; } int offset( \
+	T* pos) { pos - data; } DEF_BEGINEND(T, data, len); \
+	C left(int i) { return C(data, i); } \
+	C right(int i) { return C(data+i, len-i); } \
+	C endRel(int i) { return C(end(), i-len); } \
+	ALWAYS_INLINE xRngPtr<T> ptr() { return xRngPtr<T>{data, end()}; } \
+	ALWAYS_INLINE void set(xRngPtr<T> ptr) { init(ptr.data, ptr.end_); } \
+	ALWAYS_INLINE void sete(xRngPtr<T> ptr) { setend(ptr.end_); }
+	
+TMPL(T) struct xarray 
+{
+	// creation / assignment
+	T* data; size_t len;
+	XARRAY_COMMON(xarray, T, len);
+	template<int l> xarray(T(& d)[l]) : xarray((T*)d, l) {}
+		
+	// destructor safe ops
+	void Free() { for(auto& ref : *this) ref.~T(); this->free(); }
+	void Clear() { this->Free(); this->init(); }
+	T* xAlloc(size_t size) { T* ptr = xalloc(size);
+		for(int i = 0; i < size; i++) pNew(ptr+i); }
+	template<typename... Args>
+	T& push_back(Args... args) { T* ptr = &xnxalloc(); 
+		__assume(ptr); return *(new (ptr) T(args...)); }
+	void pop_back(void) { len--; end()->~T(); }
+	
+	// destructor unsafe ops
+	T* xalloc(size_t size) { return data = xMalloc(len = size); }
+	T* xresize(size_t size) { return xRealloc(data, len = size); }
+	T& xnxalloc() {	return *(T*)xnxalloc2(this, sizeof(T)); }
+	
+	// copying functions
+	T* xcopy(const xarray& that) { return xcopy(that.data, that.len); }
+	T* xcopy(const T* di, size_t ci) { memcpyX(xalloc(ci), di, ci); return data; }
+	T* xCopy(const xarray& that) { return xCopy(that.data, that.len); }
+	T* xCopy(const T* di, size_t ci) { if(!hasDtor(di)) return xcopy(di, ci);
+	 T* ptr = xalloc(ci); for(int i = 0; i < ci; i++) pNew(ptr+i, di[i]); return ptr; }
+};
+
+TMPL(T) struct xArray : xarray<T>
+{
+	xArray() : xarray<T>(0,0) {}
+	~xArray() { this->Free(); }
+	xArray(const xarray<T>& that) : xarray<T>(that) {}
+	xArray(const xArray& that) { this->xCopy(that); }
+};
 
 struct xvector_ {
 	Void dataPtr; size_t dataSize, allocSize; 

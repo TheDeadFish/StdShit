@@ -433,7 +433,13 @@ SHITCALL cstr fullNameRepl(cstr base, cstr name) {
 	return getFullPath(replName(base, name), true); }
 SHITCALL cstr fullNameCat(cstr base, cstr name) {
 	return getFullPath(pathCat(base, name), true); }
-CSTRTH1_(getPath) CSTRTH1_(getName)
+cstr getName2(cstr str) { 
+	auto p = (str = getName(str)).ptr();
+	while(p.chk() && p.f() == '.') p.fi();
+	while(p.chk()) { if(p.ld() == '.') {
+	str.sete(p); break; }} return str; }
+	
+CSTRTH1_(getPath) CSTRTH1_(getName) CSTRTH1_(getName2)
 CSTRTH2_(pathCat) CSTRTH2_(replName)
 CSTRTH2_(fullNameRepl)
 CSTRTH2_(fullNameCat)
