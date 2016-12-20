@@ -26,6 +26,21 @@ bstr::alloc_t bstr::alloc(int len)
 	return {this, len};
 }
 
+void bstr::push_back(char c)
+{
+	*xnalloc(1) = c;
+}
+
+// string comparison
+#define CSTR_CMP(nm, tl) \
+int nm(CSTRG(1), CSTRG(2)) { int diff = len1-len2; \
+	for(int i = 0; !diff && (i<len1); diff = \
+	tl(str1[i])-tl(str2[i]), i++); return diff; } \
+int nm(CSTRG(1), cch* str2) { \
+	for(u8 ch : CSTRS(1)) { if(int diff = tl(ch)-tl(RDI \
+	(str2))) return diff; } return -u8(*str2); }
+CSTR_CMP(cstr_cmp,) CSTR_CMP(cstr_icmp, toUpper)
+
 char* bstr::xresize(int len) { BSTR_ALLOC();
 	This->slen = len; return data; }
 char* bstr::xnalloc(int len) { len += slen; BSTR_ALLOC();

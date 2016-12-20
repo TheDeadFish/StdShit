@@ -1,7 +1,7 @@
 // Memory allocation / containers
 #ifndef _ARRAY_MEM_H_
 #define _ARRAY_MEM_H_
-#define _ARRAY_MEM_FIX
+#define IS_PTR(x) (size_t(x) >= 65536)
 
 TMPL(T) struct xRngPtr 
 { 
@@ -153,6 +153,9 @@ struct xvector : xvector_ {
 	xvector(const xvector<T>& That) { init(That); }
 	xvector(T* di, size_t ci) { init(di, ci); }
 	xvector(T* di, size_t ds, size_t as) { init2(di, ds, as); }
+	
+	//
+	int offset(T* ptr) { return ptr - (T*)dataPtr; }
 
 	// destructor safe ops
 	size_t getCount() const { return dataSize/sizeof(T); }

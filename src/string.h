@@ -22,6 +22,15 @@ REGCALL(2) cstr cstr_dup(cstr str);
 typedef const char cch;
 static inline bool isNull(cch* str) {
 	return !str || !str[0]; }
+	
+// string comparison
+#define CSTRG(n) char* MCAT(str,n), int MCAT(len,n)
+#define CSTRS(n) cstr(MCAT(str,n), MCAT(len,n))
+#define CSTRX(s) (s).data, (s).slen
+int SHITCALL cstr_cmp(CSTRG(1), CSTRG(2));
+int SHITCALL cstr_icmp(CSTRG(1), CSTRG(2));
+int SHITCALL cstr_cmp(CSTRG(1), cch* str2);
+int SHITCALL cstr_icmp(CSTRG(1), cch* str2);
 
 struct cstr
 {
@@ -40,9 +49,17 @@ struct cstr
 	char getr(uint idx) { return  get(idx+slen); }
 	bool sepReq() { return !isPathSep2(getr(-1), '\0'); }
 	
+	// comparison functions
+	int cmp(cstr s) { return cstr_cmp(CSTRX(*this), CSTRX(s)); }
+	int icmp(cstr s) { return cstr_icmp(CSTRX(*this), CSTRX(s)); }
+	int cmp(cch* s) { return cstr_cmp(CSTRX(*this), s); }
+	int icmp(cch* s) { return cstr_icmp(CSTRX(*this), s); }
+	
+	
+	
+	
 	// dynamic functions
-	cstr xdup(void) const  {
-		return cstr_dup(*this); }
+	cstr xdup(void) const  { return cstr_dup(*this); }
 	void free(cch* p) { if(p != data) free(); }
 };
 
@@ -86,6 +103,7 @@ struct bstr : cstr
 	REGCALL(2) char* xnalloc(int len);	
 	
 	// memory allocation
+	void push_back(char c);
 	DEF_RETPAIR(alloc_t, bstr*,
 		This, int, len_);
 	REGCALL(2) alloc_t alloc(int len);
@@ -98,7 +116,6 @@ struct Bstr : bstr
 	Bstr() : bstr(ZT()) {}
 	~Bstr() { ::free(this->data); }
 };
-
 
 // Path Handling
 CSTRFN1_(getPath) CSTRFN1_(getName) CSTRFN1_(getName2)
