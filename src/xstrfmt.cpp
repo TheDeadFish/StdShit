@@ -214,6 +214,10 @@ GET_INT_NEXT: { int result;
 		"=r"(ch) : "r"(ch)); flags |= UPPER_CASE; }
 	size_t extraLen;
 	
+	// format handler
+	if(cbfn) { extraLen = cbfn(this, ch); if(
+		extraLen != -1) return core_t(extraLen, str); }
+	
 	switch(ch) {
 	if(0) { case 'j': flags |= FLAG_XCLMTN; }
 	if(0) { case 'k': flags |= FLAG_COMMA; }
@@ -238,63 +242,59 @@ GET_INT_NEXT: { int result;
 	return core_t(extraLen, str);
 }
 
-SHITCALL
-int xstrfmt_len(VaArgFwd<const char*> va)
-{
-	xstrfmt_fmt_ ctx; ctx.ap = va.start();
-	ctx.dstPosArg = 0;
-	
-	int extraLen = 1; char ch;
-	DEF_ESI(char* curPos) = (char*)*va.pfmt;
-	while(lodsx(curPos, ch), ch) {
-		if(ch != '%') { 
-	ESCAPE_PERCENT:	extraLen++; }
-		ei(*curPos == '%') { curPos++;
-			goto ESCAPE_PERCENT; }
-		else {
-			auto result = ctx.core(curPos);
-			curPos = result.str;
-			extraLen += result.extraLen; }
-	} return extraLen;
-}
+#define XSTRFMT_CMN(nm, n) SHITCALL MIF(n, char*, int) \
+	nm(void* cbCtx, xstrfmt_fmt::cbfn_t cbfn, MIF( \
+	n, (char* buffer,),) VaArgFwd<const char*> va) \
+{ \
+	xstrfmt_fmt_ ctx; ctx.cbCtx = cbCtx; \
+	ctx.cbfn = cbfn; ctx.ap = va.start(); \
+	MIF(n,DEF_EDI(char* dstPos) = buffer;, \
+	ctx.dstPosArg = 0; int dstPos = 0;) \
+	DEF_ESI(char* curPos) = (char*)*va.pfmt; \
+	while(1) { char ch; lodsx(curPos, ch); \
+		if(ch != '%') { ESCAPE_PERCENT: \
+			MIF(n, stosx(dstPos, ch);, dstPos++;) \
+			if(ch == '\0') return dstPos; } \
+		ei(*curPos == '%') { curPos++; \
+			goto ESCAPE_PERCENT; } \
+		else { MIF(n, ctx.dstPosArg = dstPos;,) \
+			auto result = ctx.core(curPos); \
+			curPos = result.str; dstPos	MIF(n, \
+			=(char*), +=) result.extraLen; \
+		}\
+	} \
+} \
+SHITCALL MIF(n, char*, int) nm(MIF(n, (char* buffer,),) \
+	VaArgFwd<const char*> va) { return nm(0,0, MIF(n,(buffer,),) va); }
+
+XSTRFMT_CMN(xstrfmt_len, 0)
+XSTRFMT_CMN(xstrfmt_fill, 1)
 
 SHITCALL
-char* xstrfmt_fill(char* buffer,
-	VaArgFwd<const char*> va)
+cstr xstrfmt(void* cbCtx, xstrfmt_fmt::
+	cbfn_t cbfn, VaArgFwd<const char*> va)
 {
-	xstrfmt_fmt_ ctx; ctx.ap = va.start();
-	
-	DEF_ESI(char* curPos) = (char*)*va.pfmt;
-	DEF_EDI(char* dstPos) = buffer;
-	while(1) {
-		char ch; lodsx(curPos, ch);
-		if(ch != '%') { ESCAPE_PERCENT:
-			stosx(dstPos, ch);
-			if(ch == '\0') return dstPos-1; }
-		ei(*curPos == '%') { curPos++;
-			goto ESCAPE_PERCENT; }
-		else {
-			ctx.dstPosArg = dstPos;
-			auto result = ctx.core(curPos);
-			curPos = result.str;
-			dstPos = (char*)result.extraLen;
-		}
-	}
-}
-
-SHITCALL
-cstr xstrfmt(VaArgFwd<const char*> va)
-{
-	va_list ap = va.start();
-	char* buffer = xMalloc(xstrfmt_len(va));
-	char* endPos = xstrfmt_fill(buffer, va);
+	char* buffer = xMalloc(xstrfmt_len(cbCtx, cbfn, va));
+	char* endPos = xstrfmt_fill(cbCtx, cbfn, buffer, va);
 	return {buffer, endPos};
 }
+
+SHITCALL
+cstr xstrfmt(VaArgFwd<const char*> va) {
+	return xstrfmt(0, (xstrfmt_fmt::cbfn_t)0, va); }
 
 SHITCALL NEVER_INLINE
 cstr xstrfmt(const char* fmt, ...)
 {
-	VA_ARG_FWD(fmt); return xstrfmt(va);
+	VA_ARG_FWD(fmt); return xstrfmt(
+		0, (xstrfmt_fmt::cbfn_t)0, va);
+}
+
+SHITCALL NEVER_INLINE
+cstr xstrfmt(void* cbCtx, xstrfmt_fmt::
+	cbfn_t cbfn, const char* fmt, ...)
+{
+	VA_ARG_FWD(fmt); return xstrfmt(cbCtx, cbfn, va);
 }
 
 SHITCALL NEVER_INLINE int strfmt(

@@ -151,6 +151,8 @@ struct xstrfmt_fmt { enum { FLAG_ABSLEN = 1<<16,
 		
 	va_list ap; char* dstPosArg; uint flags;
 	int width; int precision; int length;
+	typedef size_t (*cbfn_t)(xstrfmt_fmt* ctx,
+		char ch); void* cbCtx; cbfn_t cbfn;
 };
 
 #endif
@@ -194,6 +196,10 @@ SHITCALL int fopen_ErrChk(void);
 
 // sprintf replacement
 #define Xstrfmt(...) Cstr(xstrfmt( __VA_ARGS__))
+SHITCALL cstr xstrfmt(void* cbCtx, xstrfmt_fmt::
+	cbfn_t cbfn, VaArgFwd<const char*> va);
+SHITCALL cstr xstrfmt(void* cbCtx, xstrfmt_fmt::
+	cbfn_t cbfn, const char*, ...);
 SHITCALL cstr xstrfmt(VaArgFwd<const char*> va);
 SHITCALL cstr xstrfmt(const char*, ...);
 SHITCALL int strfmt(char* buffer, const char* fmt, ...);
