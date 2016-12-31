@@ -163,6 +163,16 @@ char** loadText(FILE* fp, int& LineCount)
 	return lineData;
 }
 
+int saveFile(cch* fName, 
+	void* data, size_t size)
+{	
+	FILE* fp = fopen(fName, "wb");
+	if(!fp) return fopen_ErrChk();
+	SCOPE_EXIT(fclose(fp));
+	if(fwrite(data, size, 1, fp) != 1)
+		return -1; return 0;
+}
+
 Void memmem(const void *b1, const void *b2,
 	size_t len1, size_t len2)
 {

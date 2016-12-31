@@ -77,6 +77,7 @@ TMPL(T) struct xarray
 	T& push_back(Args... args) { T* ptr = &xnxalloc(); 
 		__assume(ptr); return *(new (ptr) T(args...)); }
 	void pop_back(void) { len--; end()->~T(); }
+	T& back(void) { return end()[-1]; }
 	
 	// destructor unsafe ops
 	T* xalloc(size_t size) { return data = xMalloc(len = size); }
@@ -181,6 +182,7 @@ struct xvector : xvector_ {
 	T& push_back(Args... args) { T* ptr = xnalloc(1); 
 		__assume(ptr != NULL); return *(new (ptr) T(args...)); }
 	void pop_back(void) { addCount(-1); end()->~T(); }
+	T& back(void) { return end()[-1]; }
 	T* xRalloc(size_t size) { return xrxalloc_(size*sizeof(T)); }
 	
 	// destructor unsafe ops

@@ -105,6 +105,7 @@ SHITCALL int fsize(FILE* fp);
 DEF_RETPAIR(loadFile_t, byte*, data, size_t, size);
 SHITCALL loadFile_t loadFile(FILE* fp, int extra = 0);
 SHITCALL char** loadText(FILE* fp, int& LineCount);
+SHITCALL int saveFile(cch* fName, void* data, size_t size);
 int xvfprintf ( FILE * stream, const char * format, va_list arg );
 int xfprintf ( FILE * stream, const char * format, ... );
 void xfputs (const char * str, FILE * stream);

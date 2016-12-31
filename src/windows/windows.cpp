@@ -80,9 +80,15 @@ FILE* fopen(cch* name, cch* mode) {
 int rename(cch *old_name,cch *new_name) { FNWIDEN(1,old_name);
 	FNWIDEN(2,new_name); return _wrename(cs1, cs2); }
 #define _FWNDFN1(n,wn) int n(cch *s) { FNWIDEN(1,s); return wn(cs1); }
-_FWNDFN1(remove, _wremove); _FWNDFN1(system, _wsystem);
+_FWNDFN1(remove, _wremove);
 _FWNDFN1(_mkdir, _wmkdir); _FWNDFN1(_rmdir, _wrmdir);
+int system(cch* s) { return _wsystem(widen(s)); }
 }
+
+
+// utf8 api, WIN32 file functions
+DWORD WINAPI getFileAttributes(cch* name) {
+	FNWIDEN(1,name); return GetFileAttributesW(cs1); }
 
 // utf8 api, simple WIN32 functions
 BOOL WINAPI setWindowText(HWND h,cch* s) {
@@ -172,15 +178,16 @@ HANDLE WINAPI createFile(LPCSTR a,DWORD b,DWORD c,
 void WIN32_FIND_DATAU::init(WIN32_FIND_DATAW* src) { memcpy(this,
 	src, offsetof(WIN32_FIND_DATAW, dwReserved1)); PI(&nFileSize)
 	[0] = src->nFileSizeLow; PI(&nFileSize)[1] = src->nFileSizeHigh; 
-	RI(cFileName) &= 0; utf816_cpy(cFileName, src->cFileName); }
+	RI(cFileName) &= 0; fnLength = utf816_cpy(
+		cFileName, src->cFileName)-cFileName; }
 findFirstFile_t WINAPI findFirstFile(cch* fileName, WIN32_FIND_DATAU* pfd)
 {	WIN32_FIND_DATAW fd; HANDLE hFind; { FNWIDEN(1,fileName); hFind = 
 	FindFirstFileW(cs1, &fd); } int status; if(hFind == INVALID_HANDLE_VALUE) {
-	status = (GetLastError() == ERROR_FILE_NOT_FOUND) ? 1 : -1; } else {
-		pfd->init(&fd); status = 0; } return {status, hFind}; }
+	int e = GetLastError();	status = is_one_of(e,2,3) ? 1:((e==5) ? 2:3); }
+		else { pfd->init(&fd); status = -1; } return {status, hFind}; }
 int WINAPI findNextFile(HANDLE hFind, WIN32_FIND_DATAU* pfd) {
 	WIN32_FIND_DATAW fd; if(FindNextFileW(hFind, &fd)) { pfd->init(&fd);
-	return 0; } return (GetLastError() == ERROR_NO_MORE_FILES) ? 1 : -1; }
+	return -1; } return (GetLastError() == ERROR_NO_MORE_FILES) ? 0 : 3; }
 	
 cstr WINAPI shGetFolderPath(int nFolder) { WCHAR buff[MAX_PATH]; 
 	if(SHGetFolderPathW(0, nFolder, NULL, 0, buff)) 

@@ -58,7 +58,7 @@ static inline size_t ALIGN(size_t arg, size_t bound)
 // array/pointer helpers
 #define PTRADD(ptr, offset) (ptr = Void(ptr)+(offset))
 #define PTRDIFF(ptr1, ptr2) (size_t(ptr1)-size_t(ptr2))
-#define offsetof(st, m) ((size_t)(&((st *)0)->m))
+#define offsetof1(st, m) ((size_t)(&((st *)0)->m))
 #define endsetof(st, m) ((size_t)((&((st *)0)->m)+1))
 #define rangeof(st, m1, m2) (endsetof(st,m2)-offsetof(st,m1))
 #define RangeOf(m1,m2) (size_t((&m2)+1)-size_t(&m1))

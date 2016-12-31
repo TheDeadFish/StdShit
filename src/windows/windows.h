@@ -35,6 +35,7 @@ HANDLE WINAPI createFile(LPCSTR,DWORD,DWORD,
 	LPSECURITY_ATTRIBUTES,DWORD,DWORD,HANDLE);
 BOOL WINAPI setWindowText(HWND,cch*);
 BOOL WINAPI setDlgItemText(HWND,int,cch*);
+DWORD WINAPI getFileAttributes(cch*);
 
 // utf8 wide apis, intput
 cstr __stdcall getModuleFileName(HMODULE hModule);
@@ -60,14 +61,18 @@ HMODULE _stdcall getModuleBase(void* ptr);
 
 
 // find file functions
-struct WIN32_FIND_DATAU { DWORD dwFileAttributes;
-	FILETIME ftCreationTime; FILETIME ftLastAccessTime;
-	FILETIME ftLastWriteTime; u64p4 nFileSize;
-	DWORD reparseAttrib; char cFileName[MAX_PATH*3];
-	void init(WIN32_FIND_DATAW* src); bool isDir() {
-		return dwFileAttributes & 0x10;}
+struct WIN32_FIND_DATAU { 
+	DWORD dwFileAttributes; FILETIME ftCreationTime; 
+	FILETIME ftLastAccessTime; FILETIME ftLastWriteTime; 
+	u64p4 nFileSize; DWORD reparseAttrib; 
+	DWORD fnLength; char cFileName[MAX_PATH*3];
+	
+	void init(WIN32_FIND_DATAW* src); 
+	cstr cStr() { return {cFileName, fnLength}; }
+	bool isDir() { return dwFileAttributes & 0x10;}
 	bool isDot() { return RW(cFileName) == 0x2E;}
-	bool isDot2() { return RI(cFileName) == 0x2E2E;}};
+	bool isDot2() { return RI(cFileName) == 0x2E2E;}
+};
 DEF_RETPAIR(findFirstFile_t, int, status, HANDLE, hFind);
 findFirstFile_t WINAPI findFirstFile(cch* fileName, WIN32_FIND_DATAU* fd);
 int WINAPI findNextFile(HANDLE hFind, WIN32_FIND_DATAU* fd);
