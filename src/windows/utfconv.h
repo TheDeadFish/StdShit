@@ -13,6 +13,8 @@ UTF816A(cstrW, utf816_dup, char); UTF816A(cstr, utf816_dup, wchar_t);
 #define UTF816B(t1, t2) t1* __stdcall utf816_cpy(t1* wstr_, t2* mbstr_); \
 	t1* __stdcall utf816_cpy(t1* wstr_, t2* mbstr_, int len);
 UTF816B(wchar_t, const char); UTF816B(char, const wchar_t);
+WCHAR* __stdcall utf816_cpy_(WCHAR* wstr_, cch* mbstr_);
+WCHAR* __stdcall utf816_cpy_(WCHAR* wstr_, cch* mbstr_, int len);
 
 #define UNICODE_MAX 0x10FFFF
 static inline int utf8_len1(int ch) { asm(

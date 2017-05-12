@@ -128,15 +128,14 @@ int fsize(FILE* fp)
 	return endPos-curPos;
 }
 
-loadFile_t loadFile(FILE* fp, int extra)
+xarray<byte> loadFile(FILE* fp, int extra)
 {
-	if(!fp) return loadFile_t(0,-1);
-	SCOPE_EXIT(fclose(fp));
-	loadFile_t result; result.size = fsize(fp);
-	if(result.data = malloc(result.size+extra)) {
-		memset(result.data+result.size, 0, extra);
-		xfread(result.data, result.size, fp);
-	} else { min_ref(result.size, 0x7FFFFFFF); }
+	if(!fp) return {0,-1}; SCOPE_EXIT(fclose(fp));
+	xarray<byte> result; result.len = fsize(fp);
+	if(result.data = malloc(result.len+extra)) {
+		memset(result.data+result.len, 0, extra);
+		xfread(result.data, result.len, fp);
+	} else { min_ref(result.len, 0x7FFFFFFF); }
 	return result;
 }
 
@@ -149,7 +148,7 @@ char** loadText(FILE* fp, int& LineCount)
 	
 	// split into lines 
 	Void curPos = file.data;
-	Void endPos = curPos+file.size;
+	Void endPos = curPos+file.len;
 	char** lineData = NULL;
 	while(curPos < endPos)
 	{
@@ -302,7 +301,7 @@ char* xfgets(char* str, int num, FILE* fp)
 }
 
 SHITCALL
-loadFile_t loadFile(const char* fileName, int extra){
+xarray<byte> loadFile(const char* fileName, int extra){
 	return loadFile(xfopen(fileName, str_rbA), extra); }
 SHITCALL
 char** loadText(const char* fileName, int& LineCount){

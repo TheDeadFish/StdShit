@@ -53,3 +53,13 @@ _Nxalloc(xnxalloc, xNextAlloc) _Nxalloc(nxalloc, NextAlloc)
 	operator T*() { return (T*)func(sizeof(T)*sz); } private: size_t sz; };
 xMalloc_(xMalloc, xmalloc); xMalloc_(xCalloc, xcalloc);
 xMalloc_(Malloc, malloc); xMalloc_(Calloc, calloc);
+
+// xmemdup
+SHITCALL2 Void xmemdup8(Void src, int count);
+SHITCALL2 Void xmemdup16(Void src, int count);
+SHITCALL2 Void xmemdup32(Void src, int count);
+TMPL(T)
+T* xMemdup(const T* src, int count) {
+	if((sizeof(T) % 4) == 0) return xmemdup32(src, count * (sizeof(T)/4));
+	ei((sizeof(T) % 2) == 0) return xmemdup16(src, count * (sizeof(T)/2));
+	else			  		 return xmemdup8(src, count * sizeof(T)); }

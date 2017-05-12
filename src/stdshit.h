@@ -102,8 +102,7 @@ SHITCALL void xfread(void*, size_t, size_t, FILE*);
 SHITCALL void xfwrite(const void*, size_t, size_t, FILE*);
 SHITCALL void xchsize(FILE* fp, long size);
 SHITCALL int fsize(FILE* fp);
-DEF_RETPAIR(loadFile_t, byte*, data, size_t, size);
-SHITCALL loadFile_t loadFile(FILE* fp, int extra = 0);
+SHITCALL xarray<byte> loadFile(FILE* fp, int extra = 0);
 SHITCALL char** loadText(FILE* fp, int& LineCount);
 SHITCALL int saveFile(cch* fName, void* data, size_t size);
 int xvfprintf ( FILE * stream, const char * format, va_list arg );
@@ -169,16 +168,6 @@ TMPL2(T, F) T* bsearch(void* key, T* base, size_t num, F compar)
 	bsearch(key, base, num, sizeof(*base), (Void)(qcomp)compar); }
 TMPL2(T, F)	T* bsearch(void* key, T& array, F compar) {	return 
 	bsearch(key, std::begin(array), std::end(array)-std::begin(array), compar); }
-
-// xmemdup
-SHITCALL2 Void xmemdup8(Void src, int count);
-SHITCALL2 Void xmemdup16(Void src, int count);
-SHITCALL2 Void xmemdup32(Void src, int count);
-TMPL(T)
-T* xMemdup(const T* src, int count) {
-	if((sizeof(T) % 4) == 0) return xmemdup32(src, count * (sizeof(T)/4));
-	ei((sizeof(T) % 2) == 0) return xmemdup16(src, count * (sizeof(T)/2));
-	else			  		 return xmemdup8(src, count * sizeof(T)); }
 	
 // Error handling
 extern const char progName[];
@@ -211,7 +200,7 @@ SHITCALL char* xstrfmt_fill(char* buffer,
 // File handling
 SHITCALL FILE* xfopen(const char*, const char*);
 SHITCALL char* xfgets(char*, int, FILE*);
-SHITCALL loadFile_t loadFile(const char* fileName, int extra = 0);
+SHITCALL xarray<byte> loadFile(const char* fileName, int extra = 0);
 SHITCALL char** loadText(const char* fileName, int& LineCount);
 
 // String handling

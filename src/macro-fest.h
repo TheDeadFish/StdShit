@@ -38,7 +38,7 @@ union _CAST_{T src; U dst; };
 #define VARFIX(var) asm("" : "+g"(var));
 #define VALFIX(v)({auto r = v; VARFIX(r); r;})
 #define VOIDPROC(proc) Void((void*)&proc)
-#define PACK1(...) _Pragma("pack(push, 1)") __VA_ARGS__ _Pragma("pop")
+#define PACK1(...) _Pragma("pack(push, 1)") __VA_ARGS__ _Pragma("pack(pop)")
 #define TMPL(t) template <class t>
 #define TMPL2(t,u) template <class t, class u>
 

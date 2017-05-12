@@ -57,16 +57,15 @@ ASM_FUNC("_UTF16_GET1", "orl $-1, %edx; _UTF16_GET2: "
 UTF816SZ(1, 0, ); UTF816SZ(1, 1, );
 
 // UTF8 to UTF16 copy
-ASM_FUNC("__Z10utf816_cpyPwPKc@8", "pushl %esi; pushl %edi; movl 16(%esp), %esi;"
-	"movl 12(%esp), %edi; 1: movzbl (%esi), %eax; inc %esi; testb %al, %al; js 2f;"
-	"stosw; jne 1b; lea -2(%edi), %eax; popl %edi; popl %esi; ret $8;"
-	"2: call _UTF8_GET1; call _UTF16_PUT1; jmp 1b" );
-#define UTF816CP(n, z) WCHAR* __stdcall n(WCHAR* dst, cch* str, int len) \
-	{ asm("jmp 0f; 1: stosw; 0: cmp %2,%1; jz 3f; movzbl (%1),%%eax;" \
-	"inc %1; testb %%al,%%al;" MIF(z,"je 3f;",) "jns 1b; movl " \
-	"%2,%%edx; call _UTF8_GET2; call _UTF16_PUT1; jmp 0b; 3:" : "+D"(dst) : \
-	"S"(str) ,"c"(str+len) : "eax", "edx" ); *dst = '\0'; return dst; }
-UTF816CP(utf816_cpy, 1)
+#define UTF816CP(n) WCHAR* __stdcall utf816_cpy_(WCHAR* dst, cch* str MIF(n, \
+	(,int len),)) { asm("jmp 0f; 1: stosw; 0:" MIF(n, "cmp %2,%1; jz 3f;",) \
+	"movzbl (%1),%%eax; inc %1; testb %%al,%%al; je 3f; jns 1b;" \
+	MIF(n, "movl %2,%%edx; call _UTF8_GET2", "call _UTF8_GET1") \
+	";call _UTF16_PUT1; jmp 0b; 3:" : "+D"(dst) : "S"(str) \
+	MIF(n,(,"c"(str+len)),) : "eax", "edx" ); return dst; } \
+WCHAR* __stdcall utf816_cpy(WCHAR* dst, cch* str MIF(n, (,int len),)) { \
+	WCHAR* tmp = utf816_cpy_(dst, str MIF(n,(,len),)); *tmp = 0; return tmp; }
+UTF816CP(1) UTF816CP(0)
 
 // UTF16 to UTF8 conversion
 ASM_FUNC("_UTF16TO8_LEN1", "orl $-1, %edx; _UTF16TO8_LEN2:"
@@ -79,7 +78,7 @@ ASM_FUNC("__Z11utf816_sizePKw@4", "pushl %esi; pushl %ebx; movl 12(%esp), %esi;"
 	"jne 1b; movl %ebx, %eax; popl %ebx; popl %esi; ret $4;"
 	"2: call _UTF16TO8_LEN1; jmp 1b" );
 ASM_FUNC("__Z11utf816_sizePKwi@8", "pushl %ebx; pushl %ebp; xorl %ebx, %ebx; pushl %esi;"
-	"movl 20(%esp), %ebp; movl 16(%esp), %esi; addl %esi, %ebp; 1: inc %ebx;cmpl %ebp, %esi;"
+	"movl 20(%esp), %ebp; movl 16(%esp), %esi; lea (%esi,%ebp,2), %ebp; 1: inc %ebx;cmpl %ebp, %esi;"
 	"jae 3f; lodsw; cmpw $128, %ax; jb 1b;movl %ebp, %edx; call _UTF16TO8_LEN2; jmp 1b;"
 	"3: popl %esi; popl %ebp; movl %ebx, %eax; popl %ebx; ret $8;" );
 ASM_FUNC("__Z10utf816_cpyPcPKw@8", "pushl %esi; pushl %edi; movl 16(%esp), %esi;"
@@ -90,7 +89,7 @@ ASM_FUNC("__Z10utf816_cpyPcPKwi@12", "pushl %edi; pushl %ebp; pushl %esi; movl 2
 	"movl 20(%esp), %esi; movl 16(%esp), %edi; lea (%esi,%ebp,2), %ebp; jmp 1f;"
 	"0: stosb; 1: cmpl %ebp, %esi; jae 3f; lodsw; cmpw $128, %ax; jb 0b;"
 	"movl %ebp, %edx; call _UTF16_GET2; call _UTF8_PUT2; jmp 1b;"
-	"3: popl %esi; popl %ebp; lea -1(%edi), %eax; popl %edi; ret $12;" );
+	"3: popl %esi; popl %ebp; movb $0, (%edi); popl %edi; ret $12;" );
 
 #define UTF816_DUP(t1, t2, t3) \
 t1 __stdcall utf816_dup(const t3* src) { if(!src) return {0,0};	\

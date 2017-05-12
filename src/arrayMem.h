@@ -53,7 +53,7 @@ TMPL(T) constexpr bool hasDtor(T* p) { return
 	C release() { return {::release(data), ::release(len) }; } \
 	void setbase( T* pos) { len += data-pos; data = pos; } \
 	void setend(T* pos) { len = pos-data; } int offset( \
-	T* pos) { pos - data; } DEF_BEGINEND(T, data, len); \
+	T* pos) { return pos - data; } DEF_BEGINEND(T, data, len); \
 	C left(int i) { return C(data, i); } \
 	C right(int i) { return C(data+i, len-i); } \
 	C endRel(int i) { return C(end(), i-len); } \
@@ -81,12 +81,13 @@ TMPL(T) struct xarray
 	
 	// destructor unsafe ops
 	T* xalloc(size_t size) { return data = xMalloc(len = size); }
+	T* xcalloc(size_t size) { return data = xCalloc(len = size); }
 	T* xresize(size_t size) { return xRealloc(data, len = size); }
 	T& xnxalloc() {	return *(T*)xnxalloc2(this, sizeof(T)); }
 	
 	// copying functions
 	T* xcopy(const xarray& that) { return xcopy(that.data, that.len); }
-	T* xcopy(const T* di, size_t ci) { memcpyX(xalloc(ci), di, ci); return data; }
+	T* xcopy(const T* di, size_t ci) { len = ci; return (data = xMemdup(di, ci)); }
 	T* xCopy(const xarray& that) { return xCopy(that.data, that.len); }
 	T* xCopy(const T* di, size_t ci) { if(!hasDtor(di)) return xcopy(di, ci);
 	 T* ptr = xalloc(ci); for(int i = 0; i < ci; i++) pNew(ptr+i, di[i]); return ptr; }
