@@ -28,7 +28,9 @@
 #include "string.h"
 #include "windows\utfconv.h"
 #include "windows\windows.h"
-#include "compat.h"
+
+SHITCALL Void memmem(const void *b1, 
+	const void *b2, size_t len1, size_t len2);
 
 // C++11 fest: SCOPE_EXIT
 template<class F>
@@ -204,7 +206,6 @@ SHITCALL xarray<byte> loadFile(const char* fileName, int extra = 0);
 SHITCALL char** loadText(const char* fileName, int& LineCount);
 
 // String handling
-SHITCALL cstr xstrdup(const char*);
 SHITCALL cstr xstrdup(const char*, size_t);
 SHITCALL char* xstrdupr(char*&, const char*);	
 SHITCALL char* xstrdupr(char*&, const char*, size_t);

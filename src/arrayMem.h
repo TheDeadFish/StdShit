@@ -36,9 +36,10 @@ TMPL(T) struct xRngPtr
 };
 
 // constructor helpers
-template <class T, typename... Args>
-T* pNew(T* ptr, Args&& ... args) { __assume(ptr != NULL);
-	return new(ptr) T(args...); }
+#define pNew(ptr, ...) ({ new(notNull(ptr)) typeof(*ptr){__VA_ARGS__}; })
+#define rNew(ref, ...) (*pNew(&ref, __VA_ARGS__))
+
+
 TMPL(T) void pDel(T* ptr) { ptr->~T(); }
 TMPL(T) constexpr bool hasDtor(T* p) { return
 	!std::is_trivially_destructible<T>::value; }
@@ -51,6 +52,7 @@ TMPL(T) constexpr bool hasDtor(T* p) { return
 		{ return *this = C(args...); } \
 	void init(){ data=0; len=0; } void free() { ::free(data); } \
 	C release() { return {::release(data), ::release(len) }; } \
+	C get() { return {data, len}; }\
 	void setbase( T* pos) { len += data-pos; data = pos; } \
 	void setend(T* pos) { len = pos-data; } int offset( \
 	T* pos) { return pos - data; } DEF_BEGINEND(T, data, len); \
@@ -73,9 +75,8 @@ TMPL(T) struct xarray
 	void Clear() { this->Free(); this->init(); }
 	T* xAlloc(size_t size) { T* ptr = xalloc(size);
 		for(int i = 0; i < size; i++) pNew(ptr+i); }
-	template<typename... Args>
-	T& push_back(Args... args) { T* ptr = &xnxalloc(); 
-		__assume(ptr); return *(new (ptr) T(args...)); }
+	template<typename... Args> T& push_back(Args...
+		args) { return rNew(xnxalloc(), args...); }
 	void pop_back(void) { len--; end()->~T(); }
 	T& back(void) { return end()[-1]; }
 	
@@ -84,6 +85,7 @@ TMPL(T) struct xarray
 	T* xcalloc(size_t size) { return data = xCalloc(len = size); }
 	T* xresize(size_t size) { return xRealloc(data, len = size); }
 	T& xnxalloc() {	return *(T*)xnxalloc2(this, sizeof(T)); }
+	T& ib() { return data[len++]; }
 	
 	// copying functions
 	T* xcopy(const xarray& that) { return xcopy(that.data, that.len); }
@@ -180,8 +182,7 @@ struct xvector : xvector_ {
 	T* xNalloc(size_t size) { T* ptr = xnalloc(size);
 		for(int i = 0; i < size; i++) pNew(ptr+i); }
 	template<typename... Args>
-	T& push_back(Args... args) { T* ptr = xnalloc(1); 
-		__assume(ptr != NULL); return *(new (ptr) T(args...)); }
+	T& push_back(Args... args) { return rNew(*xnalloc(1), args...); }
 	void pop_back(void) { addCount(-1); end()->~T(); }
 	T& back(void) { return end()[-1]; }
 	T* xRalloc(size_t size) { return xrxalloc_(size*sizeof(T)); }

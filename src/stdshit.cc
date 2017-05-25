@@ -462,20 +462,3 @@ bool isFullPath(const char* path)
 		return true;
 	return false;
 }
-
-// msvc2005 compatibility
-int _vsnprintf_s(char *buffer, size_t sizeOfBuffer,
-	const char *format, va_list ap) {
-	if(sizeOfBuffer != 0) {
-	size_t result =  _vsnprintf
-		(buffer, sizeOfBuffer, format, ap);
-		if(result < sizeOfBuffer)
-			return result;
-		buffer[sizeOfBuffer-1] = '\0'; }
-	return -1; }
-int sprintf_s(char *buffer, size_t sizeOfBuffer,
-	const char *format, ... ) {
-    int count;  va_list ap;
-    va_start(ap, format);
-    count = _vsnprintf_s(buffer, sizeOfBuffer, format, ap);
-    va_end(ap); return count; }

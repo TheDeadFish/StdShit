@@ -54,6 +54,7 @@ union _CAST_{T src; U dst; };
 #define ALIGN_PAGE(arg) ALIGN(arg, 4095)
 static inline size_t ALIGN(size_t arg, size_t bound)
 	{	return ((arg + bound) & ~bound); }
+TMPL(T) T* notNull(T* p) { __assume(p); return p; }	
 
 // array/pointer helpers
 #define PTRADD(ptr, offset) (ptr = Void(ptr)+(offset))

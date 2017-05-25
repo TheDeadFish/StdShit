@@ -1,4 +1,3 @@
-
 // prototype builders
 #define CSTRFN0_(nm) REGCALL(2) bool nm(cstr str); SHITCALL bool nm(cch* str); 
 #define CSTRFN1_(nm) REGCALL(2) cstr nm(cstr str); SHITCALL cstr nm(cch* str);
@@ -18,6 +17,7 @@ struct cstr;
 #define cstr_len(si)({ cstr so; asm("push %1;" \
 	"call _cstr_len;": "=A"(so): "g"(si)); so;})
 REGCALL(2) cstr cstr_dup(cstr str);
+SHITCALL cstr xstrdup(const char*);
 
 typedef const char cch;
 static inline bool isNull(cch* str) {
@@ -122,3 +122,22 @@ CSTRFN1_(getPath) CSTRFN1_(getName) CSTRFN1_(getName2)
 CSTRFN2_(replName) CSTRFN2_(pathCat)
 static inline cstr getPath0(cstr str) {
 	return getPath(str).nterm(); }
+
+struct xstr 
+{ 
+	// data access
+	char* data; operator char*() { return data; } void init(char* p) { 
+	data = p; } void reset(char* p = 0) { free(data); init(p); }
+	char* release(char* p = 0) { char* t = data; data = p; return t; }
+	cstr xdup() const { return xstrdup(data); }
+	bool operator==(cch* s) const { return !strcmp(data, s); }
+	
+	// ctor/dtor/assignment
+	constexpr xstr() : data(0) {} ~xstr() { free(data); } 
+	xstr(char* p) : data(p) {} xstr& operator=
+		(char* p) { reset(p); return *this; }
+	xstr(const xstr& u) : data(u.xdup()) {} xstr& operator=
+		(const xstr& u) { reset(u.xdup()); return *this; }
+	xstr(xstr&& u) : data(u.release()) {} xstr& operator=(
+		xstr&& u) { reset(u.release()); return *this; } 
+};

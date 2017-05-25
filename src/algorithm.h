@@ -172,5 +172,9 @@
 	template<typename _ForwardIterator, typename _Tp, typename _Compare>
     size_t upper_bound(_ForwardIterator __first, size_t length, const _Tp& __val,  _Compare __comp)
 	{	return std::upper_bound(__first, __first+length, __val, __comp)-__first; }
+	
+	// std::find replacements, iterators suck
+	TMPL2(T, U) int find(T* ptr, int count, const U& value) 
+	{ for(int i = 0; i < count; i++) if(ptr[i] == value) return i; return -1; }
 
 #endif
