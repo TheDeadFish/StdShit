@@ -4,6 +4,8 @@
 #ifndef _X86BITS_H_
 #define _X86BITS_H_
 
+#define REGFIX(r, v) asm("" : "+"#r(v))
+
 // force variable register	 
 #define DEF_EAX(arg) register arg asm ("eax")
 #define DEF_EBX(arg) register arg asm ("ebx")

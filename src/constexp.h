@@ -32,5 +32,5 @@ constexpr u32 ror_32(u32 val, int shift) { return (val >> shift) | (val << (32-s
 REGCALL(1) constexpr static T toUpper(T ch){ return((ch>='a') &&(ch<='z'))?ch-32:ch;} \
 REGCALL(1) constexpr static T toLower(T ch){ return((ch>='A') &&(ch<='Z'))?ch+32:ch;}
 _CEXPCHOP_(char) _CEXPCHOP_(int)
-REGCALL(1) constexpr static bool isAlpha(int ch) {
-	return inRng(ch, 'A', 'Z') || inRng(ch, 'a', 'z'); }
+REGCALL(1) constexpr static bool isAlpha(int ch) { 
+	return unsigned((ch & ~0x20) - 'A') < 26; }	

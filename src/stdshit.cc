@@ -216,37 +216,15 @@ int xvector_::strcat(const char* str)
 	return strLen;
 }
 
-SHITCALL char* strstr(const char* str1, const char* str2, int maxLen)
-{
-	int cmpLen = strlen(str2)-1;
-	if(cmpLen < 0) return NULL;
-	const char* endPos = (maxLen < 0) ? (char*)size_t(-1)
-		: str1 + (maxLen - cmpLen);
-	char findCh = *str2++; char ch;
-	while((str1 < endPos)&&((lodsx(str1, ch), ch)))
-	  if((ch == findCh)&&(!strncmp(str1, str2, cmpLen)))
-		return (char*)str1-1;
-	return NULL;
-}
-
-SHITCALL char* strstri(const char* str1, const char* str2, int maxLen)
-{
-	int cmpLen = strlen(str2)-1;
-	if(cmpLen < 0) return NULL;
-	const char* endPos = (maxLen < 0) ? (char*)size_t(-1)
-		: str1 + (maxLen - cmpLen);
-	char findCh = toUpper(*str2++); char ch;
-	while((str1 < endPos)&&((lodsx(str1, ch), ch = toUpper(ch))))
-	  if((ch == findCh)&&(!strnicmp(str1, str2, cmpLen)))
-		return (char*)str1-1;
-	return NULL;
-}
-
-#ifdef _OLDMINGW_
-SHITCALL size_t strnlen(
-	const char* str, size_t maxLen) { size_t len = 0;
-	for(;(len < maxLen) && str[len]; len++); return len; }
-#endif
+// old strstr replacements
+SHITCALL char* strstr(const char* str1,
+	const char* str2, int maxLen) {
+	return cstr_str((char*)str1, strnlen(str1,
+		maxLen), (char*)str2, strlen(str2)); }
+SHITCALL char* strstri(const char* str1,
+	const char* str2, int maxLen) {
+	return cstr_istr((char*)str1, strnlen(str1,
+		maxLen), (char*)str2, strlen(str2)); }
 
 SHITCALL cstr xstrdup(const char* str)
 {
@@ -314,52 +292,17 @@ char* xstrdupr(char*& str1, const char* str2) {
 SHITCALL
 char* xstrdupr(char*& str1, const char* str2, size_t sz) {
 	return free_repl(str1, xstrdup(str2, sz)); }
+	
+#define STRCMP2(nm, cmp) SHITCALL int nm(cch* str1, cch* str2) {\
+	for(const char* curPos = str2;; curPos++) { char ch1; lodsx(str1, ch1);\
+	char ch2 = *curPos; if(cmp) return curPos-str2; if(!ch2) return -1; }}
+STRCMP2(strcmp2, ch1 != ch2); STRCMP2(stricmp2, !cmpi8(ch1, ch2));
 
-SHITCALL
-int strcmp2(const char* str1, const char* str2)
-{
-	for(const char* curPos = str2;; curPos++) {
-		char ch1; lodsx(str1, ch1);
-		char ch2 = *curPos;
-		if(ch1 != ch2) return curPos-str2;
-		if(ch2 == 0) return -1;
-	}
-}
+#define STRSCMP(nm, cmp) SHITCALL char* nm(const char* str1, const \
+	char* str2) { while(1) { char ch2; lodsx(str2, ch2); if( ch2 == 0 ) \
+	return (char*)str1; cmp(ch2, *str1++, NS); } NS: return NULL; }
+STRSCMP(strScmp, CMPS); STRSCMP(strSicmp, CMPI);
 
-SHITCALL
-int stricmp2(const char* str1, const char* str2)
-{
-	for(const char* curPos = str2;; curPos++) {
-		char ch1; lodsx(str1, ch1); ch1 = toUpper(ch1);
-		char ch2 = toUpper(*curPos);
-		if(ch1 != ch2) return curPos-str2;
-		if(ch2 == 0) return -1;
-	}
-}
-
-SHITCALL
-char* strScmp(const char* str1, const char* str2)
-{
-	while(1) {
-		char ch2; lodsx(str2, ch2);
-		if( ch2 == 0 )
-			return (char*)str1;
-		if( ch2 != *str1++ )
-			return NULL;
-	}
-}
-
-SHITCALL
-char* strSicmp(const char* str1, const char* str2)
-{
-	while(1) { char ch2; 
-		lodsx(str2, ch2); ch2 = toUpper(ch2);
-		if( ch2 == 0 )
-			return (char*)str1;
-		if( ch2 != toUpper(*str1++) )
-			return NULL;
-	}
-}
 
 SHITCALL
 int strEcmp(const char* str1, const char* str2)

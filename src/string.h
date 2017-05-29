@@ -23,6 +23,16 @@ typedef const char cch;
 static inline bool isNull(cch* str) {
 	return !str || !str[0]; }
 	
+// fast string compare helpers
+#define isAlpha8(val) ({ bool ia8R; char ia8T; asm("and $-33, %b0; sub $65"\
+	",%b0; cmp $25, %b0;" : "=q"(ia8T), "=@ccbe"(ia8R) : "0"(val)); ia8R; })
+#define cmpi8(val,mem) ({ bool ret; char tmp; asm("mov %2, %h0" : "=Q"(tmp) \
+	: "0"(val), "g"(mem)); asm("xor %b0, %h0; and $-33, %h0;" \
+	: "+Q"(tmp), "=@ccz"(ret)); ret && isAlpha8(tmp); })
+#define CMPI(m1, m2, lab) if(!cmpi8(m1,m2)) goto NS;
+#define CMPS(m1, m2, lab) if(m1-m2) goto NS;
+#define CMPL(len, cmp) int i = 0; do { cmp; } while(++i < len);
+	
 // string comparison
 #define CSTRG(n) char* MCAT(str,n), int MCAT(len,n)
 #define CSTRS(n) cstr(MCAT(str,n), MCAT(len,n))
@@ -31,6 +41,12 @@ int SHITCALL cstr_cmp(CSTRG(1), CSTRG(2));
 int SHITCALL cstr_icmp(CSTRG(1), CSTRG(2));
 int SHITCALL cstr_cmp(CSTRG(1), cch* str2);
 int SHITCALL cstr_icmp(CSTRG(1), cch* str2);
+
+cstr SHITCALL cstr_str(CSTRG(1), CSTRG(2));
+cstr SHITCALL cstr_istr(CSTRG(1), CSTRG(2));
+
+// tokenization/splitting
+SHITCALL cstr cstr_split(cstr& str, char ch);
 
 struct cstr
 {

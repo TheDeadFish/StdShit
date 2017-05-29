@@ -39,7 +39,7 @@ int nm(CSTRG(1), CSTRG(2)) { int diff = len1-len2; \
 int nm(CSTRG(1), cch* str2) { \
 	for(u8 ch : CSTRS(1)) { if(int diff = tl(ch)-tl(RDI \
 	(str2))) return diff; } return -u8(*str2); }
-CSTR_CMP(cstr_cmp,) CSTR_CMP(cstr_icmp, toUpper)
+CSTR_CMP(cstr_cmp,) CSTR_CMP(cstr_icmp, toLower)
 
 char* bstr::xresize(int len) { BSTR_ALLOC();
 	This->slen = len; return data; }
@@ -82,3 +82,18 @@ bstr& bstr::pathcat(cstr str) { int extra = sepReq();
 	WRI(buff, '\\'); ::strcpy(buff, str.data); return *this; }
 bstr& bstr::pathend(cstr str) { int len = slen; bstr&
 	ret = pathcat(str); ret.slen = len; return ret; }
+	
+// tokenization/splitting
+SHITCALL cstr cstr_split(cstr& str, char ch) {
+	char* begin = str; int slen = str.slen; REGFIX(b, ch);
+	cstr str2; int idx = 0; for(;slen > 0; idx++) { slen--; 
+	if(begin[idx] == ch) goto SPLIT; } str2 = {0,0};
+	if(0) { SPLIT: VARFIX(idx); str2 = {begin+idx+1, 
+	slen};}; str = str2; return {begin,idx}; }
+
+// cstr substring search	
+#define CSTR_ISTR(nm, cmp) cstr nm(CSTRG(1), CSTRG(2)) { const char* \
+	endPos = str1 + (len1-len2); VARFIX(str2); if(len2 > 0) { while( \
+	str1 < endPos) { CMPL(len2, cmp(str1[i], str2[i], NS)); \
+	return {str1, len2}; NS: str1++; }} return {0,0}; };
+CSTR_ISTR(cstr_str, CMPS); CSTR_ISTR(cstr_istr, CMPI);	
