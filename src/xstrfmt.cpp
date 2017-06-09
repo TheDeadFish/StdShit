@@ -254,7 +254,7 @@ GET_INT_NEXT: { int result;
 	while(1) { char ch; lodsx(curPos, ch); \
 		if(ch != '%') { ESCAPE_PERCENT: \
 			MIF(n, stosx(dstPos, ch);, dstPos++;) \
-			if(ch == '\0') return dstPos; } \
+			if(ch == '\0') return dstPos-n; } \
 		ei(*curPos == '%') { curPos++; \
 			goto ESCAPE_PERCENT; } \
 		else { MIF(n, ctx.dstPosArg = dstPos;,) \

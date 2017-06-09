@@ -79,11 +79,18 @@ struct cstr
 	void free(cch* p) { if(p != data) free(); }
 };
 
+#define OPEQU(t,a,b) t& operator=(a){b; return *this; }
+#define CTOREQU(t,a,m,r,v) t(a):m(v){} OPEQU(t,a,r(v))
+
 struct Cstr : cstr { 
-	Cstr(const cstr& that) : cstr(that) {}
-	Cstr(Cstr&& that) { this->init(that.release()); }
-	Cstr(const Cstr& that) { this->init(cstr_dup(that)); }
-	ALWAYS_INLINE ~Cstr() { free(); } };
+	void reset(cstr str={}) { free(); init(str); }
+	Cstr(): cstr(0,0) {}
+	ALWAYS_INLINE ~Cstr() { free(); }
+	
+	CTOREQU(Cstr, const cstr& t, cstr, reset, t);
+	CTOREQU(Cstr, const Cstr& t, cstr, reset, t.xdup());
+	CTOREQU(Cstr, Cstr&& t, cstr, reset, t.release());
+};
 
 struct bstr : cstr
 {
@@ -139,21 +146,27 @@ CSTRFN2_(replName) CSTRFN2_(pathCat)
 static inline cstr getPath0(cstr str) {
 	return getPath(str).nterm(); }
 
-struct xstr 
+
+	
+TMPL2(T,U) struct xstr_
 { 
 	// data access
-	char* data; operator char*() { return data; } void init(char* p) { 
-	data = p; } void reset(char* p = 0) { free(data); init(p); }
-	char* release(char* p = 0) { char* t = data; data = p; return t; }
+	T* data; operator T*() { return data; } void init(T* p) { 
+	data = p; } void reset(T* p = 0) { free(data); init(p); }
+	T* release(T* p = 0) { T* t = data; data = p; return t; }
 	cstr xdup() const { return xstrdup(data); }
-	bool operator==(cch* s) const { return !strcmp(data, s); }
+	bool operator==(const T* s) const { return !strcmp(data, s); }
 	
 	// ctor/dtor/assignment
-	constexpr xstr() : data(0) {} ~xstr() { free(data); } 
-	xstr(char* p) : data(p) {} xstr& operator=
-		(char* p) { reset(p); return *this; }
-	xstr(const xstr& u) : data(u.xdup()) {} xstr& operator=
-		(const xstr& u) { reset(u.xdup()); return *this; }
-	xstr(xstr&& u) : data(u.release()) {} xstr& operator=(
-		xstr&& u) { reset(u.release()); return *this; } 
+	constexpr xstr_() : data(0) {} ~xstr_() { free(data); } 
+	xstr_(T* p) : data(p) {} xstr_& operator=
+		(T* p) { reset(p); return *this; }
+	xstr_(const xstr_& u) : data(u.xdup()) {} xstr_& operator=
+		(const xstr_& u) { reset(u.xdup()); return *this; }
+	xstr_(xstr_&& u) : data(u.release()) {} xstr_& operator=(
+		xstr_&& u) { reset(u.release()); return *this; } 
+	xstr_(U p) : data(p) {} xstr_& operator=(
+		U p) { reset(p); return *this; } 
 };
+
+typedef xstr_<char, cstr> xstr;

@@ -99,3 +99,17 @@ t1 __stdcall utf816_dup(const t3* src, int len) { if(!len) return {0,0}; \
 	t2* buff = (t2*) xmalloc(utf816_size(src, len)); ARGFIX(src); ARGFIX(len); \
 	t2* end = utf816_cpy(buff, src, len); return t1{buff, end-buff}; }
 UTF816_DUP(cstrW, wchar_t, char); UTF816_DUP(cstr, char, wchar_t);
+
+
+// non-null terminated
+int __stdcall utf816_size2(cch* s, int l) { cch* e = s+l;
+	int len = 0; for(;;) { len++; if(s >= e) return len*2;
+	int ch = u8(RDI(s)); UTF816_LEN8B(ch, s, e, len); }}	
+WCHAR* __stdcall utf816_cpy2_(WCHAR* d, cch* s, int l) { cch* e = s+l;
+	while(s < e) { int ch = u8(RDI(s)); if(s8(ch)>=0) { stosw(d, ch); 
+	} else {UTF816_CPY8B(ch, d, s, e); }} return d; }
+WCHAR* __stdcall utf816_cpy2(WCHAR* d, cch* s, int l) {
+	WCHAR* t = utf816_cpy2_(d, s, l); *t = 0; return t; }
+cstrW __stdcall utf816_dup2(cch* s, int l) { if(!l) return {0,0};
+	WCHAR* b = xmalloc(utf816_size2(s, l)); ARGFIX(s); ARGFIX(l);
+	WCHAR* e = utf816_cpy2(b, s, l); return {b, e-b}; }

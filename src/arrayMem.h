@@ -66,7 +66,7 @@ TMPL(T) constexpr bool hasDtor(T* p) { return
 TMPL(T) struct xarray 
 {
 	// creation / assignment
-	T* data; size_t len;
+	T* data; union { size_t len; size_t size; };
 	XARRAY_COMMON(xarray, T, len);
 	template<int l> xarray(T(& d)[l]) : xarray((T*)d, l) {}
 		

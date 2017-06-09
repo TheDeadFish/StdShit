@@ -1,15 +1,15 @@
 
 // register preserving allocators
-ASM_FUNC("_sfree", "push %eax; push %edx; push %ecx; push 16(%esp);"
-	"call _free; add $4, %esp; pop %ecx; pop %edx; pop %eax; ret $4");
-ASM_FUNC("_sfreer", "push %eax; movl 8(%esp), %eax; cmp $0, (%eax);"
-	"jz 1f; push (%eax); call _sfree; and $0, (%eax); 1: pop %eax; ret $4;");
-ASM_FUNC("_smalloc", "push %edx; push %ecx; push %eax;"
-	"call _malloc; add $4, %esp; pop %ecx; pop %edx; ret");
-ASM_FUNC("_srealloc", "push %ecx; push %edx; push 12(%esp);"
-	"call _realloc; add $4, %esp; pop %edx; pop %ecx; ret $4");
-ASM_FUNC("_xmalloc", "movl 4(%esp), %eax; test %eax,%eax; jz 1f; call "
-	"_smalloc; test %eax,%eax; jnz 1f; call __Z10errorAllocv; 1: ret $4;");
+ASM_FUNC("_sfree", ".cfi_startproc; push %eax; push %edx; push %ecx; push 16(%esp);"
+	".cfi_def_cfa_offset 20; call _free; add $4, %esp; pop %ecx; pop %edx; pop %eax; ret $4; .cfi_endproc;");
+ASM_FUNC("_sfreer", ".cfi_startproc ;push %eax; movl 8(%esp), %eax; cmp $0, (%eax);"
+	"jz 1f; push (%eax); .cfi_def_cfa_offset 20; call _sfree; and $0, (%eax); 1: pop %eax; ret $4;.cfi_endproc;");
+ASM_FUNC("_smalloc", ".cfi_startproc; push %edx; push %ecx; push %eax;"
+	".cfi_def_cfa_offset 16; call _malloc; add $4, %esp; pop %ecx; pop %edx; ret; .cfi_endproc;");
+ASM_FUNC("_srealloc", ".cfi_startproc; push %ecx; push %edx; push 12(%esp);"
+	".cfi_def_cfa_offset 16; call _realloc; add $4, %esp; pop %edx; pop %ecx; ret $4; .cfi_endproc;");
+ASM_FUNC("_xmalloc", ".cfi_startproc; movl 4(%esp), %eax; test %eax,%eax; jz 1f; call "
+	"_smalloc; test %eax,%eax; jnz 1f; call __Z10errorAllocv; 1: ret $4; .cfi_endproc;");
 
 
 SHITCALL uint snapNext(uint val) { if(val&(val-1)) return 0;

@@ -36,6 +36,11 @@ HANDLE WINAPI createFile(LPCSTR,DWORD,DWORD,
 BOOL WINAPI setWindowText(HWND,cch*);
 BOOL WINAPI setDlgItemText(HWND,int,cch*);
 DWORD WINAPI getFileAttributes(cch*);
+BOOL WINAPI createDirectory(cch*, LPSECURITY_ATTRIBUTES);
+BOOL WINAPI copyFile(cch*, cch*, BOOL);
+BOOL WINAPI moveFile(cch* a, cch* b);
+BOOL WINAPI moveFileEx(cch* a, cch* b, DWORD c);
+BOOL WINAPI deleteFile(cch*);
 
 // utf8 wide apis, intput
 cstr __stdcall getModuleFileName(HMODULE hModule);
@@ -43,12 +48,19 @@ cstr __stdcall getProgramDir(void);
 cstr WINAPI getWindowText(HWND); 
 cstr WINAPI getDlgItemText(HWND,int);
 cstr WINAPI shGetFolderPath(int nFolder);
+cstr getEnvironmentVariable(cch* name);
+cstr expandEnvironmentStrings(cch* env);
 
 // UTF8/UTF16 conversion
-ALWAYS_INLINE Cstr narrow(LPWSTR s) { return utf816_dup(s); }
+cstr narrowFree(LPWSTR s);
+ALWAYS_INLINE wxstr widen(cch* s) { return utf816_dup(s); }
+
+
+
+/*ALWAYS_INLINE Cstr narrow(LPWSTR s) { return utf816_dup(s); }
 ALWAYS_INLINE Cstr narrow(LPCWSTR s, int l) { return utf816_dup(s, l); }
-ALWAYS_INLINE CstrW widen(cch* s) { return utf816_dup(s); }
-ALWAYS_INLINE CstrW widen(cch* s, int l) { return utf816_dup(s, l); }
+
+ALWAYS_INLINE CstrW widen(cch* s, int l) { return utf816_dup(s, l); }*/
 
 // path test functions
 static inline bool isRelPath(cch* str) { bool ret; asm(
@@ -76,3 +88,7 @@ struct WIN32_FIND_DATAU {
 DEF_RETPAIR(findFirstFile_t, int, status, HANDLE, hFind);
 findFirstFile_t WINAPI findFirstFile(cch* fileName, WIN32_FIND_DATAU* fd);
 int WINAPI findNextFile(HANDLE hFind, WIN32_FIND_DATAU* fd);
+
+// wide api helpers
+#define W32SARD_(l,g) WCHAR* ws; { int sz = l+1; \
+	ws = xMalloc (sz); g; } return narrowFree(ws);

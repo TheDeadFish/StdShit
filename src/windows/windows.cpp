@@ -87,16 +87,26 @@ int system(cch* s) { return _wsystem(widen(s)); }
 
 
 // utf8 api, WIN32 file functions
+HANDLE WINAPI createFile(LPCSTR a,DWORD b,DWORD c,
+	LPSECURITY_ATTRIBUTES d,DWORD e,DWORD f,HANDLE g) 
+{ 	FNWIDEN(1,a); return CreateFileW(cs1, b, c, d, e, f, g); }
 DWORD WINAPI getFileAttributes(cch* name) {
 	FNWIDEN(1,name); return GetFileAttributesW(cs1); }
+BOOL WINAPI createDirectory(cch* a, LPSECURITY_ATTRIBUTES b) {
+	FNWIDEN(1,a); return CreateDirectoryW(cs1, b); }
+BOOL WINAPI copyFile(cch* a, cch* b, BOOL c) {
+	FNWIDEN(1,a); FNWIDEN(2,b); return CopyFileW(cs1, cs2, c); }
+BOOL WINAPI moveFile(cch* a, cch* b) {
+	FNWIDEN(1,a); FNWIDEN(2,b); return MoveFileW(cs1, cs2); }
+BOOL WINAPI moveFileEx(cch* a, cch* b, DWORD c) {
+	FNWIDEN(1,a); FNWIDEN(2,b); return MoveFileExW(cs1, cs2, c); }
+BOOL WINAPI deleteFile(cch* a) { FNWIDEN(1,a); return DeleteFileW(cs1); }
 
 // utf8 api, simple WIN32 functions
 BOOL WINAPI setWindowText(HWND h,cch* s) {
 	return SetWindowTextW(h, widen(s)); }
 BOOL WINAPI setDlgItemText(HWND h,int i,cch* s) {
 	return SetDlgItemTextW(h,i,widen(s)); }
-#define W32SARD_(l,g) WCHAR* ws; { int sz = l+1; ws = xMalloc \
-	(sz); g; } SCOPE_EXIT(free(ws)); return utf816_dup(ws);
 cstr WINAPI getWindowText(HWND h) { W32SARD_(
 	GetWindowTextLengthW(h), GetWindowTextW(h, ws, sz)) }
 cstr WINAPI getDlgItemText(HWND h, int i) {
@@ -163,17 +173,13 @@ cstr getModuleFileName(HMODULE hModule) {
 		return {0,0}; return utf816_dup(buff); }
 cstr getProgramDir(void) {
 	return getPath0(getModuleFileName(NULL)); }
-
-
-
 	
+cstr getEnvironmentVariable(cch* s) {
+	wxstr ws = widen(s); WCHAR* buff = 0; int bsz = 0;
+	for(;;) { int len = GetEnvironmentVariableW(ws, buff, bsz);
+	if((len<bsz)||!len) break; bsz=len; xRealloc(buff, bsz); }
+	return narrowFree(buff); }
 	
-	
-// utf8 wide apis
-HANDLE WINAPI createFile(LPCSTR a,DWORD b,DWORD c,
-	LPSECURITY_ATTRIBUTES d,DWORD e,DWORD f,HANDLE g) 
-{ 	return CreateFileW(widen(a), b, c, d, e, f, g); }
-
 // findfirst/findnext file
 void WIN32_FIND_DATAU::init(WIN32_FIND_DATAW* src) { memcpy(this,
 	src, offsetof(WIN32_FIND_DATAW, dwReserved1)); PI(&nFileSize)
@@ -192,3 +198,6 @@ int WINAPI findNextFile(HANDLE hFind, WIN32_FIND_DATAU* pfd) {
 cstr WINAPI shGetFolderPath(int nFolder) { WCHAR buff[MAX_PATH]; 
 	if(SHGetFolderPathW(0, nFolder, NULL, 0, buff)) 
 		return {0,0}; return utf816_dup(buff);  }
+	
+cstr narrowFree(LPWSTR s) { SCOPE_EXIT(
+	free(s)); return utf816_dup(s); }

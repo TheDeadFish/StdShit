@@ -55,6 +55,7 @@ union _CAST_{T src; U dst; };
 static inline size_t ALIGN(size_t arg, size_t bound)
 	{	return ((arg + bound) & ~bound); }
 TMPL(T) T* notNull(T* p) { __assume(p); return p; }	
+#define IFRET(...) if(auto result = __VA_ARGS__) return result;
 
 // array/pointer helpers
 #define PTRADD(ptr, offset) (ptr = Void(ptr)+(offset))
