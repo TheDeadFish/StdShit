@@ -41,6 +41,8 @@ BOOL WINAPI copyFile(cch*, cch*, BOOL);
 BOOL WINAPI moveFile(cch* a, cch* b);
 BOOL WINAPI moveFileEx(cch* a, cch* b, DWORD c);
 BOOL WINAPI deleteFile(cch*);
+BOOL WINAPI setFileAttributes(cch*, DWORD);
+int WINAPI messageBox(HWND, cch*, cch*, UINT);
 
 // utf8 wide apis, intput
 cstr __stdcall getModuleFileName(HMODULE hModule);

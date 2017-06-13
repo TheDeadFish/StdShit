@@ -101,6 +101,11 @@ BOOL WINAPI moveFile(cch* a, cch* b) {
 BOOL WINAPI moveFileEx(cch* a, cch* b, DWORD c) {
 	FNWIDEN(1,a); FNWIDEN(2,b); return MoveFileExW(cs1, cs2, c); }
 BOOL WINAPI deleteFile(cch* a) { FNWIDEN(1,a); return DeleteFileW(cs1); }
+BOOL WINAPI setFileAttributes(cch* a, DWORD b) { FNWIDEN(1,a);
+	return SetFileAttributesW(cs1, b); }
+	
+int WINAPI messageBox(HWND a, cch* b, cch* c, UINT d) {
+	return MessageBoxW(a, widen(b), widen(c), d); }
 
 // utf8 api, simple WIN32 functions
 BOOL WINAPI setWindowText(HWND h,cch* s) {

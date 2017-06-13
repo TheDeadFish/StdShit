@@ -158,7 +158,8 @@ TMPL2(T,U) struct xstr_
 	bool operator==(const T* s) const { return !strcmp(data, s); }
 	
 	// ctor/dtor/assignment
-	constexpr xstr_() : data(0) {} ~xstr_() { free(data); } 
+	constexpr xstr_() : data(0) {} 
+	ALWAYS_INLINE ~xstr_() { free(data); } 
 	xstr_(T* p) : data(p) {} xstr_& operator=
 		(T* p) { reset(p); return *this; }
 	xstr_(const xstr_& u) : data(u.xdup()) {} xstr_& operator=
