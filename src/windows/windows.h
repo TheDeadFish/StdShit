@@ -48,7 +48,9 @@ int WINAPI messageBox(HWND, cch*, cch*, UINT);
 cstr __stdcall getModuleFileName(HMODULE hModule);
 cstr __stdcall getProgramDir(void);
 cstr WINAPI getWindowText(HWND); 
-cstr WINAPI getDlgItemText(HWND,int);
+cstr WINAPI getWindowText2(HWND); 
+cstr WINAPI getDlgItemText(HWND,int); 
+cstr WINAPI getDlgItemText2(HWND,int);
 cstr WINAPI shGetFolderPath(int nFolder);
 cstr getEnvironmentVariable(cch* name);
 cstr expandEnvironmentStrings(cch* env);
@@ -94,3 +96,5 @@ int WINAPI findNextFile(HANDLE hFind, WIN32_FIND_DATAU* fd);
 // wide api helpers
 #define W32SARD_(l,g) WCHAR* ws; { int sz = l+1; \
 	ws = xMalloc (sz); g; } return narrowFree(ws);
+#define W32SARD2_(l,g) WCHAR* ws=0; { if(int sz = l){\
+	ws = xMalloc(sz+=1); g; }} return narrowFree(ws);

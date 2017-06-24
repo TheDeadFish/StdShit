@@ -104,6 +104,7 @@ BOOL WINAPI deleteFile(cch* a) { FNWIDEN(1,a); return DeleteFileW(cs1); }
 BOOL WINAPI setFileAttributes(cch* a, DWORD b) { FNWIDEN(1,a);
 	return SetFileAttributesW(cs1, b); }
 	
+// utf8 api, WIN32 gui functions
 int WINAPI messageBox(HWND a, cch* b, cch* c, UINT d) {
 	return MessageBoxW(a, widen(b), widen(c), d); }
 
@@ -113,9 +114,13 @@ BOOL WINAPI setWindowText(HWND h,cch* s) {
 BOOL WINAPI setDlgItemText(HWND h,int i,cch* s) {
 	return SetDlgItemTextW(h,i,widen(s)); }
 cstr WINAPI getWindowText(HWND h) { W32SARD_(
+	GetWindowTextLengthW(h), GetWindowTextW(h, ws, sz)) }	
+cstr WINAPI getWindowText2(HWND h) { W32SARD2_(
 	GetWindowTextLengthW(h), GetWindowTextW(h, ws, sz)) }
 cstr WINAPI getDlgItemText(HWND h, int i) {
 	return getWindowText(GetDlgItem(h, i)); }
+cstr WINAPI getDlgItemText2(HWND h, int i) {
+	return getWindowText2(GetDlgItem(h, i)); }
 
 HMODULE getModuleBase(void* ptr)
 {
