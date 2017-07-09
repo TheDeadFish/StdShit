@@ -16,7 +16,7 @@ wchar_t* REGCALL(1) cmd_escape(wchar_t* dst,
 int sysfmt(const char* fmt, ...);
 
 // getFullPathName utf8
-cstr __stdcall getFullPath(cch*str, int len, int f = 0);
+cstr __stdcall getFullPath(cch*str, int len, int f);
 ALWAYS_INLINE cstr getFullPath(cch* s, int f = 0) {
 	return getFullPath(s, -1, f); }
 ALWAYS_INLINE cstr getFullPath(cstr s, int f = 0) {

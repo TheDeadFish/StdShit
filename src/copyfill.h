@@ -3,19 +3,16 @@
 asm(".macro movsn_ n; .if \\n>=4; movsd; movsn_ \\n-4; .elseif \\n>=2; movsw;"
 	"movsn_ \\n-2; .elseif  \\n>=1; movsb; movsn_ \\n-1; .endif; .endm");
 #define MOVSN_(d, s, n) asm volatile("movsn_ %a2" : "+D"(d), "+S"(s) : "i"(n))
+#define MOVSNX_(d, s, c, n) ({int msnxc_; asm volatile("rep; movsn_ %a3" : \
+	"+D"(d), "+S"(s), "=c"(msnxc_) : "i"(n), "c"(c));})
 
 #define memcpyx_ref(sz, sz2) TMPL2(T,U) \
 	ALWAYS_INLINE void memcpy##sz##_ref(T*& dst, U*& src, size_t count) { \
 	if(__builtin_constant_p(count) && (((count*sz2/4)+((count*sz2)&3)) <= 6)) {\
-	MOVSN_(dst, src, sz2*count); } else { asm volatile("rep; movsn_ %a3" :  \
-	"+D"(dst), "+S"(src), "+c"(count) : "i"(sz2)); }} TMPL(T) ALWAYS_INLINE T*\
-	memcpy##sz(T* dst, const void* src, size_t count) { memcpy##sz##_ref(\
-	dst, src, count); return dst;  } 
+	MOVSN_(dst, src, sz2*count); } else { MOVSNX_(dst,src,count,sz2);}} \
+	TMPL(T) ALWAYS_INLINE T* memcpy##sz(T* dst, const void* src, size_t count) \
+	{ memcpy##sz##_ref(dst, src, count); return dst;  }
 memcpyx_ref(8, 1); memcpyx_ref(16, 2); memcpyx_ref(32, 4);
-
-
-
-
 
 #define _memcpy_sz(macro) { \
 	if((sizeof(T) % 4) == 0) macro(32, count*(sizeof(T)/4)) \

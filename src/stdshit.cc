@@ -7,9 +7,6 @@
 #include "windows\windows.cpp"
 
 // tristi quod ad hunc, const strings
-#define DEF_RDTEXT(name, text) \
-	__attribute__((section(".text$"#name))) \
-	static const char name[] = text;
 DEF_RDTEXT(str_pcs_pcs, "%s: %s");
 DEF_RDTEXT(str_fatal_error, "Fatal Error");
 DEF_RDTEXT(str_error, "Error");
@@ -21,11 +18,6 @@ DEF_RDTEXT(str_bad_file, "invalid file format");
 DEF_RDTEXT(str_open_fileA, "Cannot open file: \"%s\"");
 DEF_RDTEXT(str_open_fileW, "Cannot open file: \"%S\"");
 DEF_RDTEXT(str_rbA, "rb");
-
-#define DEF_RDTEXTW(name, text) \
-	__attribute__((section(".text$"#name))) \
-	static const WCHAR name[] = text;
-DEF_RDTEXTW(str_rbW, L"rb");
 
 // libstdc++ bullshit
 namespace std { 

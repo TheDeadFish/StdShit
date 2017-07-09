@@ -210,8 +210,7 @@ GET_INT_NEXT: { int result;
 	length = 0; LENGTH_NEXT:
 	if(ch == 'h') { length--; lodsx(str, ch); goto LENGTH_NEXT; }
 	if(ch == 'l') { length++; lodsx(str, ch); goto LENGTH_NEXT; }
-	if((ch >= 'A')&&(ch <= 'Z')) { asm("add $32, %0": 
-		"=r"(ch) : "r"(ch)); flags |= UPPER_CASE; }
+	if((ch >= 'A')&&(ch <= 'Z')) { ch+=32; flags |= UPPER_CASE; }
 	size_t extraLen;
 	
 	// format handler
