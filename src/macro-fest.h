@@ -149,5 +149,12 @@ TMPL(T) struct VaArgFwd { T* pfmt; va_list
 	start() { return (va_list)(PT(pfmt)+1); }};
 #define VA_ARG_FWD(fmt) VaArgFwd<\
 	decltype (fmt)> va = {&fmt};
+	
+// constructor helpers
+#define pNew(ptr, ...) ({ new(notNull(ptr)) typeof(*ptr){__VA_ARGS__}; })
+#define rNew(ref, ...) (*pNew(&ref, __VA_ARGS__))
+TMPL(T) void pDel(T* ptr) { ptr->~T(); }
+#define hasDtorT(T) !std::is_trivially_destructible<T>::value
+#define hasDtorp(p) hasDtorT(typeof(*p))
 
 #endif

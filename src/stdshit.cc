@@ -1,10 +1,4 @@
-#define _STDSHIT_CC_
-#ifndef _STDSHIT_X_
 #include "stdshit.h"
-#include "math.cpp"
-#include "memalloc.cpp"
-#include "windows\utfconv.cpp"
-#include "windows\windows.cpp"
 
 // tristi quod ad hunc, const strings
 DEF_RDTEXT(str_pcs_pcs, "%s: %s");
@@ -189,11 +183,6 @@ int xfprintf ( FILE * stream, const char * format, ... ) {
 	return xvfprintf(stream, format, vl); va_end(vl); }
 void xfputs (const char * str, FILE * stream) {
 	if(fputs(str, stream) < 0) errorDiskWrite(); }
-
-#endif
-
-#include "string.cpp"
-#include "xstrfmt.cpp"
 
 RetEdx<int> xvector_::strcat2(const char* str)
 {

@@ -1,4 +1,4 @@
-
+#include "stdshit.h"
 
 // calculate UTF8 character length
 ASM_FUNC("_UTF8_LEN1", "cmp $127, %eax; ja _UTF8_LEN2; mov $1, %eax; ret;"

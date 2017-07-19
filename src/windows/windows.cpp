@@ -1,3 +1,4 @@
+#include "stdshit.h"
 
 asm(".section .text$cmd_esc_len;"
 	"_cmd_esc_msk: .long 0xFFFFFFFF,"

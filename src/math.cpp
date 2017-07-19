@@ -1,5 +1,4 @@
-#ifndef _MATH_CC_
-#define _MATH_CC_
+#include "stdshit.h"
 
 __attribute__((section(".text$powersOf10")))
 const uint powersOf10[] = {1, 10, 100, 1000, 10000,
@@ -18,6 +17,4 @@ const byte tableOfHex[2][16] = {
  "fistpl (%esp); fldcw 6(%esp); pop %eax; addl $4, %esp; ret;");
  _DFC_(ceil, 0xB7F) _DFC_(floor, 0x77F);
  #undef _DFC_
-#endif
-
 #endif

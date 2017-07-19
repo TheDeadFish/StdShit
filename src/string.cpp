@@ -1,3 +1,4 @@
+#include "stdshit.h"
 
 ASM_FUNC("_cstr_len", "push %ecx; movl 8(%esp), %eax;"
 	"push %eax; test %eax, %eax; jz 1f; call _strlen;"

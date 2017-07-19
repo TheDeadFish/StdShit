@@ -1,3 +1,4 @@
+#include "stdshit.h"
 
 // register preserving allocators
 ASM_FUNC("_sfree", ".cfi_startproc; push %eax; push %edx; push %ecx; push 16(%esp);"

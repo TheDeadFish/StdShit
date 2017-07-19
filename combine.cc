@@ -290,5 +290,5 @@ int main(int argc, char* argv[])
 	}
 	
 	processFile("src\\stdshit.h", "bin\\stdshit.h", false);
-	processFile("src\\stdshit.cc", "bin\\stdshit.cc", true);
+	//processFile("src\\stdshit.cc", "bin\\stdshit.cc", true);
 }

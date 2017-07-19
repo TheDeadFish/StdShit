@@ -1,4 +1,4 @@
-#ifndef no_xstrfmt
+#include "stdshit.h"
 
 struct xstrfmt_fmt_ : xstrfmt_fmt
 {
@@ -312,4 +312,3 @@ void xvector_::fmtcat(const char* fmt, ...)
 	dataSize -= sizeof(char);
 	xstrfmt_fill(buffer, va); 
 }
-#endif

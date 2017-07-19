@@ -28,6 +28,7 @@
 #include "string.h"
 #include "windows\utfconv.h"
 #include "windows\windows.h"
+#include "xvector.h"
 
 SHITCALL Void memmem(const void *b1, 
 	const void *b2, size_t len1, size_t len2);

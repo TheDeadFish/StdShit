@@ -34,15 +34,6 @@ TMPL(T) struct xRngPtr
 	ALWAYS_INLINE bool chk2() { ARGFIX(end_); return chk(); }
 	ALWAYS_INLINE bool chk2(T* cp) { ARGFIX(end_); return chk(cp); }
 };
-
-// constructor helpers
-#define pNew(ptr, ...) ({ new(notNull(ptr)) typeof(*ptr){__VA_ARGS__}; })
-#define rNew(ref, ...) (*pNew(&ref, __VA_ARGS__))
-
-
-TMPL(T) void pDel(T* ptr) { ptr->~T(); }
-TMPL(T) constexpr bool hasDtor(T* p) { return
-	!std::is_trivially_destructible<T>::value; }
 	
 #define XARRAY_COMMON(C, T, len) \
 	C() = default; C(const C& that) = default; \
