@@ -2,18 +2,26 @@
 // implments basic allocators and container
 // allocators
 
+// frame information helper
+#ifdef __GCC_HAVE_DWARF2_CFI_ASM
+ asm(".macro cfia_ n; .cfi_adjust_cfa_offset \\n; .endm");
+#else 
+ asm(".macro cfia_ n; .endm");
+#endif
+
 // register preserving allocators
 #define free free_
-ALWAYS_INLINE void free_(void* mem) { asm("push %0;"
-	"call _sfree;" :: "g"(mem) : "memory"); }
-ALWAYS_INLINE void free_ref(Void& ptr) { asm("push %0;"
-	"call _sfreer;" :: "g"(&ptr) : "memory"); }
+#define pcpx(ph, fn) "cfia_ 4; push "#ph"; call "#fn"; cfia_ -4;"
+ALWAYS_INLINE void free_(void* mem) { asm( pcpx(%0, _sfree)
+	:: "g"(mem) : "memory"); }
+ALWAYS_INLINE void free_ref(Void& ptr) { asm(pcpx(%0, _sfreer)
+	:: "g"(&ptr) : "memory"); }
 ALWAYS_INLINE Void malloc_(size_t sz) { Void r; asm(
 	"call _smalloc;" : "=a"(r) : "a"(sz)); return r; }
-ALWAYS_INLINE Void realloc_(void* ptr, size_t sz) { Void r; asm("push %1;"
-	"call _srealloc;" : "=a"(r) : "g"(ptr), "d"(sz)); return r; }
-ALWAYS_INLINE Void xmalloc(size_t sz) { Void r; asm("push %1;"
-	"call _xmalloc;" : "=a"(r) : "g"(sz)); return r; }
+ALWAYS_INLINE Void realloc_(void* ptr, size_t sz) { Void r; 
+	asm(pcpx(%1, _srealloc) : "=a"(r) : "g"(ptr), "d"(sz)); return r; }
+ALWAYS_INLINE Void xmalloc(size_t sz) { Void r; asm(pcpx(%1, _xmalloc)
+	 : "=a"(r) : "g"(sz)); return r; }
 
 static uint snapUpSize(uint val) {	return 2 << (__builtin_clz(val-1)^31); }
 

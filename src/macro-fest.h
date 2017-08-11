@@ -51,7 +51,9 @@ union _CAST_{T src; U dst; };
 #define __assume(cond) do { if (!(cond)) __builtin_unreachable(); } while (0)
 #define ZINIT memfillX(*this);
 #define ei else if 
-#define THIS_NULL_CHECK() if(this == NULL) return 0;
+#define NULL_CHECK(ptr) ({bool nck_; asm("test %1,%1" \
+	: "=@ccz"(nck_) : "r"(ptr)); nck_;})
+#define THIS_NULL_CHECK() if(NULL_CHECK(this)) return 0;
 #define ALIGN4(arg) ALIGN(arg, 3)
 #define ALIGN_PAGE(arg) ALIGN(arg, 4095)
 static inline size_t ALIGN(size_t arg, size_t bound)
@@ -114,7 +116,7 @@ typedef unsigned long long s64;
 _Pragma("pack(push, 4)")
 typedef u64 u64p4; 
 typedef s64 s64p4;
-_Pragma("pop")
+_Pragma("pack(pop)")
 
 // fast unsafe 64bit division
 static inline INT32 iDiv6432(INT64 num, INT32 dom) { UINT32 result; 
