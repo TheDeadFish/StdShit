@@ -26,9 +26,12 @@ static inline bool isNull(cch* str) {
 // fast string compare helpers
 #define isAlpha8(val) ({ bool ia8R; char ia8T; asm("and $-33, %b0; sub $65"\
 	",%b0; cmp $25, %b0;" : "=q"(ia8T), "=@ccbe"(ia8R) : "0"(val)); ia8R; })
-#define cmpi8(val,mem) ({ bool ret; char tmp; asm("mov %2, %h0" : "=Q"(tmp) \
-	: "0"(val), "g"(mem)); asm("xor %b0, %h0; and $-33, %h0;" \
-	: "+Q"(tmp), "=@ccz"(ret)); ret && isAlpha8(tmp); })
+#define cmpi8(val,mem) ({ bool ret; char tmp;  \
+asm("mov %2, %%ah" : "=a"(tmp) : "0"(val), "g"(mem));  \
+asm("xor %%al, %%ah;" :"+a"(tmp), "=@ccz"(ret)); if(!ret) { \
+asm("and $-33, %h0;" : "+a"(tmp), "=@ccz"(ret)); if(ret) { \
+	ret = isAlpha8(tmp); }} ret; }) 
+
 #define CMPI(m1, m2, lab) if(!cmpi8(m1,m2)) goto NS;
 #define CMPS(m1, m2, lab) if(m1-m2) goto NS;
 #define CMPL(len, cmp) int i = 0; do { cmp; } while(++i < len);

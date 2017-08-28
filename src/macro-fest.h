@@ -49,7 +49,7 @@ union _CAST_{T src; U dst; };
 #define MCSE(...) MAP(_MCSE, __VA_ARGS__)
 #define HOTCALL(ftype, addr) (*((typeof(&ftype))(size_t(addr))))
 #define __assume(cond) do { if (!(cond)) __builtin_unreachable(); } while (0)
-#define ZINIT memfillX(*this);
+#define ZINIT memset(this, 0, sizeof(*this)); //memfillX(*this);
 #define ei else if 
 #define NULL_CHECK(ptr) ({bool nck_; asm("test %1,%1" \
 	: "=@ccz"(nck_) : "r"(ptr)); nck_;})

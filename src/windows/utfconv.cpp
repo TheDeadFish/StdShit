@@ -113,3 +113,11 @@ WCHAR* __stdcall utf816_cpy2(WCHAR* d, cch* s, int l) {
 cstrW __stdcall utf816_dup2(cch* s, int l) { if(!l) return {0,0};
 	WCHAR* b = xmalloc(utf816_size2(s, l)); ARGFIX(s); ARGFIX(l);
 	WCHAR* e = utf816_cpy2(b, s, l); return {b, e-b}; }
+ 
+SHITCALL cstrW xstrdup(const WCHAR* str) 
+{
+	if(str == NULL) return {0,0};
+	int len = wcslen(str);
+	WCHAR* ret = xMalloc(len+1);
+	return {wcscpy(ret, str), len};
+}

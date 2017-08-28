@@ -98,3 +98,5 @@ int WINAPI findNextFile(HANDLE hFind, WIN32_FIND_DATAU* fd);
 	ws = xMalloc (sz); g; } return narrowFree(ws);
 #define W32SARD2_(l,g) WCHAR* ws=0; { if(int sz = l){\
 	ws = xMalloc(sz+=1); g; }} return narrowFree(ws);
+	
+cstrW ansi_to_wide_dup(cch* ansi, int len);

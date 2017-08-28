@@ -60,6 +60,8 @@ TMPL(T) struct xarray
 	T* data; union { size_t len; size_t size; };
 	XARRAY_COMMON(xarray, T, len);
 	template<int l> xarray(T(& d)[l]) : xarray((T*)d, l) {}
+	size_t ofsGet(T& ref) { return PTRDIFF(&ref, data); }
+	T& ofsRef(size_t ofs) { return*(T*)Void(data, ofs); }
 		
 	// destructor safe ops
 	void Free() { for(auto& ref : *this) ref.~T(); this->free(); }

@@ -2,6 +2,7 @@
 // wide string struct
 struct cstrW { WCHAR* data; int slen; operator WCHAR*(){return data;}};
 typedef xstr_<WCHAR, cstrW> wxstr;
+SHITCALL cstrW xstrdup(const WCHAR*);
 
 //#define AUTFDRVCLS_(nm,bs,fr)  struct nm : bs { nm(const bs& t) : bs(t){} \
 //	nm(nm&& t) = default; nm(const nm& t) = delete; ~nm() { fr; } };

@@ -212,3 +212,10 @@ cstr WINAPI shGetFolderPath(int nFolder) { WCHAR buff[MAX_PATH];
 	
 cstr narrowFree(LPWSTR s) { SCOPE_EXIT(
 	free(s)); return utf816_dup(s); }
+	
+cstrW ansi_to_wide_dup(cch* ansi, int len)
+{
+	int size = MultiByteToWideChar(CP_ACP, 0, ansi, len, 0, 0);
+	if(!size) return {0,0}; WCHAR* buff = xMalloc(size); return {
+	buff,MultiByteToWideChar(CP_ACP,0, ansi, len, buff, size)-1};
+}
