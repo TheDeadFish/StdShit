@@ -80,3 +80,6 @@ template<class T> void memfillX(T& obj, size_t fill = 0) {
 	ei((byteLen % 2) == 0) memset16_ref(dst,byteLen/2,(word)fill);\
 	else { memset8(dst,byteLen,(char)fill); }\
 	__assume(dst == ((char*)&dst_)+byteLen); }
+
+REGCALL(2) void* memswap(
+	void* p1, void* p2, size_t sz);

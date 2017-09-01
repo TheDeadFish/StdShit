@@ -386,3 +386,28 @@ bool isFullPath(const char* path)
 		return true;
 	return false;
 }
+
+REGCALL(2) void* memswap(
+	void* p1, void* p2, size_t sz)
+{
+	while(!isNeg(sz -= 16)) {
+		asm volatile ("movups (%%eax), %%xmm0; movups (%%edx), %%xmm1;"
+			"movups %%xmm0, (%%edx); movups %%xmm1, (%%eax)"
+		: "+a"(p1), "+d"(p2) :: "xmm0", "xmm1"); p1 += 16; p2 += 16; }
+	if(sz & 8) {
+		asm volatile ("movsd (%%eax), %%xmm0; movsd (%%edx), %%xmm1;"
+			"movsd %%xmm0, (%%edx); movsd %%xmm1, (%%eax)"
+		: "+a"(p1), "+d"(p2) :: "xmm0", "xmm1"); p1 += 8; p2 += 8; }
+	if(sz & 4) {
+		asm volatile ("movss (%%eax), %%xmm0; movss (%%edx), %%xmm1;"
+			"movss %%xmm0, (%%edx); movss %%xmm1, (%%eax)"
+		: "+a"(p1), "+d"(p2) :: "xmm0", "xmm1"); p1 += 4; p2 += 4; }
+	if(sz &= 3) { asm volatile("cmp $2, %%cl; jc 1f; pushw (%%eax);"
+		"movw (%%edx), %%cx; popw (%%edx); movw %%cx, (%%eax); "
+		"lea 2(%%eax), %%eax; lea 2(%%edx), %%edx; jz 2f;"
+		"1: movb (%%eax), %%cl; movb (%%edx), %%ch; movb %%cl, (%%edx);"
+		"movb %%ch, (%%eax); 2:" : "+a"(p1), "+d"(p2) : "c"(sz));
+		p1 += 1; p2 += 1;  }
+	
+	return p1;
+}
