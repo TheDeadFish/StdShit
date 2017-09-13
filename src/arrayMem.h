@@ -3,6 +3,8 @@
 #define _ARRAY_MEM_H_
 #define IS_PTR(x) (size_t(x) >= 65536)
 
+void* __thiscall xRngPtr_get(void** ptr, size_t size);
+
 TMPL(T) struct xRngPtr 
 { 
 	T* data; T* end_; 
@@ -33,6 +35,8 @@ TMPL(T) struct xRngPtr
 	ALWAYS_INLINE bool chk(T* cp) { return end_ > cp; }
 	ALWAYS_INLINE bool chk2() { ARGFIX(end_); return chk(); }
 	ALWAYS_INLINE bool chk2(T* cp) { ARGFIX(end_); return chk(cp); }
+	Void get(size_t len) { return Void(
+		xRngPtr_get((void**)this, len)); }
 };
 	
 #define XARRAY_COMMON(C, T, len) \
@@ -84,7 +88,7 @@ TMPL(T) struct xarray
 	T* xcopy(const xarray& that) { return xcopy(that.data, that.len); }
 	T* xcopy(const T* di, size_t ci) { len = ci; return (data = xMemdup(di, ci)); }
 	T* xCopy(const xarray& that) { return xCopy(that.data, that.len); }
-	T* xCopy(const T* di, size_t ci) { if(!hasDtor(di)) return xcopy(di, ci);
+	T* xCopy(const T* di, size_t ci) { if(!hasDtorp(di)) return xcopy(di, ci);
 	 T* ptr = xalloc(ci); for(int i = 0; i < ci; i++) pNew(ptr+i, di[i]); return ptr; }
 };
 

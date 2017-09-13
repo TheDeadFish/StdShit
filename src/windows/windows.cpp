@@ -53,7 +53,7 @@ size_t REGCALL(2) cmd_escape(size_t dstLen, void* vtable,
 		"testl %%ebx, %%ebx; je end; cmpl $34, %%ebx; je quot;"
 		"cmpl $37, %%ebx; je pcnt; testb %%cl, %%cl; jns chg_quot;"
 		"norm: call *(%%edx); jmp loop; quot: leal 1(%%esi,%%esi),"
-		"%%esi; testl %%ebp, %%ebp; jne norm; jmp esc_char;"
+		"%%esi; testl %%ebp, %%ebp; jz norm; jmp esc_char;"
 		"pcnt: testb $32, %%cl; jne norm; esc_char:"
 		"bts $31, %%ebx; testb %%cl, %%cl; jns norm;"
 		"chg_quot: xorb $128, %%cl; call *4(%%edx); jmp loop;"
@@ -218,4 +218,23 @@ cstrW ansi_to_wide_dup(cch* ansi, int len)
 	int size = MultiByteToWideChar(CP_ACP, 0, ansi, len, 0, 0);
 	if(!size) return {0,0}; WCHAR* buff = xMalloc(size); return {
 	buff,MultiByteToWideChar(CP_ACP,0, ansi, len, buff, size)-1};
+}
+
+BOOL WINAPI createProcess(LPCSTR a, LPCSTR b,
+	LPSECURITY_ATTRIBUTES c, LPSECURITY_ATTRIBUTES d,
+	BOOL e, DWORD f, LPVOID g, LPCSTR h, LPSTARTUPINFOA i,
+	LPPROCESS_INFORMATION j
+) {
+	SCOPE_EXIT(
+		free_ref(i->lpDesktop); free_ref(i->lpTitle);
+		free((void*)a); free((void*)b); free((void*)g); free((void*)h););
+	
+	// convert strings to utf16
+	a = (cch*)utf816_dup(a).data; b = (cch*)utf816_dup(b).data;
+	h = (cch*)utf816_dup(h).data; g = utf816_strLst_dup((cch*)g).data;
+	i->lpDesktop = (char*)utf816_dup(i->lpDesktop).data;
+	i->lpTitle = (char*)utf816_dup(i->lpTitle).data;
+	
+	return CreateProcessW((WCHAR*)a, (WCHAR*)b, c, 
+		d, e, f, g, (WCHAR*)h, (LPSTARTUPINFOW)i, j);
 }

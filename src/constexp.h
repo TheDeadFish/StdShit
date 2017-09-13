@@ -34,3 +34,9 @@ REGCALL(1) constexpr static T toLower(T ch){ return((ch>='A') &&(ch<='Z'))?ch+32
 _CEXPCHOP_(char) _CEXPCHOP_(int)
 REGCALL(1) constexpr static bool isAlpha(int ch) { 
 	return unsigned((ch & ~0x20) - 'A') < 26; }	
+	
+// overflow helpers
+template <class T, class U, class V>
+bool ptrAddChk(T p1, U len, V*& p2) { size_t tmp;
+	bool ret = __builtin_add_overflow((size_t)p1, len, &tmp);
+	p2 = (V*)tmp; return ret; }

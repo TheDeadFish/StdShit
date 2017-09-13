@@ -25,6 +25,7 @@ int __stdcall utf816_size2(cch*, int);
 WCHAR* __stdcall utf816_cpy2_(WCHAR*, cch*, int);
 WCHAR* __stdcall utf816_cpy2(WCHAR*, cch*, int);
 cstrW __stdcall utf816_dup2(cch*, int);
+cstrW __stdcall utf816_strLst_dup(cch* str);
 
 #define UNICODE_MAX 0x10FFFF
 

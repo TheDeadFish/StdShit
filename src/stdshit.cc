@@ -298,8 +298,7 @@ SHITCALL
 int strEicmp(const char* str1, const char* str2)
 {
 	int diff = strlen(str1)-strlen(str2);
-	if(diff < 0)
-		return 0;
+	if(diff < 0) return 1;
 	return stricmp(str1+diff, str2);
 }
 
@@ -410,4 +409,10 @@ REGCALL(2) void* memswap(
 		p1 += 1; p2 += 1;  }
 	
 	return p1;
+}
+
+void* __thiscall xRngPtr_get(void** ptr, size_t size)
+{
+	void* tmp; return (ptrAddChk(*ptr, size, tmp)
+	||(tmp > ptr[1])) ? 0 : release(*ptr, tmp);
 }

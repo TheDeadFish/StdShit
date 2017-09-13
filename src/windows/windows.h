@@ -7,7 +7,7 @@ static inline void setTxtMode(FILE* fp, bool ena) {
 // command line escaping
 enum { 
 	ESC_LEAQUOT = 1, ESC_CPMODE = 2, ESC_SFEQUOT = 4, 
-	ESC_FIXED = 8,  ESC_ENVEXP = 32, ESC_ENTQUOT = 128 };
+	ESC_ENVEXP = 32, ESC_ENTQUOT = 128 };
 int __stdcall cmd_escape_len(const char* src, size_t len, int flags);
 int __stdcall cmd_escape_len(const wchar_t* src, size_t len, int flags);
 char* REGCALL(1) cmd_escape(char* dst, const char* src, size_t len, int flags);
@@ -45,6 +45,8 @@ BOOL WINAPI setFileAttributes(cch*, DWORD);
 int WINAPI messageBox(HWND, cch*, cch*, UINT);
 
 // utf8 wide apis, intput
+cstr __stdcall getModuleFileNameEx(
+	HANDLE hProcess, HMODULE hModule);
 cstr __stdcall getModuleFileName(HMODULE hModule);
 cstr __stdcall getProgramDir(void);
 cstr WINAPI getWindowText(HWND); 
@@ -100,3 +102,18 @@ int WINAPI findNextFile(HANDLE hFind, WIN32_FIND_DATAU* fd);
 	ws = xMalloc(sz+=1); g; }} return narrowFree(ws);
 	
 cstrW ansi_to_wide_dup(cch* ansi, int len);
+
+
+
+BOOL WINAPI createProcess(
+	LPCSTR lpApplicationName,
+	LPCSTR lpCommandLine,
+	LPSECURITY_ATTRIBUTES lpProcessAttributes,
+	LPSECURITY_ATTRIBUTES lpThreadAttributes,
+	BOOL bInheritHandles,
+	DWORD dwCreationFlags,
+	LPVOID lpEnvironment,
+	LPCSTR lpCurrentDirectory,
+	LPSTARTUPINFOA lpStartupInfo,
+	LPPROCESS_INFORMATION lpProcessInformation
+);

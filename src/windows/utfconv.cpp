@@ -113,6 +113,9 @@ WCHAR* __stdcall utf816_cpy2(WCHAR* d, cch* s, int l) {
 cstrW __stdcall utf816_dup2(cch* s, int l) { if(!l) return {0,0};
 	WCHAR* b = xmalloc(utf816_size2(s, l)); ARGFIX(s); ARGFIX(l);
 	WCHAR* e = utf816_cpy2(b, s, l); return {b, e-b}; }
+cstrW __stdcall utf816_strLst_dup(cch* str) { if(!str) 
+	return {0,0}; cch* tmp = str; while(RW(tmp)) tmp++; 
+	return utf816_dup2(str, tmp-str+2); }
  
 SHITCALL cstrW xstrdup(const WCHAR* str) 
 {

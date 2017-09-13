@@ -165,14 +165,25 @@ size_t xstrfmt_fmt_::hex_mode(void)
 
 size_t xstrfmt_fmt_::cmd_mode(void)
 {
+	// map commands
 	char cmdFlag = 0;
-	asm("sar $3, %k1; rolb $2, %b0;" 
-		: "=Q"(cmdFlag) : "0"(flags));
+	if(flags & FLAG_LBRACE) cmdFlag |= ESC_ENTQUOT;
+	if(flags & FLAG_RBRACE) cmdFlag |= ESC_LEAQUOT;
+	if(flags & FLAG_AMPRSND) cmdFlag |= ESC_CPMODE;
+	if(flags & FORCE_SIGN) cmdFlag |= ESC_ENVEXP;
+	if(flags & FLAG_APOSTR) cmdFlag |= ESC_SFEQUOT;
+	
+	// 
 	char* src = va_arg(ap, char*);
-	size_t maxLen = (cmdFlag & ESC_FIXED) ?
+	if(!src) src = (char*)"";
+	size_t maxLen = (flags & FLAG_DOLAR) ?
 		va_arg(ap, size_t) : precision;
+	if((flags & FLAG_XCLMTN) && !(maxLen && *src))
+		{ maxLen = -1; src = (char*)"."; }
+		
 	if(dstPosArg == NULL) return cmd_escape_len(src, maxLen, cmdFlag);
-	else return (size_t)cmd_escape(dstPosArg, src, maxLen, cmdFlag);
+	else { size_t dstPos = (size_t)cmd_escape(dstPosArg, src, maxLen,
+		cmdFlag); if(flags & FLAG_HASH) free(src); return dstPos; }
 }
 
 size_t xstrfmt_fmt_::sep_mode(void)
