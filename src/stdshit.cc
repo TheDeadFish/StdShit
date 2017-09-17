@@ -370,8 +370,11 @@ cstr getName2(cstr str) {
 	while(p.chk() && p.f() == '.') p.fi();
 	while(p.chk()) { if(p.ld() == '.') {
 	str.sete(p); break; }} return str; }
+cstr getExt(cstr str) { cstr tmp = getName2(str);
+	return {tmp.end(), str.slen-tmp.slen}; }
 	
-CSTRTH1_(getPath) CSTRTH1_(getName) CSTRTH1_(getName2)
+CSTRTH1_(getPath) CSTRTH1_(getName) 
+CSTRTH1_(getName2) CSTRTH1_(getExt)
 CSTRTH2_(pathCat) CSTRTH2_(replName)
 CSTRTH2_(fullNameRepl)
 CSTRTH2_(fullNameCat)

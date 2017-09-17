@@ -47,9 +47,14 @@ int SHITCALL cstr_icmp(CSTRG(1), cch* str2);
 
 cstr SHITCALL cstr_str(CSTRG(1), CSTRG(2));
 cstr SHITCALL cstr_istr(CSTRG(1), CSTRG(2));
+cstr SHITCALL cstr_str(CSTRG(1), cch* str2);
+cstr SHITCALL cstr_istr(CSTRG(1), cch* str2);
+
 
 // tokenization/splitting
 SHITCALL cstr cstr_split(cstr& str, char ch);
+cstr SHITCALL cstr_chr(CSTRG(1), char ch);
+cstr SHITCALL cstr_rchr(CSTRG(1), char ch);
 
 struct cstr
 {
@@ -73,9 +78,14 @@ struct cstr
 	int icmp(cstr s) { return cstr_icmp(CSTRX(*this), CSTRX(s)); }
 	int cmp(cch* s) { return cstr_cmp(CSTRX(*this), s); }
 	int icmp(cch* s) { return cstr_icmp(CSTRX(*this), s); }
-	
-	
-	
+	cstr str(cstr s) { return cstr_str(CSTRX(*this), CSTRX(s)); }
+	cstr istr(cstr s) { return cstr_str(CSTRX(*this), CSTRX(s)); }
+	cstr str(cch* s) { return cstr_str(CSTRX(*this), s); }
+	cstr istr(cch* s) { return cstr_istr(CSTRX(*this), s); }
+
+	// tokenization
+	cstr chr(char ch) { return cstr_chr(CSTRX(*this), ch); }
+	cstr rchr(char ch) { return cstr_rchr(CSTRX(*this), ch); }
 	
 	// dynamic functions
 	cstr xdup(void) const  { return cstr_dup(*this); }
@@ -144,7 +154,8 @@ struct Bstr : bstr
 };
 
 // Path Handling
-CSTRFN1_(getPath) CSTRFN1_(getName) CSTRFN1_(getName2)
+CSTRFN1_(getPath) CSTRFN1_(getName) 
+CSTRFN1_(getName2) CSTRFN1_(getExt)
 CSTRFN2_(replName) CSTRFN2_(pathCat)
 static inline cstr getPath0(cstr str) {
 	return getPath(str).nterm(); }

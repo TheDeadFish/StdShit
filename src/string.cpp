@@ -92,9 +92,22 @@ SHITCALL cstr cstr_split(cstr& str, char ch) {
 	if(0) { SPLIT: VARFIX(idx); str2 = {begin+idx+1, 
 	slen};}; str = str2; return {begin,idx}; }
 
+cstr SHITCALL cstr_chr(CSTRG(1), char ch) {
+	xRngPtr<char> p(str1, len1); while(p.chk()) {
+		if(p.f() == ch) return {p.data, p.end_};
+		INCP(p.data); } return {0,0}; }
+cstr SHITCALL cstr_rchr(CSTRG(1), char ch) {
+	char* end = str1+len1; xRngPtr<char> p(str1, end); 
+	while(p.chk()) { if(p.ld() == ch) return {
+		p.end_, end}; } return {0,0}; }
+
 // cstr substring search	
 #define CSTR_ISTR(nm, cmp) cstr nm(CSTRG(1), CSTRG(2)) { const char* \
 	endPos = str1 + (len1-len2); VARFIX(str2); if(len2 > 0) { while( \
 	str1 < endPos) { CMPL(len2, cmp(str1[i], str2[i], NS)); \
 	return {str1, len2}; NS: str1++; }} return {0,0}; };
 CSTR_ISTR(cstr_str, CMPS); CSTR_ISTR(cstr_istr, CMPI);	
+cstr SHITCALL cstr_str(CSTRG(1), cch* str2) { cstr tmp(str2); 
+	return cstr_str(str1, len1, CSTRX(tmp)); }
+cstr SHITCALL cstr_istr(CSTRG(1), cch* str2) { cstr tmp(str2); 
+	return cstr_istr(str1, len1, CSTRX(tmp)); }
