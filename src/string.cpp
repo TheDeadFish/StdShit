@@ -84,6 +84,12 @@ bstr& bstr::pathcat(cstr str) { int extra = sepReq();
 bstr& bstr::pathend(cstr str) { int len = slen; bstr&
 	ret = pathcat(str); ret.slen = len; return ret; }
 	
+// command line building
+bstr& bstr::argcat(cstr str) { return fmtcat(" %$z", str); }
+bstr& bstr::argcat(cch* str) { return fmtcat(" %z", str); }
+bstr& bstr::argcatf(cstr str) { return fmtcat(" %#$z", str); }
+bstr& bstr::argcatf(cch* str) { return fmtcat(" %#z", str); }
+	
 // tokenization/splitting
 SHITCALL cstr cstr_split(cstr& str, char ch) {
 	char* begin = str; int slen = str.slen; REGFIX(b, ch);
@@ -99,7 +105,13 @@ cstr SHITCALL cstr_chr(CSTRG(1), char ch) {
 cstr SHITCALL cstr_rchr(CSTRG(1), char ch) {
 	char* end = str1+len1; xRngPtr<char> p(str1, end); 
 	while(p.chk()) { if(p.ld() == ch) return {
-		p.end_, end}; } return {0,0}; }
+		p.end_, end}; } return {0,0}; }		
+cstr SHITCALL cstr_chr2(CSTRG(1), char ch) {		
+	cstr tmp = cstr_chr(str1, len1, ch);
+	if(tmp) tmp = {str1, tmp.data}; return tmp; }
+cstr SHITCALL cstr_rchr2(CSTRG(1), char ch) {		
+	cstr tmp = cstr_rchr(str1, len1, ch);
+	if(tmp) tmp = {str1, tmp.data}; return tmp; }
 
 // cstr substring search	
 #define CSTR_ISTR(nm, cmp) cstr nm(CSTRG(1), CSTRG(2)) { const char* \

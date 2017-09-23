@@ -53,8 +53,9 @@ cstr SHITCALL cstr_istr(CSTRG(1), cch* str2);
 
 // tokenization/splitting
 SHITCALL cstr cstr_split(cstr& str, char ch);
-cstr SHITCALL cstr_chr(CSTRG(1), char ch);
-cstr SHITCALL cstr_rchr(CSTRG(1), char ch);
+#define CSTRFN4_(nm) cstr SHITCALL nm(CSTRG(1), char ch);
+CSTRFN4_(cstr_chr) CSTRFN4_(cstr_rchr)
+CSTRFN4_(cstr_chr2) CSTRFN4_(cstr_rchr2)
 
 struct cstr
 {
@@ -86,6 +87,8 @@ struct cstr
 	// tokenization
 	cstr chr(char ch) { return cstr_chr(CSTRX(*this), ch); }
 	cstr rchr(char ch) { return cstr_rchr(CSTRX(*this), ch); }
+	cstr chr2(char ch) { return cstr_chr2(CSTRX(*this), ch); }
+	cstr rchr2(char ch) { return cstr_rchr2(CSTRX(*this), ch); }
 	
 	// dynamic functions
 	cstr xdup(void) const  { return cstr_dup(*this); }
@@ -126,7 +129,9 @@ struct bstr : cstr
 	// path handling
 	bstr& pathcat(cch*); bstr& pathcat(cstr);
 	bstr& pathend(cch*); bstr& pathend(cstr);
-	
+	bstr& argcat(cch*); bstr& argcat(cstr);
+	bstr& argcatf(cch*); bstr& argcatf(cstr);
+
 	// null-termination
 	REGCALL(1) cstr nullTerm(void);
 	SHITCALL cstr calcLen(void);
