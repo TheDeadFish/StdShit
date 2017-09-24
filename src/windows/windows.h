@@ -1,6 +1,8 @@
 
 #include <shlobj.h>
 
+#define isIHV(x) ((x) == INVALID_HANDLE_VALUE)
+
 static inline void setTxtMode(FILE* fp, bool ena) {
 	_setmode(fp->_file, ena ? 0x4000 : 0x8000); }
 
@@ -88,11 +90,10 @@ struct WIN32_FIND_DATAU {
 	void init(WIN32_FIND_DATAW* src); 
 	cstr cStr() { return {cFileName, fnLength}; }
 	bool isDir() { return dwFileAttributes & 0x10;}
-	bool isDot() { return RW(cFileName) == 0x2E;}
-	bool isDot2() { return RI(cFileName) == 0x2E2E;}
 };
-DEF_RETPAIR(findFirstFile_t, int, status, HANDLE, hFind);
-findFirstFile_t WINAPI findFirstFile(cch* fileName, WIN32_FIND_DATAU* fd);
+
+int REGCALL(1) findFirstFile(HANDLE& hFile,
+	cch* fileName, WIN32_FIND_DATAU* fd);
 int WINAPI findNextFile(HANDLE hFind, WIN32_FIND_DATAU* fd);
 
 // wide api helpers

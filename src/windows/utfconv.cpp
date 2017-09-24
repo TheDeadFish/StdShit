@@ -48,13 +48,13 @@ ASM_FUNC("_UTF16_GET1", "orl $-1, %edx; _UTF16_GET2: "
 	"inc %esi; sal $10, %eax; lea 0xFCA02400(%eax,%edx), %eax; 1: ret" );
 
 // UTF8 to UTF16 size
-#define UTF816SZ(z,n,x) int __stdcall MCAT(utf816_size,x)(cch* str MIF(n, \
+#define UTF816SZ(z,n) utf816_size_tW __stdcall utf816_size(cch* str MIF(n, \
 	(,int len),)) { int r = 0; asm("1: inc %0;" MIF(n, "cmp %2,%1; " \
 	"jz 3f;",) "movzbl (%1),%%eax; inc %1; testb %%al,%%al;" MIF(z, \
 	"je 3f;",) "jns 1b;" MIF(n, "movl %2,%%edx; call _UTF8_GET2", "call " \
-	"_UTF8_GET1") ";shrl $16, %%eax; je 1b; inc %0; jmp 1b; 3:" : "+b"(r) \  
-	: "S"(str) MIF(n,(,"c"(str+len)),) : "eax", "edx" ); return r*2; }
-UTF816SZ(1, 0, ); UTF816SZ(1, 1, );
+	"_UTF8_GET1") ";shrl $16, %%eax; je 1b; inc %0; jmp 1b; 3:" : "+b"(r), \
+	"+S"(str) : MIF(n,"c"(str+len),) : "eax", "edx" ); return {r*2,str}; }
+UTF816SZ(1, 0); UTF816SZ(1, 1);
 
 // UTF8 to UTF16 copy
 #define UTF816CP(n) WCHAR* __stdcall utf816_cpy_(WCHAR* dst, cch* str MIF(n, \
@@ -75,12 +75,12 @@ ASM_FUNC("_UTF16TO8_LEN1", "orl $-1, %edx; _UTF16TO8_LEN2:"
 	"jne 2b; inc %ebx; inc %esi; inc %esi; ret" );
 ASM_FUNC("__Z11utf816_sizePKw@4", "pushl %esi; pushl %ebx; movl 12(%esp), %esi;"
 	"xorl %ebx, %ebx; 1: lodsw; inc %ebx; cmpw $128, %ax; jae 2f; testb %al, %al;"
-	"jne 1b; movl %ebx, %eax; popl %ebx; popl %esi; ret $4;"
+	"jne 1b; movl %ebx, %eax; popl %ebx; movl %esi, %edx; popl %esi; ret $4;"
 	"2: call _UTF16TO8_LEN1; jmp 1b" );
-ASM_FUNC("__Z11utf816_sizePKwi@8", "pushl %ebx; pushl %ebp; xorl %ebx, %ebx; pushl %esi;"
+ASM_FUNC("__Z11utf816_sizePKwi@8", "pushl %ebx; pushl %esi; xorl %ebx, %ebx; pushl %ebp;"
 	"movl 20(%esp), %ebp; movl 16(%esp), %esi; lea (%esi,%ebp,2), %ebp; 1: inc %ebx;cmpl %ebp, %esi;"
 	"jae 3f; lodsw; cmpw $128, %ax; jb 1b;movl %ebp, %edx; call _UTF16TO8_LEN2; jmp 1b;"
-	"3: popl %esi; popl %ebp; movl %ebx, %eax; popl %ebx; ret $8;" );
+	"3: popl %ebp; movl %esi, %edx; popl %esi; movl %ebx, %eax; popl %ebx; ret $8;" );
 ASM_FUNC("__Z10utf816_cpyPcPKw@8", "pushl %esi; pushl %edi; movl 16(%esp), %esi;"
 	"movl 12(%esp), %edi; 1: lodsw; cmpw $128, %ax; jae 2f; stosb;"
 	"testb %al, %al; jne 1b; lea -1(%edi), %eax; popl %edi; popl %esi;"

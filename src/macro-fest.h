@@ -113,10 +113,8 @@ typedef signed short 	s16;
 // 64bit types
 typedef signed long long u64;
 typedef unsigned long long s64;
-_Pragma("pack(push, 4)")
-typedef u64 u64p4; 
-typedef s64 s64p4;
-_Pragma("pack(pop)")
+typedef u64 __attribute__ ((aligned(4))) u64p4;
+typedef s64 __attribute__ ((aligned(4))) s64p4;
 
 // fast unsafe 64bit division
 static inline INT32 iDiv6432(INT64 num, INT32 dom) { UINT32 result; 

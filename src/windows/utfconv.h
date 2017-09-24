@@ -10,9 +10,12 @@ SHITCALL cstrW xstrdup(const WCHAR*);
 
 
 // UTF8/UTF16 conversion
+
+#define UTF816L(rt, ty) DEF_RETPAIR(rt, int, \
+	size, const ty*, endp); UTF816A(rt, utf816_size, ty)
 #define UTF816A(rt,fn,ty) rt __stdcall fn(const ty* mbstr_); \
 	rt __stdcall fn(const ty* mbstr_, int len);
-UTF816A(int, utf816_size, char); UTF816A(int, utf816_size, wchar_t);
+UTF816L(utf816_size_tW, char); UTF816L(utf816_size_t8, wchar_t);
 UTF816A(cstrW, utf816_dup, char); UTF816A(cstr, utf816_dup, wchar_t);
 #define UTF816B(t1, t2) t1* __stdcall utf816_cpy(t1* wstr_, t2* mbstr_); \
 	t1* __stdcall utf816_cpy(t1* wstr_, t2* mbstr_, int len);

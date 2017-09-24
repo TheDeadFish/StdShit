@@ -198,14 +198,17 @@ void WIN32_FIND_DATAU::init(WIN32_FIND_DATAW* src) { memcpy(this,
 	[0] = src->nFileSizeLow; PI(&nFileSize)[1] = src->nFileSizeHigh; 
 	RI(cFileName) &= 0; fnLength = utf816_cpy(
 		cFileName, src->cFileName)-cFileName; }
-findFirstFile_t WINAPI findFirstFile(cch* fileName, WIN32_FIND_DATAU* pfd)
-{	WIN32_FIND_DATAW fd; HANDLE hFind; { FNWIDEN(1,fileName); hFind = 
-	FindFirstFileW(cs1, &fd); } int status; if(hFind == INVALID_HANDLE_VALUE) {
-	int e = GetLastError();	status = is_one_of(e,2,3) ? 1:((e==5) ? 2:3); }
-		else { pfd->init(&fd); status = -1; } return {status, hFind}; }
+int REGCALL(1) findFirstFile(HANDLE& hFind, 
+	cch* fileName, WIN32_FIND_DATAU* pfd){ WIN32_FIND_DATAW fd; 
+	{ FNWIDEN(1,fileName); hFind = FindFirstFileW(cs1, &fd); }
+	if(isIHV(hFind)) { int e = GetLastError(); 
+	return is_one_of(e,2,3) ? 1:((e==5) ? 2:3); }
+	pfd->init(&fd); if(RW(pfd->cFileName) == '.') 
+	return findNextFile(hFind, pfd); return -1; }
 int WINAPI findNextFile(HANDLE hFind, WIN32_FIND_DATAU* pfd) {
-	WIN32_FIND_DATAW fd; if(FindNextFileW(hFind, &fd)) { pfd->init(&fd);
-	return -1; } return (GetLastError() == ERROR_NO_MORE_FILES) ? 0 : 3; }
+	WIN32_FIND_DATAW fd; AGAIN: if(FindNextFileW(hFind, &fd)) { 
+	pfd->init(&fd); if(RI(pfd->cFileName) == '..') goto AGAIN; 
+	return -1; } return (GetLastError() == 18) ? 0 : 3; }
 	
 cstr WINAPI shGetFolderPath(int nFolder) { WCHAR buff[MAX_PATH]; 
 	if(SHGetFolderPathW(0, nFolder, NULL, 0, buff)) 
