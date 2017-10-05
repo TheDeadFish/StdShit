@@ -106,6 +106,7 @@ SHITCALL void xfwrite(const void*, size_t, size_t, FILE*);
 SHITCALL void xchsize(FILE* fp, long size);
 SHITCALL int fsize(FILE* fp);
 SHITCALL xarray<byte> loadFile(FILE* fp, int extra = 0);
+SHITCALL xarray<char> loadText(FILE* fp);
 SHITCALL char** loadText(FILE* fp, int& LineCount);
 SHITCALL int saveFile(cch* fName, void* data, size_t size);
 int xvfprintf ( FILE * stream, const char * format, va_list arg );
@@ -204,6 +205,7 @@ SHITCALL char* xstrfmt_fill(char* buffer,
 SHITCALL FILE* xfopen(const char*, const char*);
 SHITCALL char* xfgets(char*, int, FILE*);
 SHITCALL xarray<byte> loadFile(const char* fileName, int extra = 0);
+SHITCALL xarray<char> loadText(cch* fName);
 SHITCALL char** loadText(const char* fileName, int& LineCount);
 
 // String handling

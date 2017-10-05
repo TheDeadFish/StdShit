@@ -11,7 +11,7 @@ DEF_RDTEXT(str_io_fail, "file IO failure");
 DEF_RDTEXT(str_bad_file, "invalid file format");
 DEF_RDTEXT(str_open_fileA, "Cannot open file: \"%s\"");
 DEF_RDTEXT(str_open_fileW, "Cannot open file: \"%S\"");
-DEF_RDTEXT(str_rbA, "rb");
+DEF_RDTEXT(str_rbA, "rb"); DEF_RDTEXT(str_rA, "r");
 
 // libstdc++ bullshit
 namespace std { 
@@ -123,6 +123,17 @@ xarray<byte> loadFile(FILE* fp, int extra)
 		xfread(result.data, result.len, fp);
 	} else { min_ref(result.len, 0x7FFFFFFF); }
 	return result;
+}
+
+xarray<char> loadText(FILE* fp)
+{
+	if(!fp) return {0,-1}; SCOPE_EXIT(fclose(fp));
+	size_t size = fsize(fp); 
+	char* buff = (char*)malloc(size+4); if(!buff) 
+	return {0,min_ref(size, 0x7FFFFFFF)};
+	size = fread(buff, 1, size, fp);
+	if(ferror(fp)) errorDiskFail();
+	RI(buff+size) = 0; return {buff, size};
 }
 
 char** loadText(FILE* fp, int& LineCount)
@@ -262,6 +273,9 @@ char* xfgets(char* str, int num, FILE* fp)
 SHITCALL
 xarray<byte> loadFile(const char* fileName, int extra){
 	return loadFile(xfopen(fileName, str_rbA), extra); }
+SHITCALL
+xarray<char> loadText(cch* fName) {
+	return loadText(xfopen(fName, str_rA)); }
 SHITCALL
 char** loadText(const char* fileName, int& LineCount){
 	return loadText(xfopen(fileName, str_rbA), LineCount); }
