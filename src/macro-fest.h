@@ -17,6 +17,7 @@ union _CAST_{T src; U dst; };
 #define REF_SYMBOL(symb) asm(".def _"#symb";.scl 2;.type 32;.endef");
 #define DEF_RDTEXT(name, text) __attribute__((section( \
 	".text$"#name))) static const char name[] = text;
+#define AMIF(n,t,f) ".if "#n";" t ";.else;" f ";.endif;"
 
 // Function/Variable Attributes
 #define ALWAYS_INLINE __inline__ __attribute__((always_inline))

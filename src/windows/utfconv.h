@@ -19,9 +19,10 @@ UTF816L(utf816_size_tW, char); UTF816L(utf816_size_t8, wchar_t);
 UTF816A(cstrW, utf816_dup, char); UTF816A(cstr, utf816_dup, wchar_t);
 #define UTF816B(t1, t2) t1* __stdcall utf816_cpy(t1* wstr_, t2* mbstr_); \
 	t1* __stdcall utf816_cpy(t1* wstr_, t2* mbstr_, int len);
-UTF816B(wchar_t, const char); UTF816B(char, const wchar_t);
-WCHAR* __stdcall utf816_cpy_(WCHAR* wstr_, cch* mbstr_);
-WCHAR* __stdcall utf816_cpy_(WCHAR* wstr_, cch* mbstr_, int len);
+UTF816B(char, const wchar_t);
+#define UTF816CP_(nm,dn,sn) WCHAR* __stdcall MCAT(utf816_cpy,nm)( \
+	WCHAR* dst, MIF(dn, (int dstMax,),) cch* src MIF(sn, (,int len),))
+UTF816CP_(,0,0); UTF816CP_(,0,1); UTF816CP_(,1,0); UTF816CP_(,1,1);
 
 //non-null terminated
 int __stdcall utf816_size2(cch*, int);

@@ -36,8 +36,8 @@ ASM_FUNC("_UTF8_GET1", "orl $-1, %edx;" GLOB_LAB("_UTF8_GET2")
 );
 	
 // UTF16 encode/decode
-ASM_FUNC("_UTF16_PUT1",
-	"cmp $65536, %eax; jb 1f; movl %eax, %edx;"
+ASM_FUNC("_UTF16_PUT1", "cmp $65536, %eax;"
+	"jb 1f; _UTF16_PUT2:; movl %eax, %edx;"
 	"shrl $10, %eax; andw $1023, %dx;"
 	"addw $55232, %ax; addw $56320, %dx;"
 	"stosw; movl %edx, %eax; 1: stosw; ret;" );
@@ -57,15 +57,18 @@ ASM_FUNC("_UTF16_GET1", "orl $-1, %edx; _UTF16_GET2: "
 UTF816SZ(1, 0); UTF816SZ(1, 1);
 
 // UTF8 to UTF16 copy
-#define UTF816CP(n) WCHAR* __stdcall utf816_cpy_(WCHAR* dst, cch* str MIF(n, \
-	(,int len),)) { asm("jmp 0f; 1: stosw; 0:" MIF(n, "cmp %2,%1; jz 3f;",) \
-	"movzbl (%1),%%eax; inc %1; testb %%al,%%al; je 3f; jns 1b;" \
-	MIF(n, "movl %2,%%edx; call _UTF8_GET2", "call _UTF8_GET1") \
-	";call _UTF16_PUT1; jmp 0b; 3:" : "+D"(dst) : "S"(str) \
-	MIF(n,(,"c"(str+len)),) : "eax", "edx" ); return dst; } \
-WCHAR* __stdcall utf816_cpy(WCHAR* dst, cch* str MIF(n, (,int len),)) { \
-	WCHAR* tmp = utf816_cpy_(dst, str MIF(n,(,len),)); *tmp = 0; return tmp; }
-UTF816CP(1) UTF816CP(0)
+asm(".macro utf816_cpyw_ sn,dn,sr; jmp 0f; 1:" AMIF(\\dn, "cmp %ecx, %edi; ja 3f",) 
+	"stosw; 0:" AMIF(\\sn, "cmp \\sr,%esi; jz 3f",) "movzbl (%esi),%eax; inc %esi; "
+	"testb %al,%al; je 3f; jns 1b;" AMIF(\\sn, "movl \\sr,%edx; call _UTF8_GET2",
+	"call _UTF8_GET1") AMIF(\\dn, "cmp $65535, %eax; jle 1b; cmp %ecx, %edi; jnb 3f;"
+	"call _UTF16_PUT2", "call _UTF16_PUT1") "jmp 0b; 3:; .endm;");
+	
+#define UTF816CP(dn,sn) NEVER_INLINE UTF816CP_(_,dn,sn) { asm("utf816_cpyw_ \
+	"#sn", "#dn",%2" : "+D"(dst), "+S"(src) : MIF(sn, (MIF(dn, ("b"(src+len),),\
+	"c"(src+len))),) MIF(dn, "c"(dst+dstMax-2),)); return dst; } \
+UTF816CP_(,dn,sn) { MIF(dn, if(ptrdiff_t(dstMax) > 0),) { dst = utf816_cpy_(\
+	dst MIF(dn,(,dstMax),), src MIF(sn,(,len),)); *dst = 0; } return dst; }
+UTF816CP(0,0) UTF816CP(0,1) UTF816CP(1,0) UTF816CP(1,1)
 
 // UTF16 to UTF8 conversion
 ASM_FUNC("_UTF16TO8_LEN1", "orl $-1, %edx; _UTF16TO8_LEN2:"
