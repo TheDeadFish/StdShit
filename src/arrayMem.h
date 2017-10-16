@@ -145,6 +145,8 @@ struct xvector_ {
 	int strcat(const WCHAR* str); 
 	void fmtcat(const char* fmt, ...);
 	void fmtcat(const WCHAR* fmt, ...);
+	
+	Void xcopy_(Void di, size_t sz);
 };
 
 TMPL(T)
@@ -169,10 +171,6 @@ struct xvector : xvector_ {
 	void Free() { if(std::is_trivially_destructible<T>::value) 
 		{ this->free_(); } else { dtor(); }}
 	void Clear() { this->Free(); dataSize = 0; allocSize = 0; }
-	//T* xCopy(const xarray<T>& That) { return xCopy(That.dataPtr, That.count); }
-	T* xCopy(const xvector<T>& That) { return xCopy(That.dataPtr, That.getCount()); }
-	T* xCopy(const T* di, size_t ci) { if(std::is_trivially_destructible<T>::value)
-		{ return xcopy(di, ci); } else { ctor((T*)di, ci); }}
 	T* xAlloc(size_t size) { T* ptr = xalloc(size);
 		for(int i = 0; i < size; i++) pNew(ptr); }
 	T* xReserve(size_t size) { return xreserve_(size*sizeof(T)); }
@@ -194,16 +192,25 @@ struct xvector : xvector_ {
 		this->dataPtr = di; this->dataSize = ds; this->allocSize = as; }
 	//xarray<T> get() const { return xarray<T>(this->dataPtr, getCount()); }
 	xvector<T> get2() const  { return *this; }
-	//T* xcopy(const xarray<T>& That) { return xcopy(That.dataPtr, That.count); }
-	T* xcopy(const xvector<T>& That) { return xcopy(That.dataPtr, That.getCount()); }
-	T* xcopy(const T* di, size_t ci) { memcpyX(xresize(ci), di, ci); return this->dataPtr; }
 	T* xalloc(size_t size) { return this->xalloc_(size*sizeof(T)); }
 	T* xresize(size_t size) { return xresize_(size*sizeof(T)); }
 	T* xnalloc(size_t size) { return xnxalloc_(size*sizeof(T)); }
+	
+	// copy constructor
+	T* xCopy_(Void di, size_t sz) { if(std::is_trivially_destructible<T>::value)
+		{ return xcopy_(di, sz); } else { return ctor(di, sz); }}
+	T* xCopy(const T* di, size_t ci) { return xCopy_(di, ci*sizeof(T)); }
+	T* xCopy(const xarray<T>& That) { return xCopy(That.data, That.len); }
+	T* xCopy(const xvector<T>& That) { return xCopy_(That.dataPtr, That.dataSize); }
+	T* xcopy(const T* di, size_t ci) { return xcopy_(di, ci*sizeof(T)); }
+	T* xcopy(const xarray<T>& That) { return xcopy(That.dataPtr, That.count); }
+	T* xcopy(const xvector<T>& That) { return xcopy_(That.dataPtr, That.dataSize); }
+	
 private:
-	__attribute__ ((noinline)) void ctor(T* di, size_t ci) {
-		T* dstPos = xalloc(ci); for(int i = 0; i < ci; i++) {
-			pNew(dstPos+i, di[i]); }}
+	__attribute__ ((noinline)) T* ctor(T* di, size_t sz) {
+		T* dstPos = xalloc_(sz); T* endPos = Void(di,sz);
+		while(dstPos < endPos) { pNew(dstPos, *di); 
+			dstPos++; di++; } return dataPtr; }
 	__attribute__ ((noinline)) void dtor() { if(dataPtr) {
 		for(auto& obj : *this) obj.~T(); ::free(dataPtr); }}
 };		
@@ -211,11 +218,11 @@ private:
 TMPL(T)
 struct xVector : xvector<T> {
 	xVector() { xvector_::init_(); }
-	//xVector(const xarray<T>& That) { this->xCopy(That); }
+	xVector(const xarray<T>& That) { this->xCopy(That); }
 	xVector(const T* di, size_t ci) { this->xCopy(di, ci); }
-	//xVector(const xArray<T>& That) { this->xCopy(That.get()); }
+	xVector(const xArray<T>& That) { this->xCopy(That); }
 	xVector(const xvector<T>& That) { this->xCopy(That); }
-	xVector(const xVector<T>& That) { this->xCopy(That.get2()); }
+	xVector(const xVector<T>& That) { this->xCopy(That); }
 	xVector(xVector<T>&& That) { this->init2(
 		That.dataPtr, That.dataSize, That.allocSize); }
 	~xVector() { this->Free(); }

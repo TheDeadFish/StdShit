@@ -138,3 +138,8 @@ RetEdx<int> xvector_::write32(uint val) { VoidLen vl = xnxalloc2_(4);
 	*(uint*)vl.ptr = val; return vl.offset; }
 RetEdx<int> xvector_::write64(INT64 val) { VoidLen vl = xnxalloc2_(8);
 	*(INT64*)vl.ptr = val; return vl.offset; }
+	
+Void xvector_::xcopy_(Void di, size_t sz)
+{
+	return memcpy(xalloc_(sz), di, sz);
+}
