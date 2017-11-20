@@ -58,7 +58,7 @@ _Realloc(xrealloc, xRealloc) _Realloc(xrecalloc, xRecalloc)
 _Nxalloc(xnxalloc, xNextAlloc) _Nxalloc(nxalloc, NextAlloc) 
 #define xMalloc_(name, func) struct name { name(size_t sz) : sz(sz) {} \
 	operator void*() { return func(sz); } TMPL(T) \
-	operator T*() { return (T*)func(sizeof(T)*sz); } private: size_t sz; };
+	ALWAYS_INLINE operator T*() { return (T*)func(sizeof(T)*sz); } private: size_t sz; };
 xMalloc_(xMalloc, xmalloc); xMalloc_(xCalloc, xcalloc);
 xMalloc_(Malloc, malloc); xMalloc_(Calloc, calloc);
 

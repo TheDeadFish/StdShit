@@ -143,3 +143,8 @@ Void xvector_::xcopy_(Void di, size_t sz)
 {
 	return memcpy(xalloc_(sz), di, sz);
 }
+
+void xvector_::remove_(Void di, size_t sz)
+{
+	dataSize -= sz; memcpy(di, end(), sz);
+}

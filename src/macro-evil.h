@@ -4,6 +4,7 @@
 #define EXTRACT(...) EXTRACT __VA_ARGS__
 #define NOTHING_EXTRACT
 #define UNPAREN(x) MCAT(NOTHING_, EXTRACT x)
+#define MSTR(x) #x
 
 // varidac macros, by Anonymous Coward
 // http://stackoverflow.com/a/6936114

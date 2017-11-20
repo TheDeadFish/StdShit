@@ -96,7 +96,7 @@ char* stradd(char* dst, const char* src) {
 	char ch; while(lodsb(src, ch), ch) stosb(dst, ch);
 	*dst = ch; return dst; }
 static inline
-wchar_t* stradd(wchar_t* dst, const wchar_t* src) {
+wchar_t* stradd(wchar_t* dst, cchw* src) {
 	wchar_t ch; while(lodsw(src, ch), ch) stosw(dst, ch);
 	*dst = ch; return dst; }
 	
@@ -124,20 +124,21 @@ template<typename T, int size> void xfread(T(& ptr)[size], FILE* fp) {	xfread(pt
 template<typename T, int size> void xfwrite(T(& ptr)[size], FILE* fp) {	xfwrite(ptr, size, fp); }
 
 // String overloads
-inline FILE* fopen(const wchar_t* fName, const wchar_t* mode)
+inline FILE* fopen(cchw* fName, cchw* mode)
 	{ return _wfopen(fName, mode); }
 inline wchar_t* fgets (wchar_t* str, int num, FILE* fp)
 	{ return fgetws(str, num, fp); }
-inline size_t strlen (const wchar_t * str)	{ return wcslen(str); }
-inline size_t strnlen(const wchar_t *s, size_t l) { return wcsnlen(s, l); }
-inline wchar_t* strcpy(wchar_t* d, const wchar_t* s) { return wcscpy(d, s); }
-inline int strcmp (const wchar_t* str1, const wchar_t* str2) { return wcscmp(str1, str2); }
-inline int stricmp (const wchar_t* str1, const wchar_t* str2) { return wcsicmp(str1, str2); }
-inline int strncmp (const wchar_t* str1, const wchar_t* str2, size_t num) { return wcsncmp(str1, str2, num); }
-inline int strnicmp (const wchar_t* str1, const wchar_t* str2, size_t num) { return wcsnicmp(str1, str2, num); }
-inline wchar_t* strdup(const wchar_t* str) { return wcsdup(str); }
-inline int vsprintf (wchar_t * s, const wchar_t * format, va_list arg ) {
+inline size_t strlen (cchw * str)	{ return wcslen(str); }
+inline size_t strnlen(cchw *s, size_t l) { return wcsnlen(s, l); }
+inline wchar_t* strcpy(wchar_t* d, cchw* s) { return wcscpy(d, s); }
+inline int strcmp (cchw* str1, cchw* str2) { return wcscmp(str1, str2); }
+inline int stricmp (cchw* str1, cchw* str2) { return wcsicmp(str1, str2); }
+inline int strncmp (cchw* str1, cchw* str2, size_t num) { return wcsncmp(str1, str2, num); }
+inline int strnicmp (cchw* str1, cchw* str2, size_t num) { return wcsnicmp(str1, str2, num); }
+inline wchar_t* strdup(cchw* str) { return wcsdup(str); }
+inline int vsprintf (wchar_t * s, cchw * format, va_list arg ) {
 	return vswprintf(s, format, arg); }
+inline int system(cchw* s) { return _wsystem(s); }
 
 template<typename T, int size>
 int strncmp(const T* str1, const T(& str2)[size])
@@ -145,21 +146,6 @@ int strncmp(const T* str1, const T(& str2)[size])
 template<typename T, int size>
 int strnicmp(const T* str1, const T(& str2)[size])
 	{ return strnicmp(str1, str2, size-1); }
-
-#ifndef no_xstrfmt
-struct xstrfmt_fmt { enum { FLAG_ABSLEN = 1<<16,
-		SPACE_POSI = 1,		FLAG_XCLMTN = 2, 	FLAG_QUOTE = 4,		FLAG_HASH = 8,	 
-		FLAG_DOLAR = 16,	FLAG_PRCNT = 32,	FLAG_AMPRSND = 64,	FLAG_APOSTR = 128,
-		FLAG_LBRACE = 256,	FLAG_RBRACE = 512, 	UPPER_CASE = 1024, 	FORCE_SIGN = 2048,
-		FLAG_COMMA = 4096,	LEFT_JUSTIFY = 8192, FLAG_SLASH = 1<<15, PADD_ZEROS = 1<<16	};
-		
-	va_list ap; char* dstPosArg; uint flags;
-	int width; int precision; int length;
-	typedef size_t (*cbfn_t)(xstrfmt_fmt* ctx,
-		char ch); void* cbCtx; cbfn_t cbfn;
-};
-
-#endif
 
 // qsort / bsearch overloads
 TMPL2(T, F) void qsort(T* base, size_t num, F compar)
@@ -188,19 +174,6 @@ TMPL(T) T errorAlloc(T ptr)
 	{ if(!ptr) errorAlloc(); return ptr; }
 SHITCALL int fopen_ErrChk(void);
 
-// sprintf replacement
-#define Xstrfmt(...) Cstr(xstrfmt( __VA_ARGS__))
-SHITCALL cstr xstrfmt(void* cbCtx, xstrfmt_fmt::
-	cbfn_t cbfn, VaArgFwd<const char*> va);
-SHITCALL cstr xstrfmt(void* cbCtx, xstrfmt_fmt::
-	cbfn_t cbfn, const char*, ...);
-SHITCALL cstr xstrfmt(VaArgFwd<const char*> va);
-SHITCALL cstr xstrfmt(const char*, ...);
-SHITCALL int strfmt(char* buffer, const char* fmt, ...);
-SHITCALL int xstrfmt_len(VaArgFwd<const char*> va);
-SHITCALL char* xstrfmt_fill(char* buffer,
-	VaArgFwd<const char*> va);
-
 // File handling
 SHITCALL FILE* xfopen(const char*, const char*);
 SHITCALL char* xfgets(char*, int, FILE*);
@@ -208,25 +181,6 @@ SHITCALL xarray<byte> loadFile(const char* fileName, int extra = 0);
 SHITCALL xarray<char> loadText(cch* fName);
 SHITCALL char** loadText(const char* fileName, int& LineCount);
 
-// String handling
-SHITCALL cstr xstrdup(const char*, size_t);
-SHITCALL char* xstrdupr(char*&, const char*);	
-SHITCALL char* xstrdupr(char*&, const char*, size_t);
-SHITCALL char* strScmp(const char*, const char*);
-SHITCALL char* strSicmp(const char*, const char*);
-SHITCALL int strEcmp(const char*, const char*);
-SHITCALL int strEicmp(const char*, const char*);
-SHITCALL int strNcpy(char*, const char*, int);
-SHITCALL int removeCrap(char*);
-SHITCALL int strmove(char*, const char*);
-SHITCALL char* strstr(const char*, const char*, int maxLen);
-SHITCALL char* strstri(const char*, const char*, int maxLen);
-SHITCALL int strcmp2(const char* str1, const char* str2);
-SHITCALL int stricmp2(const char* str1, const char* str2);
-
-// strings: non-null terminated source 
-SHITCALL cstr strcpyn(char*, const char*, int);
-SHITCALL bool strcmpn(const char*, const char*, int);
-SHITCALL bool stricmpn(const char*, const char*, int);
+extern const char mem_zp4[];
 
 #endif

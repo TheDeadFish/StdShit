@@ -1,27 +1,31 @@
+// forward declarations
+TMPL(T) struct cstr_; typedef cstr_
+<char>cstr; typedef cstr_<WCHAR> cstrW;
+TMPL(T) struct Cstr_; typedef Cstr_
+<char> Cstr; typedef Cstr_<WCHAR> CstrW;
+TMPL(T) struct xstr_; typedef xstr_
+<char> xstr; typedef xstr_<WCHAR> wxstr;
+
 // prototype builders
-#define CSTRFN0_(nm) REGCALL(2) bool nm(cstr str); SHITCALL bool nm(cch* str); 
-#define CSTRFN1_(nm) REGCALL(2) cstr nm(cstr str); SHITCALL cstr nm(cch* str);
-#define CSTRFN2_(nm) SHITCALL cstr nm(cstr n1, cstr n2); SHITCALL  \
-	cstr nm(cstr n1, cch* n2); SHITCALL cstr nm(cch* n1, cch* n2); 
+//#define CSTRFN0_(nm) REGCALL(2) bool nm(cstr str); SHITCALL bool nm(NCCH* str); 
+#define CSTRFN1_(nm) REGCALL(2) NCSTR nm(NCSTR str); SHITCALL NCSTR nm(NCCH* str);
+#define CSTRFN2_(nm) SHITCALL NCSTR nm(NCSTR n1, NCSTR n2); SHITCALL  \
+	NCSTR nm(NCSTR n1, NCCH* n2); SHITCALL NCSTR nm(NCCH* n1, NCCH* n2); 
 	
 // ??
-#define CSTRTH1_(nm) SHITCALL cstr nm(cch* str) { return nm(cstr(str)); }
-#define CSTRTH2_(nm)  SHITCALL cstr nm(cstr n1, cch* n2) { return \
-	nm(n1, cstr(n2)); } SHITCALL cstr nm(cch* n1, cch* n2) { \
-	return nm(cstr(n1), n2); }
+#define CSTRTH1_(nm) SHITCALL NCSTR nm(NCCH* str) { return nm(NCSTR(str)); }
+#define CSTRTH2_(nm)  SHITCALL NCSTR nm(NCSTR n1, NCCH* n2) { return \
+	nm(n1, NCSTR(n2)); } SHITCALL NCSTR nm(NCCH* n1, NCCH* n2) { \
+	return nm(NCSTR(n1), n2); }
 
-	
-	
-	
-struct cstr;
-#define cstr_len(si)({ cstr so; asm("push %1;" \
-	"call _cstr_len;": "=A"(so): "g"(si)); so;})
-REGCALL(2) cstr cstr_dup(cstr str);
-SHITCALL cstr xstrdup(const char*);
+
+
 
 typedef const char cch;
+typedef const WCHAR cchw;
 static inline bool isNull(cch* str) {
 	return !str || !str[0]; }
+TMPL(T) SHITCALL cstr_<T> cstr_alc(int len);
 	
 // fast string compare helpers
 #define isAlpha8(val) ({ bool ia8R; char ia8T; asm("and $-33, %b0; sub $65"\
@@ -37,75 +41,62 @@ asm("and $-33, %h0;" : "+a"(tmp), "=@ccz"(ret)); if(ret) { \
 #define CMPL(len, cmp) int i = 0; do { cmp; } while(++i < len);
 	
 // string comparison
-#define CSTRG(n) char* MCAT(str,n), int MCAT(len,n)
-#define CSTRS(n) cstr(MCAT(str,n), MCAT(len,n))
-#define CSTRX(s) (s).data, (s).slen
-int SHITCALL cstr_cmp(CSTRG(1), CSTRG(2));
-int SHITCALL cstr_icmp(CSTRG(1), CSTRG(2));
-int SHITCALL cstr_cmp(CSTRG(1), cch* str2);
-int SHITCALL cstr_icmp(CSTRG(1), cch* str2);
-
-cstr SHITCALL cstr_str(CSTRG(1), CSTRG(2));
-cstr SHITCALL cstr_istr(CSTRG(1), CSTRG(2));
-cstr SHITCALL cstr_str(CSTRG(1), cch* str2);
-cstr SHITCALL cstr_istr(CSTRG(1), cch* str2);
-
-
-// tokenization/splitting
-SHITCALL cstr cstr_split(cstr& str, char ch);
+#define CSTRG(n) NCHR* MCAT(str,n), int MCAT(len,n)
+#define CSTRS(n) NCSTR(MCAT(str,n), MCAT(len,n))
+#define CSTRX(s) s, (s).slen
 #define CSTRFN4_(nm) cstr SHITCALL nm(CSTRG(1), char ch);
-CSTRFN4_(cstr_chr) CSTRFN4_(cstr_rchr)
-CSTRFN4_(cstr_chr2) CSTRFN4_(cstr_rchr2)
 
-struct cstr
+TMPL(T) struct cstr_
 {
-	char* data; int slen;
-	XARRAY_COMMON(cstr, char, slen);
-	ALWAYS_INLINE cstr(cch* d) : cstr(cstr_len(d)) {} 
-	template<int l> cstr(cch(& d)[l]) : cstr(d, l-1) {}
-	DEF_RETPAIR(prn_t, int, slen, char*, data);
+	T* data; int slen;
+	XARRAY_COMMON(cstr_, T, slen);
+	ALWAYS_INLINE cstr_(const T* d);
+	template<int l> cstr_(const T(& d)[l]) : cstr_(d, l-1) {}
+	DEF_RETPAIR(prn_t, int, slen, T*, data);
 	prn_t prn() { return prn_t(slen, data); }
 		
 	// various functions
-	cstr nterm(void) { if(data) 
+	cstr_ nterm(void) { if(data) 
 		*end() = '\0'; return *this; }
 	bool chk(uint idx) { return (idx < slen); }
-	char get(uint idx) { return chk(idx) ? data[idx] : 0; }
-	char getr(uint idx) { return  get(idx+slen); }
+	T get(uint idx) { return chk(idx) ? data[idx] : 0; }
+	T getr(uint idx) { return  get(idx+slen); }
 	bool sepReq() { return !isPathSep2(getr(-1), '\0'); }
 	
 	// comparison functions
-	int cmp(cstr s) { return cstr_cmp(CSTRX(*this), CSTRX(s)); }
-	int icmp(cstr s) { return cstr_icmp(CSTRX(*this), CSTRX(s)); }
-	int cmp(cch* s) { return cstr_cmp(CSTRX(*this), s); }
-	int icmp(cch* s) { return cstr_icmp(CSTRX(*this), s); }
-	cstr str(cstr s) { return cstr_str(CSTRX(*this), CSTRX(s)); }
-	cstr istr(cstr s) { return cstr_str(CSTRX(*this), CSTRX(s)); }
-	cstr str(cch* s) { return cstr_str(CSTRX(*this), s); }
-	cstr istr(cch* s) { return cstr_istr(CSTRX(*this), s); }
+	int cmp(cstr_ s) { return cstr_cmp(CSTRX(*this), CSTRX(s)); }
+	int icmp(cstr_ s) { return cstr_icmp(CSTRX(*this), CSTRX(s)); }
+	int cmp(const T* s) { return cstr_cmp(CSTRX(*this), s); }
+	int icmp(const T* s) { return cstr_icmp(CSTRX(*this), s); }
+	cstr_ str(cstr_ s) { return cstr_str(CSTRX(*this), CSTRX(s)); }
+	cstr_ istr(cstr_ s) { return cstr_str(CSTRX(*this), CSTRX(s)); }
+	cstr_ str(const T* s) { return cstr_str(CSTRX(*this), s); }
+	cstr_ istr(const T* s) { return cstr_istr(CSTRX(*this), s); }
 
 	// tokenization
-	cstr chr(char ch) { return cstr_chr(CSTRX(*this), ch); }
-	cstr rchr(char ch) { return cstr_rchr(CSTRX(*this), ch); }
-	cstr chr2(char ch) { return cstr_chr2(CSTRX(*this), ch); }
-	cstr rchr2(char ch) { return cstr_rchr2(CSTRX(*this), ch); }
+	cstr_ chr(T ch) { return cstr_chr(CSTRX(*this), ch); }
+	cstr_ rchr(T ch) { return cstr_rchr(CSTRX(*this), ch); }
+	cstr_ chr2(T ch) { return cstr_chr2(CSTRX(*this), ch); }
+	cstr_ rchr2(T ch) { return cstr_rchr2(CSTRX(*this), ch); }
 	
 	// dynamic functions
-	cstr xdup(void) const  { return cstr_dup(*this); }
-	void free(cch* p) { if(p != data) free(); }
+	cstr_ xdup(void) const  { return cstr_dup(*this); }
+	void free(const T* p) { if(p != data) free(); }
 };
+
+void test1(cch* x, int len);
 
 #define OPEQU(t,a,b) t& operator=(a){b; return *this; }
 #define CTOREQU(t,a,m,r,v) t(a):m(v){} OPEQU(t,a,r(v))
 
-struct Cstr : cstr { 
-	void reset(cstr str={}) { free(); init(str); }
-	Cstr(): cstr(0,0) {}
-	ALWAYS_INLINE ~Cstr() { free(); }
+TMPL(T) struct Cstr_ : cstr_<T> { 
+	void reset(cstr_<T> str={}) { this->free(); init(str); }
+	Cstr_(): cstr_<T>(0,0) {}
+	ALWAYS_INLINE ~Cstr_() { this->free(); }
 	
-	CTOREQU(Cstr, const cstr& t, cstr, reset, t);
-	CTOREQU(Cstr, const Cstr& t, cstr, reset, t.xdup());
-	CTOREQU(Cstr, Cstr&& t, cstr, reset, t.release());
+	CTOREQU(Cstr_, const cstr_<T>& t, cstr_<T>, reset, t);
+	CTOREQU(Cstr_, const Cstr_& t, cstr_<T>, reset, t.xdup());
+	CTOREQU(Cstr_, Cstr_&& t, cstr_<T>, reset, t.release());
 };
 
 struct bstr : cstr
@@ -157,18 +148,11 @@ struct Bstr : bstr
 	Bstr() : bstr(ZT()) {}
 	~Bstr() { ::free(this->data); }
 };
-
-// Path Handling
-CSTRFN1_(getPath) CSTRFN1_(getName) 
-CSTRFN1_(getName2) CSTRFN1_(getExt)
-CSTRFN2_(replName) CSTRFN2_(pathCat)
-static inline cstr getPath0(cstr str) {
-	return getPath(str).nterm(); }
-
-
 	
-TMPL2(T,U) struct xstr_
+TMPL(T) struct xstr_
 { 
+	typedef cstr_<T> U;
+	
 	// data access
 	T* data; operator T*() { return data; } void init(T* p) { 
 	data = p; } void reset(T* p = 0) { free(data); init(p); }
@@ -186,7 +170,43 @@ TMPL2(T,U) struct xstr_
 	xstr_(xstr_&& u) : data(u.release()) {} xstr_& operator=(
 		xstr_&& u) { reset(u.release()); return *this; } 
 	xstr_(U p) : data(p) {} xstr_& operator=(
-		U p) { reset(p); return *this; } 
+		U p) { reset(p); return *this; }
+		
+	// other helpers
+	void alloc(int len) { data = xMalloc(len+1); }
 };
 
-typedef xstr_<char, cstr> xstr;
+
+
+// nwide conditionals
+#define NWIF(x,y) MIF(NWIDE,x,y)
+#define NCCH NWIF(cchw, cch)
+#define NCHR NWIF(WCHAR, char)
+#define NCSTR NWIF(cstrW, cstr)
+#define NWTX NWIF("W", "")
+#define NWNM(x) NWIF(MCAT(x,W),x)
+
+#ifndef no_xstrfmt
+TMPL(T) 
+struct xstrfmt_fmtN { enum { FLAG_ABSLEN = 1<<16,
+		SPACE_POSI = 1,		FLAG_XCLMTN = 2, 	FLAG_QUOTE = 4,		FLAG_HASH = 8,	 
+		FLAG_DOLAR = 16,	FLAG_PRCNT = 32,	FLAG_AMPRSND = 64,	FLAG_APOSTR = 128,
+		FLAG_LBRACE = 256,	FLAG_RBRACE = 512, 	UPPER_CASE = 1024, 	FORCE_SIGN = 2048,
+		FLAG_COMMA = 4096,	LEFT_JUSTIFY = 8192, FLAG_SLASH = 1<<15, PADD_ZEROS = 1<<16	};
+		
+	va_list ap; T* dstPosArg; uint flags;
+	int width; int precision; int length;
+	typedef size_t (*cbfn_t)(xstrfmt_fmtN* ctx,
+		T ch); void* cbCtx; cbfn_t cbfn;
+};
+#define xstrfmt_fmt xstrfmt_fmtN<char>
+#define xstrfmt_fmtW xstrfmt_fmtN<wchar_t>
+#define xstrfmtX(...) xstr_(xstrfmt(__VA_ARGS__))
+#endif
+
+#define NWIDE 0
+#include "string8W.h"
+#define NWIDE 1
+#include "string8W.h"
+
+TMPL(T) cstr_<T>::cstr_(const T* d) : cstr_(cstr_len(d)) {}

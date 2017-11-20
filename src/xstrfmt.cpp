@@ -1,9 +1,13 @@
 #include "stdshit.h"
+#define NWIDE NWIDE2
+#define NFMT xstrfmt_fmtN<NCHR>
+#define XFMT MCAT(xstrfmt_fmt_,NWIDE)
+DEF_RDTEXT(str_dot, ".\0");
 
-struct xstrfmt_fmt_ : xstrfmt_fmt
+struct XFMT : NFMT
 {
-	char getFillCh() {
-		char fillCh = ' '; 
+	NCHR getFillCh() {
+		NCHR fillCh = ' '; 
 		if(flags&PADD_ZEROS)
 			movb2(fillCh, '0');
 		return fillCh; }
@@ -15,78 +19,82 @@ struct xstrfmt_fmt_ : xstrfmt_fmt
 	size_t dec_mode(bool sign);
 	size_t hex_mode(); size_t cmd_mode();
 	size_t sep_mode(); 
-	size_t flt_mode(char* fmt);
+	size_t flt_mode(NCHR* fmt);
 	
 	
 	static REGCALL(1) void slash(void);
 	
-	DEF_RETPAIR(core_t, size_t, extraLen, char*, str);
-	core_t core(char* str);
+	DEF_RETPAIR(core_t, size_t, extraLen, NCHR*, str);
+	core_t core(NCHR* str);
 	
 	
 };
 
 // tristi quod ad hunc
-#define APPEND_SLASH asm("call xstrfmt_slash" : "+D"(dstPos))
-asm(".section .text$_ZN12xstrfmt_fmt_8str_modeEv,\"x\";"
-	"xstrfmt_slash: movb -1(%edi), %al;"
-	"cmp $92, %al; jz 1f; cmp $47, %al; jz 1f;"
-	"cmp $58, %al; jz 1f; movb $92, %al; stosb; 1: ret");
+#define APPEND_SLASH asm("cmp $92, %1; jz 1f; " \
+	"cmp $47, %1; jz 1f; cmp $58, %1; jz 1f; mov $92, %1;" \
+	"stos %1,(%0); 1:" : "+D"(dstPos) : "a"(dstPos[-1]));
 
-size_t xstrfmt_fmt_::str_mode(void)
+size_t XFMT::str_mode(void)
 {
-	char* dstPos = dstPosArg;	
-	char* str = (char*)va_arg(ap, char*);
-	char* str0 = str;
-	movfx(S, str); movfx(b, flags);
-	if(!str) str = (char*)"";
+	NCHR* dstPos = dstPosArg;	
+	NCHR* str = (NCHR*)va_arg(ap, NCHR*);
+	NCHR* str0 = str; movfx(S, str);
+	if(!str) str = (NCHR*)str_dot+1;
+	uint flags = this->flags; REGFIX(b, flags);
 	
 	// calculate lenth
 	size_t strLen; 
-	if(flags & FLAG_DOLAR) {
-		strLen = va_arg(ap, size_t);
+	if(flags & FLAG_DOLAR) { strLen = va_arg(ap, size_t);
+		if(flags & UPPER_CASE) { precision = strLen;
+		L1: strLen = (utf816_size((NWIF(cch, 
+			cchw)*)str)NWIF(>>1,))-1; }
 	} else { strLen = precision;
-		if(!dstPos || width) strLen
-			= strnlen(str, strLen);
-	}
+		if(!dstPos || width) {
+		if(flags & UPPER_CASE) goto L1;
+		strLen = strnlen(str, strLen);
+	}}
+	
+	REGFIX(b, flags);
 	
 	// dir seperator / return length
 	if((flags & FLAG_XCLMTN) && !(strLen && *str))
-		{ strLen = 1; str = (char*)"."; }
-	if(!dstPos)	return max(strLen, width)
-		+ !!(flags & FLAG_SLASH)
-		+ !!(flags & FLAG_COMMA);
-	if(flags & FLAG_COMMA) APPEND_SLASH;
+		{ strLen = 1; str = (NCHR*)str_dot; }
+	if(!dstPos)	{ max_ref(strLen, width); asm("andb $0x90, %h1;"
+		"jz 1f; jnp 2f; inc %0; 2: inc %0; 1:" : "+r"(strLen) 
+		: "b"(flags)); return strLen; }
+	
+	REGFIX(b, flags);
 		
 	// output string padding
 	int len = width - strLen;
 	if(len > 0) { //ARGFIX(flags);
-		char fillCh = getFillCh();
+		NCHR fillCh = getFillCh();
 		do { stosx(dstPos, fillCh);
 		} while(--len > 0);}
 		
+	REGFIX(b, flags);
+		
 	// output string data
-	VARFIX(flags); if(flags & FLAG_DOLAR)
+	if(flags & UPPER_CASE) { dstPos = 
+		utf816_cpy(dstPos, Void(str), precision);
+	} else if(flags & FLAG_DOLAR)
 		memcpy_ref(dstPos, str, strLen);
-	else {		
-	char* endPos = str+strLen; asm goto ( 
-		"jmp %l1" :: "r"(endPos):: LOOP_START);
-	do { {char ch; lodsx(str, ch);
-		if(ch == '\0') break;
-		stosx(dstPos, ch); }
-LOOP_START:;
-	} while(str != endPos);
-	}
+	else { while(!isNeg(--strLen)) {
+		NCHR ch; lodsx(str, ch); if(!ch) 
+		break; stosx(dstPos, ch); }}
+		
+	REGFIX(b, flags);
 	
 	if(flags & FLAG_SLASH) 	APPEND_SLASH;
 	if(flags & FLAG_HASH) free(str0);
 	return (size_t)dstPos;
 }
 
-size_t xstrfmt_fmt_::flt_mode(char* fmt)
+size_t XFMT::flt_mode(NCHR* fmt)
 {
 	// determin length
-	char* dstPos = dstPosArg;
+	NCHR* dstPos = dstPosArg;
 	SCOPE_EXIT(va_arg(ap, double));
 	if(!dstPos) { 
 		int exp = (((int*)ap)[1] >> 20) & 2047;
@@ -96,21 +104,21 @@ size_t xstrfmt_fmt_::flt_mode(char* fmt)
 	}
 	
 	// forward call to vsprintf
-	va_list va = ap; char buff[32]; 
-	char* dp = buff+32; *dp = '\0';
+	va_list va = ap; NCHR buff[32]; 
+	NCHR* dp = buff+32; *dp = '\0';
 	while((*--dp = *--fmt) != '%') { if(*fmt
 		== '*') va -= sizeof(size_t); }
 	return size_t(dstPos + 
 		vsprintf(dstPos, dp, va));
 }
 
-size_t xstrfmt_fmt_::dec_mode(bool sign)
+size_t XFMT::dec_mode(bool sign)
 {
-	char* dstPos = dstPosArg;
+	NCHR* dstPos = dstPosArg;
 	size_t data = va_arg(ap, size_t);
 
 	// calculate length
-	char signCh = 0;
+	NCHR signCh = 0;
 	if(sign != 0) {	if(int(data) < 0) {
 			signCh = '-'; data = -data; }
 		ei(flags & SPACE_POSI) signCh = ' ';
@@ -122,12 +130,12 @@ size_t xstrfmt_fmt_::dec_mode(bool sign)
 	if(dstPos == NULL) return strLen;
 	
 	// output string
-	char* endPos = dstPos + strLen;
-	char* curPos = endPos;
+	NCHR* endPos = dstPos + strLen;
+	NCHR* curPos = endPos;
 	do { *(--curPos) = '0'+data%10;
 	} while(data /= 10);
 	if(curPos > dstPos) {
-		char fillCh;
+		NCHR fillCh;
 		if(flags & PADD_ZEROS) {
 			if(signCh) stosx(dstPos, signCh);
 			fillCh = '0';
@@ -139,7 +147,7 @@ size_t xstrfmt_fmt_::dec_mode(bool sign)
 	} return (size_t)endPos;
 }
 
-size_t xstrfmt_fmt_::hex_mode(void)
+size_t XFMT::hex_mode(void)
 {
 	INT64 data = (length >= 2) ?
 		va_arg(ap, INT64) : va_arg(ap, size_t);
@@ -151,22 +159,22 @@ size_t xstrfmt_fmt_::hex_mode(void)
 	if(dstPosArg == NULL) return strLen;
 
 	// output string
-	char* endPos = dstPosArg + strLen;
-	char* curPos = endPos;
+	NCHR* endPos = dstPosArg + strLen;
+	NCHR* curPos = endPos;
 	const byte* hexTab = (flags & UPPER_CASE) ?
 		tableOfHex[1] : tableOfHex[0];
 	do { *(--curPos) = hexTab[data&15];
 	} while(data >>= 4);
-	char fillCh = getFillCh();
+	NCHR fillCh = getFillCh();
 	while(curPos-- > dstPosArg)
 		*curPos = fillCh;
 	return (size_t)endPos;
 }
 
-size_t xstrfmt_fmt_::cmd_mode(void)
+size_t XFMT::cmd_mode(void)
 {
 	// map commands
-	char cmdFlag = 0;
+	NCHR cmdFlag = 0;
 	if(flags & FLAG_LBRACE) cmdFlag |= ESC_ENTQUOT;
 	if(flags & FLAG_RBRACE) cmdFlag |= ESC_LEAQUOT;
 	if(flags & FLAG_AMPRSND) cmdFlag |= ESC_CPMODE;
@@ -174,19 +182,19 @@ size_t xstrfmt_fmt_::cmd_mode(void)
 	if(flags & FLAG_APOSTR) cmdFlag |= ESC_SFEQUOT;
 	
 	// 
-	char* src = va_arg(ap, char*);
-	if(!src) src = (char*)"";
+	NCHR* src = va_arg(ap, NCHR*);
+	if(!src) src = (NCHR*)"";
 	size_t maxLen = (flags & FLAG_DOLAR) ?
 		va_arg(ap, size_t) : precision;
 	if((flags & FLAG_XCLMTN) && !(maxLen && *src))
-		{ maxLen = -1; src = (char*)"."; }
+		{ maxLen = -1; src = (NCHR*)"."; }
 		
 	if(dstPosArg == NULL) return cmd_escape_len(src, maxLen, cmdFlag);
 	else { size_t dstPos = (size_t)cmd_escape(dstPosArg, src, maxLen,
 		cmdFlag); if(flags & FLAG_HASH) free(src); return dstPos; }
 }
 
-size_t xstrfmt_fmt_::sep_mode(void)
+size_t XFMT::sep_mode(void)
 {
 	if(dstPosArg == NULL) return 1;
 	else { WRI(dstPosArg, '\\');
@@ -194,10 +202,10 @@ size_t xstrfmt_fmt_::sep_mode(void)
 	}
 }
 
-xstrfmt_fmt_::core_t xstrfmt_fmt_::core(char* str)
+XFMT::core_t XFMT::core(NCHR* str)
 {
 	// flag stage
-	flags = 0; char ch; char ch2;
+	flags = 0; NCHR ch; NCHR ch2;
 	while(lodsx(str, ch), ch2 = ch-' ', 
 	(ch2 < 17)&&(ch != '*')&&(ch != '.'))
 		flags |= 1 << ch2;
@@ -229,7 +237,7 @@ GET_INT_NEXT: { int result;
 		extraLen != -1) return core_t(extraLen, str); }
 	
 	switch(ch) {
-	if(0) { case 'j': flags |= FLAG_XCLMTN; }
+	        case 'j': flags |= FLAG_XCLMTN;
 	if(0) { case 'k': flags |= FLAG_COMMA; }
 	if(0) { case 'v': flags |= FLAG_DOLAR; }
 	case 's': extraLen = str_mode(); break;
@@ -252,16 +260,16 @@ GET_INT_NEXT: { int result;
 	return core_t(extraLen, str);
 }
 
-#define XSTRFMT_CMN(nm, n) SHITCALL MIF(n, char*, int) \
-	nm(void* cbCtx, xstrfmt_fmt::cbfn_t cbfn, MIF( \
-	n, (char* buffer,),) VaArgFwd<const char*> va) \
+#define XSTRFMT_CMN(nm, n) SHITCALL MIF(n, NCHR*, int) \
+	nm(void* cbCtx, NFMT::cbfn_t cbfn, MIF( \
+	n, (NCHR* buffer,),) VaArgFwd<NCCH*> va) \
 { \
-	xstrfmt_fmt_ ctx; ctx.cbCtx = cbCtx; \
+	XFMT ctx; ctx.cbCtx = cbCtx; \
 	ctx.cbfn = cbfn; ctx.ap = va.start(); \
-	MIF(n,DEF_EDI(char* dstPos) = buffer;, \
+	MIF(n,DEF_EDI(NCHR* dstPos) = buffer;, \
 	ctx.dstPosArg = 0; int dstPos = 0;) \
-	DEF_ESI(char* curPos) = (char*)*va.pfmt; \
-	while(1) { char ch; lodsx(curPos, ch); \
+	DEF_ESI(NCHR* curPos) = (NCHR*)*va.pfmt; \
+	while(1) { NCHR ch; lodsx(curPos, ch); \
 		if(ch != '%') { ESCAPE_PERCENT: \
 			MIF(n, stosx(dstPos, ch);, dstPos++;) \
 			if(ch == '\0') return dstPos-n; } \
@@ -270,56 +278,56 @@ GET_INT_NEXT: { int result;
 		else { MIF(n, ctx.dstPosArg = dstPos;,) \
 			auto result = ctx.core(curPos); \
 			curPos = result.str; dstPos	MIF(n, \
-			=(char*), +=) result.extraLen; \
+			=(NCHR*), +=) result.extraLen; \
 		}\
 	} \
 } \
-SHITCALL MIF(n, char*, int) nm(MIF(n, (char* buffer,),) \
-	VaArgFwd<const char*> va) { return nm(0,0, MIF(n,(buffer,),) va); }
+SHITCALL MIF(n, NCHR*, int) nm(MIF(n, (NCHR* buffer,),) \
+	VaArgFwd<NCCH*> va) { return nm(0,0, MIF(n,(buffer,),) va); }
 
 XSTRFMT_CMN(xstrfmt_len, 0)
 XSTRFMT_CMN(xstrfmt_fill, 1)
 
 SHITCALL
-cstr xstrfmt(void* cbCtx, xstrfmt_fmt::
-	cbfn_t cbfn, VaArgFwd<const char*> va)
+NCSTR xstrfmt(void* cbCtx, NFMT::
+	cbfn_t cbfn, VaArgFwd<NCCH*> va)
 {
-	char* buffer = xMalloc(xstrfmt_len(cbCtx, cbfn, va));
-	char* endPos = xstrfmt_fill(cbCtx, cbfn, buffer, va);
+	NCHR* buffer = xMalloc(xstrfmt_len(cbCtx, cbfn, va));
+	NCHR* endPos = xstrfmt_fill(cbCtx, cbfn, buffer, va);
 	return {buffer, endPos};
 }
 
 SHITCALL
-cstr xstrfmt(VaArgFwd<const char*> va) {
-	return xstrfmt(0, (xstrfmt_fmt::cbfn_t)0, va); }
+NCSTR xstrfmt(VaArgFwd<NCCH*> va) {
+	return xstrfmt(0, (NFMT::cbfn_t)0, va); }
 
 SHITCALL NEVER_INLINE
-cstr xstrfmt(const char* fmt, ...)
+NCSTR xstrfmt(NCCH* fmt, ...)
 {
 	VA_ARG_FWD(fmt); return xstrfmt(
-		0, (xstrfmt_fmt::cbfn_t)0, va);
+		0, (NFMT::cbfn_t)0, va);
 }
 
 SHITCALL NEVER_INLINE
-cstr xstrfmt(void* cbCtx, xstrfmt_fmt::
-	cbfn_t cbfn, const char* fmt, ...)
+NCSTR xstrfmt(void* cbCtx, NFMT::
+	cbfn_t cbfn, NCCH* fmt, ...)
 {
 	VA_ARG_FWD(fmt); return xstrfmt(cbCtx, cbfn, va);
 }
 
 SHITCALL NEVER_INLINE int strfmt(
-	char* buffer, const char* fmt, ...)
+	NCHR* buffer, NCCH* fmt, ...)
 {
 	VA_ARG_FWD(fmt);
-	char* endPos = xstrfmt_fill(buffer, va);
+	NCHR* endPos = xstrfmt_fill(buffer, va);
 	return endPos-buffer;
 }
 
-void xvector_::fmtcat(const char* fmt, ...)
+void xvector_::fmtcat(NCCH* fmt, ...)
 {
 	VA_ARG_FWD(fmt);
-	int strLen = xstrfmt_len(va)*sizeof(char);
-	char* buffer = xnxalloc_(strLen); 
-	dataSize -= sizeof(char);
+	int strLen = xstrfmt_len(va)*sizeof(NCHR);
+	NCHR* buffer = xnxalloc_(strLen); 
+	dataSize -= sizeof(NCHR);
 	xstrfmt_fill(buffer, va); 
 }

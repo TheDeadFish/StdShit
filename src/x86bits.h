@@ -80,7 +80,8 @@
 #define clobber(reg) asm("" ::: "%"#reg); 
 
 
-
+#define cmp8H(v,c) ({ bool c8hR; asm("cmpb %b2, %h1;" : \
+	"=@ccz"(c8hR) : "Q"(v), "Kq"(c)); c8hR; })
 
 
 	

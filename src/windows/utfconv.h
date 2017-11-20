@@ -1,9 +1,4 @@
 
-// wide string struct
-struct cstrW { WCHAR* data; int slen; operator WCHAR*(){return data;}};
-typedef xstr_<WCHAR, cstrW> wxstr;
-SHITCALL cstrW xstrdup(const WCHAR*);
-
 //#define AUTFDRVCLS_(nm,bs,fr)  struct nm : bs { nm(const bs& t) : bs(t){} \
 //	nm(nm&& t) = default; nm(const nm& t) = delete; ~nm() { fr; } };
 //AUTFDRVCLS_(CstrW, cstrW, free(this->data));	
@@ -40,6 +35,12 @@ cstrW __stdcall utf816_strLst_dup(cch* str);
 	UTF8_GET2(ch,s,e); if(ch>>16) ADDP(l,1); }
 #define UTF816_CPY8B(ch,d,s,e) ({ void* t; asm("call _UTF8_GET2; "\
 	"call _UTF16_PUT1" : "+a"(ch), "+S"(s), "+D"(d), "=d"(t) : "d"(e)); })
+	
+// utf16 inline assembly macros
+#define UTF16_GET1(ch,s) ({ asm("call _UTF8_GET1" \
+	: "+a"(ch), "+S"(s) :: "edx"); });
+#define UTF8_GET2(ch,s,e) ({ void* t; asm("call _UTF8_GET2" \
+	: "+a"(ch), "+S"(s), "=d"(t) : "d"(e)); });
 
 /*
 static inline int utf8_len1(int ch) { asm(
@@ -51,3 +52,6 @@ static inline char* utf8_put1(char* dst, int ch) { asm(
 static inline char* utf8_put2(char* dst, int ch) { asm(
 	"call _UTF8_PUT2;" : "+a"(ch), "+D"(dst) :: "edx"); return dst; }
 */
+
+int __stdcall utf8_cmpi(cch* s1, cch* s2);
+int __stdcall utf8_cmpi(cch* s1, int l1, WCHAR* s2);

@@ -3,7 +3,10 @@ call Lean_3.bat
 call egcc.bat
 gcc -x c++-header bin\stdshit.h %CCFLAGS2% -o bin\stdshit.h.gch
 pushd obj
-gcc %CCFLAGS2% -g -I..\bin ..\src\*.cc ..\src\*.cpp ..\src\windows\*.cpp ..\src\windows\utf8-api\*.cpp -c
+gcc %CCFLAGS2% -c -g -I..\bin ..\src\*.cc memalloc.cpp ..\src\windows\*.cpp ..\src\windows\utf8-api\*.cpp
+gcc %CCFLAGS2% -c -g -I..\bin -DNWIDE2=0 ..\src\xstrfmt.cpp -o xstrfmtA.o
+gcc %CCFLAGS2% -c -g -I..\bin -DNWIDE2=1 ..\src\xstrfmt.cpp -o xstrfmtW.o
+
 popd
 
 rem install stdshit

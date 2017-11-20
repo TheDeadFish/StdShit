@@ -12,6 +12,7 @@ DEF_RDTEXT(str_bad_file, "invalid file format");
 DEF_RDTEXT(str_open_fileA, "Cannot open file: \"%s\"");
 DEF_RDTEXT(str_open_fileW, "Cannot open file: \"%S\"");
 DEF_RDTEXT(str_rbA, "rb"); DEF_RDTEXT(str_rA, "r");
+DEF_SECTDAT(mem_zp4) const char mem_zp4[16] = {};
 
 // libstdc++ bullshit
 namespace std { 
@@ -208,7 +209,7 @@ int xvector_::strcat(const char* str)
 	return strLen;
 }
 
-// old strstr replacements
+/* old strstr replacements
 SHITCALL char* strstr(const char* str1,
 	const char* str2, int maxLen) {
 	return cstr_str((char*)str1, strnlen(str1,
@@ -217,22 +218,13 @@ SHITCALL char* strstri(const char* str1,
 	const char* str2, int maxLen) {
 	return cstr_istr((char*)str1, strnlen(str1,
 		maxLen), (char*)str2, strlen(str2)); }
+*/
 
-SHITCALL cstr xstrdup(const char* str)
-{
-	if(str == NULL) return {0,0};
-	int len = strlen(str);
-	char* ret = xMalloc(len+1);
-	return {strcpy(ret, str), len};
-}
 
-SHITCALL cstr xstrdup(const char* str, size_t maxLen)
-{
-	if(str == NULL) return NULL;
-	int strLen = strnlen(str, maxLen);
-	char* buffer = xMalloc(strLen+1);
-	return strcpyn(buffer, str, strLen);
-}
+
+cstr cstr_len(cch*si);
+
+
 
 // File handling
 SHITCALL
@@ -281,12 +273,6 @@ char** loadText(const char* fileName, int& LineCount){
 	return loadText(xfopen(fileName, str_rbA), LineCount); }
 
 // String Handling
-SHITCALL
-char* xstrdupr(char*& str1, const char* str2) {
-	return free_repl(str1, xstrdup(str2)); }
-SHITCALL
-char* xstrdupr(char*& str1, const char* str2, size_t sz) {
-	return free_repl(str1, xstrdup(str2, sz)); }
 	
 #define STRCMP2(nm, cmp) SHITCALL int nm(cch* str1, cch* str2) {\
 	for(const char* curPos = str2;; curPos++) { char ch1; lodsx(str1, ch1);\
@@ -298,101 +284,7 @@ STRCMP2(strcmp2, ch1 != ch2); STRCMP2(stricmp2, !cmpi8(ch1, ch2));
 	return (char*)str1; cmp(ch2, *str1++, NS); } NS: return NULL; }
 STRSCMP(strScmp, CMPS); STRSCMP(strSicmp, CMPI);
 
-
-SHITCALL
-int strEcmp(const char* str1, const char* str2)
-{
-	int diff = strlen(str1)-strlen(str2);
-	if(diff < 0)
-		return 1;
-	return strcmp(str1+diff, str2);
-}
-
-SHITCALL
-int strEicmp(const char* str1, const char* str2)
-{
-	int diff = strlen(str1)-strlen(str2);
-	if(diff < 0) return 1;
-	return stricmp(str1+diff, str2);
-}
-
-SHITCALL
-int strNcpy(char* dst, const char* src, int num)
-{
-	for(int i = 0; i < num; i++)
-	  if(!(dst[i] = src[i]))
-		return i;
-	if(num >= 0)
-		dst[num] = '\0';
-	return num;
-}
-
-SHITCALL cstr strcpyn(
-	char* dst, const char* src, int len)
-{
-	memcpyX(dst, src, len);
-	dst[len] = '\0'; return {dst, len};
-}
-
-SHITCALL
-bool strcmpn(const char* str1, const char* str2, int len)
-{
-	if(strlen(str1) != len)
-		return false;
-	return !strncmp(str1, str2, len);
-}
-
-SHITCALL
-bool stricmpn(const char* str1, const char* str2, int len)
-{
-	if(strlen(str1) != len)
-		return false;
-	return !strnicmp(str1, str2, len);
-}
-
-SHITCALL
-int removeCrap(char* str)
-{
-	int len = strlen(str);
-	while(len--)
-		if(unsigned(str[len]) > ' ')
-			break;
-	str[len+1] = '\0';
-	return len+1;
-}
-
-SHITCALL 
-int strmove(char* dst, const char* src)
-{
-	int len = strlen(src)+1;
-	memmove(dst, src, len*sizeof(char));
-	return len;
-}
-
-// Path Handling
-SHITCALL cstr pathCat(cstr name1, cstr name2) { 
-	if(!isRelPath(name2)) return name2.xdup();
-	return xstrfmt("%$j%$k", name1, name2); }
-SHITCALL cstr replName(cstr name1, cstr name2) { 
-	return pathCat(getPath(name1), name2); }
-SHITCALL cstr fullNameRepl(cstr base, cstr name) {
-	return getFullPath(replName(base, name), true); }
-SHITCALL cstr fullNameCat(cstr base, cstr name) {
-	return getFullPath(pathCat(base, name), true); }
-cstr getName2(cstr str) { 
-	auto p = (str = getName(str)).ptr();
-	while(p.chk() && p.f() == '.') p.fi();
-	while(p.chk()) { if(p.ld() == '.') {
-	str.sete(p); break; }} return str; }
-cstr getExt(cstr str) { cstr tmp = getName2(str);
-	return {tmp.end(), str.slen-tmp.slen}; }
-	
-CSTRTH1_(getPath) CSTRTH1_(getName) 
-CSTRTH1_(getName2) CSTRTH1_(getExt)
-CSTRTH2_(pathCat) CSTRTH2_(replName)
-CSTRTH2_(fullNameRepl)
-CSTRTH2_(fullNameCat)
-
+/*
 SHITCALL
 bool isFullPath(const char* path)
 {
@@ -401,7 +293,7 @@ bool isFullPath(const char* path)
 	||(path[1] == ':')))
 		return true;
 	return false;
-}
+} */
 
 REGCALL(2) void* memswap(
 	void* p1, void* p2, size_t sz)

@@ -147,6 +147,8 @@ struct xvector_ {
 	void fmtcat(const WCHAR* fmt, ...);
 	
 	Void xcopy_(Void di, size_t sz);
+	void remove_(Void di, size_t sz);
+	
 };
 
 TMPL(T)
@@ -205,6 +207,9 @@ struct xvector : xvector_ {
 	T* xcopy(const T* di, size_t ci) { return xcopy_(di, ci*sizeof(T)); }
 	T* xcopy(const xarray<T>& That) { return xcopy(That.dataPtr, That.count); }
 	T* xcopy(const xvector<T>& That) { return xcopy_(That.dataPtr, That.dataSize); }
+	
+	// insertion/deletion
+	void remove(T* elem) { remove_(elem, sizeof(T)); }
 	
 private:
 	__attribute__ ((noinline)) T* ctor(T* di, size_t sz) {

@@ -91,8 +91,8 @@ ASM_FUNC("__Z10utf816_cpyPcPKw@8", "pushl %esi; pushl %edi; movl 16(%esp), %esi;
 ASM_FUNC("__Z10utf816_cpyPcPKwi@12", "pushl %edi; pushl %ebp; pushl %esi; movl 24(%esp), %ebp;"
 	"movl 20(%esp), %esi; movl 16(%esp), %edi; lea (%esi,%ebp,2), %ebp; jmp 1f;"
 	"0: stosb; 1: cmpl %ebp, %esi; jae 3f; lodsw; cmpw $128, %ax; jb 0b;"
-	"movl %ebp, %edx; call _UTF16_GET2; call _UTF8_PUT2; jmp 1b;"
-	"3: popl %esi; popl %ebp; movb $0, (%edi); popl %edi; ret $12;" );
+	"movl %ebp, %edx; call _UTF16_GET2; call _UTF8_PUT2; jmp 1b; 3: popl %esi;"
+	"popl %ebp; movb $0, (%edi); movl %edi, %eax;popl %edi; ret $12;" );
 
 #define UTF816_DUP(t1, t2, t3) \
 t1 __stdcall utf816_dup(const t3* src) { if(!src) return {0,0};	\
@@ -119,11 +119,3 @@ cstrW __stdcall utf816_dup2(cch* s, int l) { if(!l) return {0,0};
 cstrW __stdcall utf816_strLst_dup(cch* str) { if(!str) 
 	return {0,0}; cch* tmp = str; while(RW(tmp)) tmp++; 
 	return utf816_dup2(str, tmp-str+2); }
- 
-SHITCALL cstrW xstrdup(const WCHAR* str) 
-{
-	if(str == NULL) return {0,0};
-	int len = wcslen(str);
-	WCHAR* ret = xMalloc(len+1);
-	return {wcscpy(ret, str), len};
-}

@@ -67,62 +67,47 @@ size_t REGCALL(2) cmd_escape(size_t dstLen, void* vtable,
 		"ebx", "esi", "ebp", "memory"); return dstLen;
 }
 
-int sysfmt(const char* fmt, ...) {
-	VA_ARG_FWD(fmt); char* str = xstrfmt(va);
-	SCOPE_EXIT(free(str)); return system(str);  }
-	
 extern "C" {
 // utf8 api, c/posix functions
 FILE *freopen(cch* name, cch* mode, FILE *fp) {
 	WCHAR wmode[32]; utf816_cpy(wmode, mode);
-	FNWIDEN(1,name); return _wfreopen(cs1, wmode, fp); }
+	return _wfreopen(getNtPathNameX(name), wmode, fp); }
 FILE* fopen(cch* name, cch* mode) {
 	WCHAR wmode[32]; utf816_cpy(wmode, mode);
-	FNWIDEN(1,name); return _wfopen(cs1, wmode); }
-int rename(cch *old_name,cch *new_name) { FNWIDEN(1,old_name);
-	FNWIDEN(2,new_name); return _wrename(cs1, cs2); }
-#define _FWNDFN1(n,wn) int n(cch *s) { FNWIDEN(1,s); return wn(cs1); }
+	return _wfopen(getNtPathNameX(name), wmode); }
+int rename(cch *old_name,cch *new_name) {return _wrename(
+	getNtPathNameX(old_name), getNtPathNameX(new_name)); }
+#define _FWNDFN1(n,wn) int n(cch *s) { return wn(getNtPathNameX(s)); }
 _FWNDFN1(remove, _wremove);
 _FWNDFN1(_mkdir, _wmkdir); _FWNDFN1(_rmdir, _wrmdir);
 int system(cch* s) { return _wsystem(widen(s)); }
 }
 
 
-// utf8 api, WIN32 file functions
-HANDLE WINAPI createFile(LPCSTR a,DWORD b,DWORD c,
-	LPSECURITY_ATTRIBUTES d,DWORD e,DWORD f,HANDLE g) 
-{ 	FNWIDEN(1,a); return CreateFileW(cs1, b, c, d, e, f, g); }
-DWORD WINAPI getFileAttributes(cch* name) {
-	FNWIDEN(1,name); return GetFileAttributesW(cs1); }
-BOOL WINAPI createDirectory(cch* a, LPSECURITY_ATTRIBUTES b) {
-	FNWIDEN(1,a); return CreateDirectoryW(cs1, b); }
-BOOL WINAPI copyFile(cch* a, cch* b, BOOL c) {
-	FNWIDEN(1,a); FNWIDEN(2,b); return CopyFileW(cs1, cs2, c); }
-BOOL WINAPI moveFile(cch* a, cch* b) {
-	FNWIDEN(1,a); FNWIDEN(2,b); return MoveFileW(cs1, cs2); }
-BOOL WINAPI moveFileEx(cch* a, cch* b, DWORD c) {
-	FNWIDEN(1,a); FNWIDEN(2,b); return MoveFileExW(cs1, cs2, c); }
-BOOL WINAPI deleteFile(cch* a) { FNWIDEN(1,a); return DeleteFileW(cs1); }
-BOOL WINAPI setFileAttributes(cch* a, DWORD b) { FNWIDEN(1,a);
-	return SetFileAttributesW(cs1, b); }
 	
 // utf8 api, WIN32 gui functions
 int WINAPI messageBox(HWND a, cch* b, cch* c, UINT d) {
 	return MessageBoxW(a, widen(b), widen(c), d); }
 
-// utf8 api, simple WIN32 functions
-BOOL WINAPI setWindowText(HWND h,cch* s) {
+// setWindowText
+BOOL WINAPI setWindowText(HWND h,cch* s) { 
 	return SetWindowTextW(h, widen(s)); }
-BOOL WINAPI setDlgItemText(HWND h,int i,cch* s) {
+BOOL WINAPI setDlgItemText(HWND h,int i,cch* s) { 
 	return SetDlgItemTextW(h,i,widen(s)); }
-cstr WINAPI getWindowText(HWND h) { W32SARD_(
-	GetWindowTextLengthW(h), GetWindowTextW(h, ws, sz)) }	
-cstr WINAPI getWindowText2(HWND h) { W32SARD2_(
-	GetWindowTextLengthW(h), GetWindowTextW(h, ws, sz)) }
-cstr WINAPI getDlgItemText(HWND h, int i) {
-	return getWindowText(GetDlgItem(h, i)); }
-cstr WINAPI getDlgItemText2(HWND h, int i) {
-	return getWindowText2(GetDlgItem(h, i)); }
+	
+// getWindowText
+cstrW WINAPI getWindowTextW(HWND h) { W32SARD_(
+	GetWindowTextLengthW(h), GetWindowTextW(h, ws, sz)); }
+cstrW WINAPI getWindowText2W(HWND h) { W32SARD2_(
+	GetWindowTextLengthW(h), GetWindowTextW(h, ws, sz)); }
+cstr WINAPI getWindowText(HWND h) { return narrowFree(getWindowTextW(h)); }
+cstr WINAPI getWindowText2(HWND h) { return narrowFree(getWindowText2W(h)); }
+
+
+
+
+
+
 
 HMODULE getModuleBase(void* ptr)
 {
@@ -148,71 +133,38 @@ extern "C" void __getmainargs(int * argc,
 		utf816_cpy(curPos, *wargv_)+1; } *argv = 0;		
 }
 
-// the final abomination, getFullPath utf8
-ASM_FUNC("getFullPath_", "push %ebx; movl 12(%esp), %ebx; pushl 16(%esp);"
-	"push %ebx; call __Z10utf816_dupPKci@8; shrb 20(%esp); movl %eax, %ecx;"
-	"jnc 1f; push %ebx; call _sfree; 1: cmpl $0x5C005C, (%eax); jnz 1f; cmpl "
-	"$0x2F003F, 4(%eax); jz 0f; 1: push %eax; add $260, %edx; pushl $0;"
-	"lea 12(%edx,%edx), %eax; push %eax; call _xmalloc; lea 12(%eax), %ebx;"
-	"push %ebx; push %edx; push %ecx; call _GetFullPathNameW@16; call _sfree;"
-	"movl %eax, %edx; movl %ebx, %eax; lea -12(%ebx), %ecx; 0: pop %ebx; ret;");
-ASM_FUNC("__Z11getFullPathPKcii@12", "call getFullPath_; push %ecx;"
-	"push %eax; call __Z10utf816_dupPKw@4; call _sfree; ret $12");
-ASM_FUNC("__Z14getNtPathName_PKcii@12", "call getFullPath_; cmp %eax, %ecx; jz 1f;"
-	"cmpl $0x005C005C, (%eax); jnz 2f; cmpl $0x005C002E, 4(%eax); jz 3f;"
-	"sub $4, %eax; movl $0x004E0055, (%eax); movb $0x43, 4(%eax);"
-	"2: sub $8, %eax; movl $0x005C005C, (%eax); 3: movl $0x005C003F,"
-	"4(%eax); 1: shrb 12(%esp); jnc 1f; movb $63, 2(%eax); 1: ret $12;");
-ASM_FUNC("__Z14getNtPathName_PKc@4", "push $0; push $-1; push 12(%esp);"
-	"call __Z14getNtPathName_PKcii@12; ret $4;");
+
+
+cstrW getEnvironmentVariable(cchw* ws) { 
+	WCHAR* buff = 0; int bsz = 0; int len;
+	for(;;) { len = GetEnvironmentVariableW(ws, buff, bsz);
+	if(!len) { free_ref(buff); break; } if(len<bsz) break;
+	bsz=len; xRealloc(buff, bsz); } return {buff, len}; }
+cstr getEnvironmentVariable(cch* s) { cstrW t = 
+	getEnvironmentVariable(widen(s)); return narrowFree(t); }
 	
-// simple path handling helpers
-ASM_FUNC("_isRelPath0", "test %eax, %eax; jz 1f;"
-	"cmpb $0, (%eax); jz 1f; jmp 4f;"
-GLOB_LAB("_isRelPath") "cmp $1, %edx; jbe 2f; 4:cmpb $58, 1(%eax); jnz 3f;"
-	"0: movb $0, %cl; ret; 2: test %edx, %edx; jz 1f; 3: cmpb $92, (%eax);"
-	"jz 0b; cmpb $47, (%eax); jz 0b; 1: movb $1, %cl; ret;");
-ASM_FUNC("__Z7getPath4cstr@8", "mov %edx, %ecx; 0: test %edx, %edx; "
-	"jz 1f; cmpb $92, -1(%eax,%edx); jz 1f; cmpb $47, -1(%eax,%edx);"
-	"jz 1f; dec %edx; jmp 0b; 1: test %edx, %edx; jz 1f; 0: ret; 1:"
-	"cmp $2, %ecx; jb 0b; cmpb $58, 1(%eax); jnz 0b; add $2, %edx; ret;" 
-GLOB_LAB("__Z7getName4cstr@8") "call __Z7getPath4cstr@8;"
-	"subl %edx, %ecx; add %edx, %eax; mov %ecx, %edx; ret;");
+// findfirst/findnext file UTF16
+int REGCALL(1) findFirstFile(HANDLE& hFind, cchw* fName,
+	WIN32_FIND_DATAW* pfd) { pfd->cFileName[0] = 0; hFind = 
+	FindFirstFileW(getNtPathNameX(fName), pfd); if(isIHV(hFind)) { 
+	int e = GetLastError(); return is_one_of(e,2,3) ? 1:((e==5) ? 2:3); }
+	return (RI(pfd->cFileName) == '.') ? findNextFile(hFind, pfd) : -1; }
+int WINAPI findNextFile(HANDLE hFind, WIN32_FIND_DATAW* pfd) {
+	pfd->cFileName[0] = 0; AGAIN: if(FindNextFileW(hFind, pfd)) { 
+	if((RI(pfd->cFileName) == 0x2E002E)&&(!pfd->cFileName[2]))
+	goto AGAIN; return -1; } return (GetLastError() == 18) ? 0 : 3; }
 	
-cstr getModuleFileName(HMODULE hModule) {
-	WCHAR buff[MAX_PATH];
-	if(!GetModuleFileNameW(hModule, buff, MAX_PATH))
-		return {0,0}; return utf816_dup(buff); }
-cstr getProgramDir(void) {
-	return getPath0(getModuleFileName(NULL)); }
-	
-cstr getEnvironmentVariable(cch* s) {
-	wxstr ws = widen(s); WCHAR* buff = 0; int bsz = 0;
-	for(;;) { int len = GetEnvironmentVariableW(ws, buff, bsz);
-	if((len<bsz)||!len) break; bsz=len; xRealloc(buff, bsz); }
-	return narrowFree(buff); }
-	
-// findfirst/findnext file
+// findfirst/findnext file UTF8
 void WIN32_FIND_DATAU::init(WIN32_FIND_DATAW* src) { memcpy(this,
 	src, offsetof(WIN32_FIND_DATAW, dwReserved1)); PI(&nFileSize)
 	[0] = src->nFileSizeLow; PI(&nFileSize)[1] = src->nFileSizeHigh; 
-	RI(cFileName) &= 0; fnLength = utf816_cpy(
-		cFileName, src->cFileName)-cFileName; }
-int REGCALL(1) findFirstFile(HANDLE& hFind, 
-	cch* fileName, WIN32_FIND_DATAU* pfd){ WIN32_FIND_DATAW fd; 
-	{ FNWIDEN(1,fileName); hFind = FindFirstFileW(cs1, &fd); }
-	if(isIHV(hFind)) { int e = GetLastError(); 
-	return is_one_of(e,2,3) ? 1:((e==5) ? 2:3); }
-	pfd->init(&fd); if(RW(pfd->cFileName) == '.') 
-	return findNextFile(hFind, pfd); return -1; }
+	fnLength = utf816_cpy(cFileName, src->cFileName)-cFileName; }
+int REGCALL(1) findFirstFile(HANDLE& hFind, cch* fName, 
+	WIN32_FIND_DATAU* pfd) { WIN32_FIND_DATAW fd; SCOPE_EXIT(
+	pfd->init(&fd)); return findFirstFile(hFind,widen(fName),&fd); }
 int WINAPI findNextFile(HANDLE hFind, WIN32_FIND_DATAU* pfd) {
-	WIN32_FIND_DATAW fd; AGAIN: if(FindNextFileW(hFind, &fd)) { 
-	pfd->init(&fd); if(RI(pfd->cFileName) == '..') goto AGAIN; 
-	return -1; } return (GetLastError() == 18) ? 0 : 3; }
-	
-cstr WINAPI shGetFolderPath(int nFolder) { WCHAR buff[MAX_PATH]; 
-	if(SHGetFolderPathW(0, nFolder, NULL, 0, buff)) 
-		return {0,0}; return utf816_dup(buff);  }
+	WIN32_FIND_DATAW fd; SCOPE_EXIT(pfd->init(&fd)); 
+	return findNextFile(hFind, &fd); }
 	
 cstr narrowFree(LPWSTR s) { SCOPE_EXIT(
 	free(s)); return utf816_dup(s); }
@@ -242,3 +194,112 @@ BOOL WINAPI createProcess(LPCSTR a, LPCSTR b,
 	return CreateProcessW((WCHAR*)a, (WCHAR*)b, c, 
 		d, e, f, g, (WCHAR*)h, (LPSTARTUPINFOW)i, j);
 }
+
+
+// getFullPathName utf16
+cstrW getFullPath(cchw* str) { return getFullPath_(cstrW(str),0); }
+cstrW getFullPath(cstrW str) { return getFullPath_(str, 0); }
+cstrW getFullPathF(cchw* str) { SCOPE_EXIT(free((void*)str)); return getFullPath(str); }
+cstrW getFullPathF(cstrW str) { WCHAR* tmp = str; 
+	SCOPE_EXIT(free(tmp)); return getFullPath(str); }
+	
+// getFullPathName utf8
+cstr getFullPath(cch* str) { return getFullPath({str,-1}); }
+cstr getFullPathF(cch* str) { return getFullPathF({str,-1}); }
+cstr getFullPath(cstr str) { return narrowFree(
+	getFullPathF(utf816_dup(str))); }
+cstr getFullPathF(cstr str) { cstrW tmp = utf816_dup(str);
+	free(str.data); return narrowFree(getFullPathF(tmp)); }
+	
+// getNtPathName, (support > 260 filenames)
+cstrW getNtPathName(cch* s) { return getNtPathName({s,-1}); }
+cstrW getNtPathName(cchw* s) { return getNtPathName(cstrW(s)); }
+cstrW getNtPathName(cstrW s) { return getFullPath_(s, 2); }
+cstrW getNtPathName(cstr s) { cstrW tmp = utf816_dup(s);
+	WCHAR* tmp2 = tmp; SCOPE_EXIT(free(tmp2)); return getNtPathName(tmp); }
+
+REGCALL(3)
+cstrW getFullPath_(cstrW str_, int mode)
+{
+	// check for full path
+	cstrW ret;
+	if((str_.slen >= 4)&&(RI(str_.data) == 0x5C005C)
+	&&(RI(str_.data+2) == 0x2F003F)) { ret = str_.xdup();
+		RET: if(mode & 1) RB(ret+1) = '?'; return ret; }
+
+	WCHAR* str = str_, *strEnd = str_.end();
+	WCHAR* str2 = 0, *str2End, *backupPos;
+	WCHAR buff[MAX_PATH]; WCHAR tmp[5];
+	DWORD tmpLen;
+	
+	// 
+PREFIX_REDO:
+	int val1 = 0; for(WCHAR *e = str+4, *i = str; i < e; i++) { 
+	val1 <<= 8; if(i < strEnd) { movb2(val1, RB(i));
+	if(u8(val1) == '/') { movb2(val1, '\\'); } if(*i>>8) { 
+	movb2(val1, 0xFF); } }}
+	
+	int val = bswap32(val1);
+	if ( u8(val) == '\\' ) { 
+	if ( !cmp8H(val,'\\') ) { tmpLen = 1; goto L1; }
+	if ( cmp8H(val1, '.') ) {
+		if( u8(val1) == 0 ) { tmpLen = 2; goto L1; }
+		ei ( u8(val1) =='\\' ) {
+	
+			// Local device name "\\.\"
+			backupPos = str+4;
+			if(mode & 1) str += 4;
+			goto DO_ALLOC;
+		}}
+		
+		// Unc name. prefix = \\server\share
+		backupPos = str+2;
+		for(int sepCount = -1; backupPos < strEnd; backupPos++) {
+		if(isPathSep(*backupPos)&&(++sepCount > 0)) break; }
+		if(mode) { mode += 2; str += 2; }
+	}
+	else if ( cmp8H(val, ':')) {
+		if ( cmp8H(val1, '\\')) { backupPos = str+3; }
+		else { tmpLen = 2; goto L1; }
+	} else {
+		
+		// 
+		tmpLen = 0; L1: 
+		WCHAR* tmpPos = tmp; memcpy_ref(tmpPos, str, tmpLen); 
+		RI(tmpPos) = '.'; tmpPos++; if(str != strEnd) 
+		RI(tmpPos) = '\\';  str2 = str; str2End = strEnd;
+		DWORD len = GetFullPathNameW(tmp, MAX_PATH, buff, 0);
+		str = buff; strEnd = buff+len; goto PREFIX_REDO;		
+	}
+	
+DO_ALLOC:;
+
+	// allocate and write prefix
+	if(!str2) { str2End = strEnd; strEnd = str2 = backupPos; }
+	DWORD buffSz = PTRDIFF(strEnd,str)+PTRDIFF(str2End,str2);
+	DWORD extra = ALIGN(mode,1)*2;
+	WCHAR* rbuff = xmalloc(buffSz+(extra+1)*2);
+	WCHAR* dstPos = memcpyX(rbuff, L"\\\\?\\UNC\\", extra);
+	backupPos += dstPos-str;
+	while(str < strEnd) { WCHAR ch = *str; str++;
+		if(ch == '/') ch = '\\'; stosw(dstPos, ch); }
+	
+	// write the main text
+	WCHAR* src = movll(str2); WCHAR* end = movll(str2End);
+	WCHAR* dstPart = dstPos;
+	for(;;src++) { WCHAR ch; if(src < end) { ch = *src;
+		if(!isPathSep(ch)) { stosw(dstPos, ch); continue; }}
+	if(uint diff = PTRDIFF(dstPos,dstPart)) {
+	if((*dstPart == '.')&&(diff <= 4)) {
+		dstPos = dstPart; if(diff == 4) { VARFIX(dstPos);
+		if(dstPart[1] == '.') { if(dstPos > backupPos) { dstPos--;
+		while((dstPos > backupPos)&&(*--dstPos != '\\')); }}}}}
+	if(!(src < end)) break; if(dstPos[-1] != '\\') {
+		WRI(dstPos, '\\'); dstPart = dstPos; } } *dstPos = 0;
+	ret.data = movll(rbuff); ret.setend(dstPos); goto RET;
+}
+
+#define NWIDE 0
+#include "windows8W.cxx"
+#define NWIDE 1
+#include "windows8W.cxx"
