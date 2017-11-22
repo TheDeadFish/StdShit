@@ -79,14 +79,3 @@ cstr SHITCALL cstr_str(CSTRG(1), cch* str2) { cstr tmp(str2);
 	return cstr_str(str1, len1, CSTRX(tmp)); }
 cstr SHITCALL cstr_istr(CSTRG(1), cch* str2) { cstr tmp(str2); 
 	return cstr_istr(str1, len1, CSTRX(tmp)); } */
-	
-
-#define MWBW MIF(NWIDE, "w", "b")
-#define MWSZ MIF(NWIDE, "2", "1")
-#define NWRDTX(n, t) NWNM(DEF_RDTEXT)(NWNM(n),t)
-
-
-#define NWIDE 0
-#include "string8W.cxx"
-#define NWIDE 1
-#include "string8W.cxx"

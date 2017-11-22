@@ -298,8 +298,3 @@ DO_ALLOC:;
 		WRI(dstPos, '\\'); dstPart = dstPos; } } *dstPos = 0;
 	ret.data = movll(rbuff); ret.setend(dstPos); goto RET;
 }
-
-#define NWIDE 0
-#include "windows8W.cxx"
-#define NWIDE 1
-#include "windows8W.cxx"

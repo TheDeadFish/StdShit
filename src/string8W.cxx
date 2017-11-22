@@ -1,4 +1,9 @@
+#include "stdshit.h"
+#define NWIDE NWIDE2
 
+#define MWBW MIF(NWIDE, "w", "b")
+#define MWSZ MIF(NWIDE, "2", "1")
+#define NWRDTX(n, t) NWNM(DEF_RDTEXT)(NWNM(n),t)
 
 ASM_FUNC("_cstr_len" NWTX, "push %ecx; movl 8(%esp), %eax;"
 	"push %eax; test %eax, %eax; jz 1f; call _" MIF(NWIDE, "wcs", "str") 
@@ -11,7 +16,6 @@ template<> NCSTR cstr_alc<NCHR>(int len) {
 	return NCSTR(xMalloc(len+1), len); }
 
 // string comparison
-#if !NWIDE
 struct POFS { Void o; POFS() {} POFS(Void p2, Void p1) :
 	o(p2-p1) { } TMPL(T) T* operator()(T* p) { return Void(p,o); }};
 #define SYX(p1, p2, ln) auto* end = p1+ln; POFS pdx(p2,p1);
@@ -24,7 +28,6 @@ int nm(CSTRG(1), CSTRG(2)) { \
 int nm(CSTRG(1), NCCH* str2) { SYX(str1, str2, len1) \
 	for(; str1 < end; str1++) IFRET(uns(tl(*str1))\
 	-uns(tl(*pdx(str1)))); return -uns(*pdx(str1)); }
-#endif
 CSTR_CMP(cstr_cmp,) CSTR_CMP(cstr_icmp, toLower)
 
 // tokenization/splitting

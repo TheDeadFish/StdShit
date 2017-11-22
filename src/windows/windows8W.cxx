@@ -1,4 +1,5 @@
-
+#include "stdshit.h"
+#define NWIDE NWIDE2
 
 int sysfmt(NCCH* fmt, ...) {
 	VA_ARG_FWD(fmt); return system(xstrfmtX(va));  }
