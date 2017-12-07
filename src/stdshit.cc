@@ -272,18 +272,6 @@ SHITCALL
 char** loadText(const char* fileName, int& LineCount){
 	return loadText(xfopen(fileName, str_rbA), LineCount); }
 
-// String Handling
-	
-#define STRCMP2(nm, cmp) SHITCALL int nm(cch* str1, cch* str2) {\
-	for(const char* curPos = str2;; curPos++) { char ch1; lodsx(str1, ch1);\
-	char ch2 = *curPos; if(cmp) return curPos-str2; if(!ch2) return -1; }}
-STRCMP2(strcmp2, ch1 != ch2); STRCMP2(stricmp2, !cmpi8(ch1, ch2));
-
-#define STRSCMP(nm, cmp) SHITCALL char* nm(const char* str1, const \
-	char* str2) { while(1) { char ch2; lodsx(str2, ch2); if( ch2 == 0 ) \
-	return (char*)str1; cmp(ch2, *str1++, NS); } NS: return NULL; }
-STRSCMP(strScmp, CMPS); STRSCMP(strSicmp, CMPI);
-
 /*
 SHITCALL
 bool isFullPath(const char* path)

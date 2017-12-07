@@ -30,6 +30,27 @@ int nm(CSTRG(1), NCCH* str2) { SYX(str1, str2, len1) \
 	-uns(tl(*pdx(str1)))); return -uns(*pdx(str1)); }
 CSTR_CMP(cstr_cmp,) CSTR_CMP(cstr_icmp, toLower)
 
+// String Handling
+#define STRCMP2(nm, cmp) SHITCALL int nm(NCCH* str1, NCCH* str2) {\
+	for(NCCH* curPos = str2;; curPos++) { NCHR ch1; lodsx(str1, ch1);\
+	NCHR ch2 = *curPos; if(cmp) return curPos-str2; if(!ch2) return -1; }}
+STRCMP2(strcmp2, ch1 != ch2); STRCMP2(stricmp2, !cmpi(ch1, ch2));
+#define STRSCMP(nm, cmp) SHITCALL NCHR* nm(NCCH* str1, NCCH* str2) \
+	{ while(1) { NCHR ch2; lodsx(str2, ch2); if( ch2 == 0 ) \
+	return (NCHR*)str1; cmp(ch2, *str1++, NS); } NS: return NULL; }
+STRSCMP(strScmp, CMPS); STRSCMP(strSicmp, CMPI);
+
+// cstr substring search	
+#define CSTR_ISTR(nm, cmp) NCSTR nm(CSTRG(1), CSTRG(2)) { NCCH* \
+	endPos = str1 + (len1-len2); VARFIX(str2); if(len2 > 0) { while( \
+	str1 < endPos) { CMPL(len2, cmp(str1[i], str2[i], NS)); \
+	return {str1, len2}; NS: str1++; }} return {0,0}; };
+CSTR_ISTR(cstr_str, CMPS); CSTR_ISTR(cstr_istr, CMPI);	
+NCSTR SHITCALL cstr_str(CSTRG(1), NCCH* str2) { NCSTR tmp(str2); 
+	return cstr_str(str1, len1, CSTRX(tmp)); }
+NCSTR SHITCALL cstr_istr(CSTRG(1), NCCH* str2) { NCSTR tmp(str2); 
+	return cstr_istr(str1, len1, CSTRX(tmp)); }
+
 // tokenization/splitting
 SHITCALL NCSTR cstr_split(NCSTR& str, NCHR ch) {
 	NCHR* begin = str; int slen = str.slen; REGFIX(b, ch);

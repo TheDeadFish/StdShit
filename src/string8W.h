@@ -45,6 +45,7 @@ SHITCALL bool stricmpn(NCCH*, NCCH*, int);
 CSTRFN1_(getPath) CSTRFN1_(getName) 
 CSTRFN1_(getName2) CSTRFN1_(getExt)
 CSTRFN2_(replName) CSTRFN2_(pathCat)
+CSTRFN2_(fullNameRepl) CSTRFN2_(fullNameCat)
 static inline NCSTR getPath0(NCSTR str) {
 	return getPath(str).nterm(); }
 	

@@ -10,7 +10,8 @@ using conditional_t = typename std::conditional<B,T,F>::type;
 TMPL(T)
 enable_if_t<!std::is_class<T>::value, bool> isNeg(const T& value) 
 	{ return (typename std::make_signed<T>::type)(value) < 0; }
-TMPL(T) uns(T v) { return (std::make_unsigned_t<T>)v; }
+TMPL(T) T uns(T v) { return (std::make_unsigned_t<T>)v; }
+TMPL(T) T& unsR(T& v) { return *(std::make_unsigned_t<T>*)&v; }
 
 // is_explicitly_convertible is worthless
 // must be replaced, total shit

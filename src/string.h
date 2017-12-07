@@ -26,17 +26,9 @@ typedef const WCHAR cchw;
 static inline bool isNull(cch* str) {
 	return !str || !str[0]; }
 TMPL(T) SHITCALL cstr_<T> cstr_alc(int len);
-	
-// fast string compare helpers
-#define isAlpha8(val) ({ bool ia8R; char ia8T; asm("and $-33, %b0; sub $65"\
-	",%b0; cmp $25, %b0;" : "=q"(ia8T), "=@ccbe"(ia8R) : "0"(val)); ia8R; })
-#define cmpi8(val,mem) ({ bool ret; char tmp;  \
-asm("mov %2, %%ah" : "=a"(tmp) : "0"(val), "g"(mem));  \
-asm("xor %%al, %%ah;" :"+a"(tmp), "=@ccz"(ret)); if(!ret) { \
-asm("and $-33, %h0;" : "+a"(tmp), "=@ccz"(ret)); if(ret) { \
-	ret = isAlpha8(tmp); }} ret; }) 
 
-#define CMPI(m1, m2, lab) if(!cmpi8(m1,m2)) goto NS;
+#define cmpi(m1,m2) (toUpper(m1)==toUpper(m2))
+#define CMPI(m1, m2, lab) if(!cmpi(m1,m2)) goto NS;
 #define CMPS(m1, m2, lab) if(m1-m2) goto NS;
 #define CMPL(len, cmp) int i = 0; do { cmp; } while(++i < len);
 	
@@ -157,7 +149,7 @@ TMPL(T) struct xstr_
 	T* data; operator T*() { return data; } void init(T* p) { 
 	data = p; } void reset(T* p = 0) { free(data); init(p); }
 	T* release(T* p = 0) { T* t = data; data = p; return t; }
-	cstr xdup() const { return xstrdup(data); }
+	cstr xdup() const { return xstrdup(*(U*)this); }
 	bool operator==(const T* s) const { return !strcmp(data, s); }
 	
 	// ctor/dtor/assignment
@@ -201,7 +193,7 @@ struct xstrfmt_fmtN { enum { FLAG_ABSLEN = 1<<16,
 };
 #define xstrfmt_fmt xstrfmt_fmtN<char>
 #define xstrfmt_fmtW xstrfmt_fmtN<wchar_t>
-#define xstrfmtX(...) xstr_(xstrfmt(__VA_ARGS__))
+#define Xstrfmt(...) xstr_(xstrfmt(__VA_ARGS__))
 #endif
 
 #define NWIDE 0

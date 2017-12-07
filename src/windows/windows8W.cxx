@@ -2,7 +2,7 @@
 #define NWIDE NWIDE2
 
 int sysfmt(NCCH* fmt, ...) {
-	VA_ARG_FWD(fmt); return system(xstrfmtX(va));  }
+	VA_ARG_FWD(fmt); return system(Xstrfmt(va));  }
 	
 // WIN32 file functions
 HANDLE WINAPI createFile(NCCH* a,DWORD b,DWORD c,

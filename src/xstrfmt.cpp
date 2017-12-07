@@ -63,6 +63,7 @@ size_t XFMT::str_mode(void)
 	if(!dstPos)	{ max_ref(strLen, width); asm("andb $0x90, %h1;"
 		"jz 1f; jnp 2f; inc %0; 2: inc %0; 1:" : "+r"(strLen) 
 		: "b"(flags)); return strLen; }
+	if(flags & FLAG_COMMA) APPEND_SLASH;
 	
 	REGFIX(b, flags);
 		
