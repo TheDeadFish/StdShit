@@ -18,6 +18,7 @@ UTF816B(char, const wchar_t);
 #define UTF816CP_(nm,dn,sn) WCHAR* __stdcall MCAT(utf816_cpy,nm)( \
 	WCHAR* dst, MIF(dn, (int dstMax,),) cch* src MIF(sn, (,int len),))
 UTF816CP_(,0,0); UTF816CP_(,0,1); UTF816CP_(,1,0); UTF816CP_(,1,1);
+UTF816CP_(_,0,0); UTF816CP_(_,0,1); UTF816CP_(_,1,0); UTF816CP_(_,1,1);
 
 //non-null terminated
 int __stdcall utf816_size2(cch*, int);

@@ -1,4 +1,7 @@
 
+ALWAYS_INLINE bool isNull(NCCH* str) {
+	return !str || !str[0]; }
+
 
 ALWAYS_INLINE NCSTR cstr_len(NCCH* si) { NCSTR so; asm("push %1; call "
 	"_cstr_len" MIF(NWIDE, "W", "") : "=A"(so): "g"(si)); return so; }
@@ -45,6 +48,7 @@ SHITCALL bool stricmpn(NCCH*, NCCH*, int);
 CSTRFN1_(getPath) CSTRFN1_(getName) 
 CSTRFN1_(getName2) CSTRFN1_(getExt)
 CSTRFN2_(replName) CSTRFN2_(pathCat)
+CSTRFN2_(replNameF) CSTRFN2_(pathCatF)
 CSTRFN2_(fullNameRepl) CSTRFN2_(fullNameCat)
 static inline NCSTR getPath0(NCSTR str) {
 	return getPath(str).nterm(); }

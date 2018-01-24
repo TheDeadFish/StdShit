@@ -272,17 +272,6 @@ SHITCALL
 char** loadText(const char* fileName, int& LineCount){
 	return loadText(xfopen(fileName, str_rbA), LineCount); }
 
-/*
-SHITCALL
-bool isFullPath(const char* path)
-{
-	if( path
-	&&((isPathSep(path[0]))
-	||(path[1] == ':')))
-		return true;
-	return false;
-} */
-
 REGCALL(2) void* memswap(
 	void* p1, void* p2, size_t sz)
 {

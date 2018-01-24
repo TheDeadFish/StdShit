@@ -298,3 +298,6 @@ DO_ALLOC:;
 		WRI(dstPos, '\\'); dstPart = dstPos; } } *dstPos = 0;
 	ret.data = movll(rbuff); ret.setend(dstPos); goto RET;
 }
+
+BOOL WINAPI setCurrentDirectory(cch* s) {
+	return SetCurrentDirectoryW(widen(s)); }

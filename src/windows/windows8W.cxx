@@ -38,4 +38,12 @@ NCSTR WINAPI NWNM(shGetFolderPath)(int nFolder) { WCHAR buff[MAX_PATH];
 	if(SHGetFolderPathW(0, nFolder, NULL, 0, buff)) 
 	return {0,0}; return NWIF(xstrdup,utf816_dup)(buff);  }
 
+bool WINAPI isFullPath(NCCH* path)
+{
+	if(isNull(path)) return false;
+	if(path[1] == ':') return true;
+	return isPathSep(path[0])
+		&& isPathSep(path[1]);
+}
+
 #undef NWIDE

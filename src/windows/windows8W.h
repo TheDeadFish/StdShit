@@ -37,5 +37,7 @@ int REGCALL(1) findFirstFile(HANDLE&, NCCH*,
 	NWIF(WIN32_FIND_DATAW,WIN32_FIND_DATAU)*);
 int WINAPI findNextFile(HANDLE,
 	NWIF(WIN32_FIND_DATAW,WIN32_FIND_DATAU)*);
+	
+bool WINAPI isFullPath(NCCH* path);
 
 #undef NWIDE

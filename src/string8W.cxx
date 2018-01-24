@@ -95,6 +95,10 @@ SHITCALL NCSTR pathCat(NCSTR name1, NCSTR name2) {
 	return xstrfmt(NWNM(str_pathCat), name1, name2); }
 SHITCALL NCSTR replName(NCSTR name1, NCSTR name2) { 
 	return pathCat(getPath(name1), name2); }
+SHITCALL NCSTR pathCatF(NCSTR name1, NCSTR name2) { 
+	SCOPE_EXIT(free(name1)); return pathCat(name1, name2); }
+SHITCALL NCSTR replNameF(NCSTR name1, NCSTR name2) { 
+	return pathCatF(getPath(name1), name2); }
 SHITCALL NCSTR fullNameRepl(NCSTR base, NCSTR name) {
 	return getFullPathF(replName(base, name)); }
 SHITCALL NCSTR fullNameCat(NCSTR base, NCSTR name) {
