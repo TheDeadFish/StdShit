@@ -113,8 +113,8 @@ typedef unsigned short 	u16;
 typedef signed short 	s16;
 
 // 64bit types
-typedef signed long long u64_;
-typedef unsigned long long s64_;
+typedef unsigned long long u64_;
+typedef signed long long s64_;
 typedef u64_ __attribute__ ((aligned(4))) u64;
 typedef s64_ __attribute__ ((aligned(4))) s64;
 typedef u64_ __attribute__ ((aligned(4))) u64p4;
