@@ -23,8 +23,6 @@ TMPL(T) struct xstr_; typedef xstr_
 
 typedef const char cch;
 typedef const WCHAR cchw;
-static inline bool isNull(cch* str) {
-	return !str || !str[0]; }
 TMPL(T) SHITCALL cstr_<T> cstr_alc(int len);
 
 #define cmpi(m1,m2) (toUpper(m1)==toUpper(m2))
@@ -157,7 +155,7 @@ TMPL(T) struct xstr_
 	ALWAYS_INLINE ~xstr_() { free(data); } 
 	xstr_(T* p) : data(p) {} xstr_& operator=
 		(T* p) { reset(p); return *this; }
-	xstr_(const xstr_& u) : data(u.xdup()) {} xstr_& operator=
+	xstr_(const xstr_& u) = delete; xstr_& operator=
 		(const xstr_& u) { reset(u.xdup()); return *this; }
 	xstr_(xstr_&& u) : data(u.release()) {} xstr_& operator=(
 		xstr_&& u) { reset(u.release()); return *this; } 

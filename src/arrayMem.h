@@ -90,6 +90,22 @@ TMPL(T) struct xarray
 	T* xCopy(const xarray& that) { return xCopy(that.data, that.len); }
 	T* xCopy(const T* di, size_t ci) { if(!hasDtorp(di)) return xcopy(di, ci);
 	 T* ptr = xalloc(ci); for(int i = 0; i < ci; i++) pNew(ptr+i, di[i]); return ptr; }
+
+	// range checked getter
+	TMPL(U = T) bool chk(size_t idx, size_t ln = 1) {
+		static_assert(!(sizeof(U)%sizeof(T))); return 
+		(!__builtin_mul_overflow(ln,sizeof(U)/sizeof(T),
+		&ln) && (!ovfchkU(size,idx, ln))); }
+	TMPL(U = T) U* getp(size_t idx, size_t ln = 1) {
+		return chk<U>(idx, ln) ? notNull((U*)(data+idx)) : 0; }
+	TMPL(U = T) U& getr(size_t idx) { return *(U*)(data+idx); }
+	
+	TMPL2(U = T, V = U) bool chk2u(u32& t, u32 b, u32 l = 1) 
+		{ static_assert(!(sizeof(U)%sizeof(T))); return
+		!ovfAddBosU(t,b,l,sizeof(U)/sizeof(T))&&(t<=len); }
+	TMPL2(U = T, V = U) std::pair<U*,V*>getp2u(u32 b, u32 l = 1) 
+		{ u32 t; if(!chk2u<U,V>(t,b,l)) return {0,0}; return 
+		{notNull((U*)(data+b)), (V*)(data+t)}; }
 };
 
 TMPL(T) struct xArray : xarray<T>

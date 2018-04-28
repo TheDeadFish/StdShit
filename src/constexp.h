@@ -40,3 +40,26 @@ template <class T, class U, class V>
 bool ptrAddChk(T p1, U len, V*& p2) { size_t tmp;
 	bool ret = __builtin_add_overflow((size_t)p1, len, &tmp);
 	p2 = (V*)tmp; return ret; }
+	
+template <class T, class U, class V>
+ALWAYS_INLINE bool ovfchk(T a, U b, V c) { typeof(a) tmp;
+	if(__builtin_constant_p(c)&&(c==1)) return b>=a;
+	if(__builtin_add_overflow(b, c, &tmp)) return true;
+	nothing(); return (tmp > a); }
+template <class T, class U, class V>
+ALWAYS_INLINE bool ovfchkU(T a, U b, V c) {
+	return ovfchk(uns(a), uns(b), uns(c)); }
+	
+	
+// overflow checked base+offset*scale 
+template <class T, class U, class V, class W = int>
+bool ovfAddBos(T& out, U b, V o, W s = 1) { typeof(out) S;
+	return (__builtin_mul_overflow(o, s, &S))
+	|| __builtin_add_overflow(b, S, &out); }
+template <class T, class U, class V, class W = int>
+bool ovfAddBosU(T& out, U b, V o, W s = 1) { return 
+	ovfAddBos(unsR(out), uns(b), uns(o), uns(s)); }
+template <class T, class U, class V = int>
+T* ovfAddPosU(T* p, U o, V s = 1) { 
+	if(ovfAddBosU(RT(&p), RT(&p), o, s)) 
+	return 0; return notNull(p); }

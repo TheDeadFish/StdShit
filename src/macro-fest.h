@@ -113,10 +113,12 @@ typedef unsigned short 	u16;
 typedef signed short 	s16;
 
 // 64bit types
-typedef signed long long u64;
-typedef unsigned long long s64;
-typedef u64 __attribute__ ((aligned(4))) u64p4;
-typedef s64 __attribute__ ((aligned(4))) s64p4;
+typedef signed long long u64_;
+typedef unsigned long long s64_;
+typedef u64_ __attribute__ ((aligned(4))) u64;
+typedef s64_ __attribute__ ((aligned(4))) s64;
+typedef u64_ __attribute__ ((aligned(4))) u64p4;
+typedef s64_ __attribute__ ((aligned(4))) s64p4;
 
 // fast unsafe 64bit division
 static inline INT32 iDiv6432(INT64 num, INT32 dom) { UINT32 result; 
@@ -125,9 +127,9 @@ static inline UINT32 uDiv6432(UINT64 num, UINT32 dom) { UINT32 result;
 	asm("divl %2" : "=a"(result) : "A"(num), "rm"(dom)); return result; }
 
 // other bits and pieces
-TMPL2(T,U=T) T release(T& ptr, U newPtr = 0) {
+TMPL2(T,U=T) ALWAYS_INLINE T release(T& ptr, U newPtr = 0) {
 	T tmpPtr = ptr; ptr = newPtr; return tmpPtr; }
-TMPL2(T,U=T) T replace(T& ptr, U newPtr) {
+TMPL2(T,U=T) ALWAYS_INLINE T replace(T& ptr, U newPtr) {
 	free(ptr); return ptr = newPtr; }
 #define free_repl(ptr, newPtr) (::free(ptr), ptr = newPtr)
 #define ADDP(ptr, len) asm volatile(".if %c1 == 1;inc %0;.elseif %c1 == -1;" \
@@ -158,5 +160,11 @@ TMPL(T) struct VaArgFwd { T* pfmt; va_list
 TMPL(T) void pDel(T* ptr) { ptr->~T(); }
 #define hasDtorT(T) !std::is_trivially_destructible<T>::value
 #define hasDtorp(p) hasDtorT(typeof(*p))
+
+// overflow check
+#define _ADDU_OVF_(dst, src) ({ bool _ovf_; asm("add %2, %1" \
+	: "=@ccc"(_ovf_), "+g"(dst) : "ri"(src)); _ovf_; })
+#define _SUBU_OVF_(dst, src) ({ bool _ovf_; asm("sub %2, %1" \
+	: "=@ccc"(_ovf_), "+g"(dst) : "ri"(src)); _ovf_; })
 
 #endif
