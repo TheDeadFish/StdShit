@@ -87,7 +87,7 @@ NCSTR getPath(NCSTR str) { int end = str.slen; REGFIX(d, end);
 	L1: nothing(); return {str.data, end+1}; }
 NCSTR getName(NCSTR str) { NCSTR tmp = getPath(str);
 	return { tmp.end(), str.slen-tmp.slen }; }
-	
+
 // Path Handling
 NWRDTX(str_pathCat, "%$j%$k")
 SHITCALL NCSTR pathCat(NCSTR name1, NCSTR name2) { 
@@ -110,12 +110,25 @@ NCSTR getName2(NCSTR str) {
 	str.sete(p); break; }} return str; }
 NCSTR getExt(NCSTR str) { NCSTR tmp = getName2(str);
 	return {tmp.end(), str.slen-tmp.slen}; }
-	
+
+// extension Handling
+NWRDTX(str_extCat, "%v%v\0%v.%v")
+SHITCALL NCSTR extCat(NCSTR name1, NCSTR name2) { 
+	NCCH* fmt = NWNM(str_extCat);
+	if(name2.get(0) != '.') fmt += 5;
+	return xstrfmt(fmt, name1, name2); }
+NCSTR getName3(NCSTR str) { return {
+	str.data, getName2(str).end()}; }
+SHITCALL NCSTR replExt(NCSTR name1, NCSTR name2) { 
+	return extCat(getName3(name1), name2); }
+CSTRTH1_(getName3) CSTRTH2_(replExt)
+
 CSTRTH1_(getPath) CSTRTH1_(getName) 
 CSTRTH1_(getName2) CSTRTH1_(getExt)
 CSTRTH2_(pathCat) CSTRTH2_(replName)
 CSTRTH2_(fullNameRepl)
 CSTRTH2_(fullNameCat)
+
 
 
 SHITCALL NCSTR xstrdup(NCCH* str)

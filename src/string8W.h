@@ -52,6 +52,7 @@ CSTRFN2_(replNameF) CSTRFN2_(pathCatF)
 CSTRFN2_(fullNameRepl) CSTRFN2_(fullNameCat)
 static inline NCSTR getPath0(NCSTR str) {
 	return getPath(str).nterm(); }
+CSTRFN1_(getName3) CSTRFN2_(replExt)
 	
 // path test functions
 static inline bool isRelPath(NCCH* str) { bool ret; asm(
