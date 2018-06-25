@@ -14,7 +14,7 @@ struct IndexRef { int offset; IndexRef() {}
 struct Void
 {
 	// assigment/casing
-	char* data; Void(){}
+	char* data; Void() = default;
 	TMPL(T) Void(T in, size_t o = 0)	{ data = ((char*)in) + o; }
 	TMPL(T) Void operator=(T in)		{ data = (char*)in; return *this; }
 	TMPL(T) operator T() 			{ return (T)data; }

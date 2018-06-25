@@ -26,6 +26,7 @@ TMPL(T) struct xRngPtr
 
 	// trimming operations	
 	ALWAYS_INLINE bool chk() { return end_ > data; }
+	ALWAYS_INLINE bool chk(int size) { return count() >= size; }
 	ALWAYS_INLINE T& f() { return *data; } 
 	ALWAYS_INLINE T& l() { return end_[-1]; }
 	ALWAYS_INLINE T& fi() { return *data++; }
