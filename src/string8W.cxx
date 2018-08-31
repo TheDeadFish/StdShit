@@ -41,9 +41,9 @@ STRCMP2(strcmp2, ch1 != ch2); STRCMP2(stricmp2, !cmpi(ch1, ch2));
 STRSCMP(strScmp, CMPS); STRSCMP(strSicmp, CMPI);
 
 // cstr substring search	
-#define CSTR_ISTR(nm, cmp) NCSTR nm(CSTRG(1), CSTRG(2)) { NCCH* \
-	endPos = str1 + (len1-len2); VARFIX(str2); if(len2 > 0) { while( \
-	str1 < endPos) { CMPL(len2, cmp(str1[i], str2[i], NS)); \
+#define CSTR_ISTR(nm, cmp) NCSTR nm(CSTRG(1), CSTRG(2)) { \
+	if(len2 > 0) { NCCH* endPos = str1 + (len1-len2); VARFIX(str2); \
+	while(str1 <= endPos) { CMPL(len2, cmp(str1[i], str2[i], NS)); \
 	return {str1, len2}; NS: str1++; }} return {0,0}; };
 CSTR_ISTR(cstr_str, CMPS); CSTR_ISTR(cstr_istr, CMPI);	
 NCSTR SHITCALL cstr_str(CSTRG(1), NCCH* str2) { NCSTR tmp(str2); 
