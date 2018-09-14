@@ -42,6 +42,7 @@ template<class F> finally_type<F>
 	finally(F f) { return finally_type<F>(f); }
 #define SCOPE_EXIT(f) auto MCAT(sExit, __COUNTER__) = \
 	finally([&](void) __attribute__((always_inline)) {f;})
+#define SCOPE_REF(T,R,M) T R=M; SCOPE_EXIT(M=R)
 
 // C++11 fest: Ranged base for
 template <typename T> struct Range1_type2
