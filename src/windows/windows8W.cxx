@@ -1,8 +1,12 @@
 #include "stdshit.h"
 #define NWIDE NWIDE2
 
-int sysfmt(NCCH* fmt, ...) {
-	VA_ARG_FWD(fmt); return system(Xstrfmt(va));  }
+NCHR* WINAPI cmdfmt(VaArgFwd<NCCH*> va) {
+	NCHR* b = xMalloc(xstrfmt_len(va)+2);
+	NCHR* e = xstrfmt_fill(b+1, va); 
+	NWIF(RI,RW)(e) = '"'; *b = '"'; return b; }	
+int sysfmt(NCCH* fmt, ...) { VA_ARG_FWD(fmt);
+	return system(xstr_(cmdfmt(va)));  }
 	
 // WIN32 file functions
 HANDLE WINAPI createFile(NCCH* a,DWORD b,DWORD c,

@@ -45,7 +45,7 @@ TMPL(T) struct xRngPtr
 	C(const T* d, int l) : data((T*)d), len(l) {} \
 	C(const T* d, const T* e) : data((T*)d), len(e-d) {} \
 	template<typename... Args> C& init(Args... args) \
-		{ return *this = C(args...); } \
+		{ return *this = C(args...); } void clear() { free(); init(); }\
 	void init(){ data=0; len=0; } void free() { ::free(data); } \
 	C release() { return {::release(data), ::release(len) }; } \
 	C get() { return {data, len}; }\
@@ -57,7 +57,9 @@ TMPL(T) struct xRngPtr
 	C endRel(int i) { return C(end(), i-len); } \
 	ALWAYS_INLINE xRngPtr<T> ptr() { return xRngPtr<T>{data, end()}; } \
 	ALWAYS_INLINE void set(xRngPtr<T> ptr) { init(ptr.data, ptr.end_); } \
-	ALWAYS_INLINE void sete(xRngPtr<T> ptr) { setend(ptr.end_); }
+	ALWAYS_INLINE void sete(xRngPtr<T> ptr) { setend(ptr.end_); } \
+	bool ptrInData(void* ptr) { return inRng1 \
+		((byte*)ptr, (byte*)begin(), (byte*)end()); }
 	
 TMPL(T) struct xarray 
 {
