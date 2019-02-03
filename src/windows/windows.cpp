@@ -103,11 +103,11 @@ cstrW WINAPI getWindowText2W(HWND h) { W32SARD2_(
 cstr WINAPI getWindowText(HWND h) { return narrowFree(getWindowTextW(h)); }
 cstr WINAPI getWindowText2(HWND h) { return narrowFree(getWindowText2W(h)); }
 
-
-
-
-
-
+HMODULE getModuleBase()
+{
+	return getModuleBase(
+		__builtin_return_address(0));
+}
 
 HMODULE getModuleBase(void* ptr)
 {

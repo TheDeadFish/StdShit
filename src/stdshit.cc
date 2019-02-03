@@ -302,3 +302,10 @@ void* __thiscall xRngPtr_get(void** ptr, size_t size)
 	void* tmp; return (ptrAddChk(*ptr, size, tmp)
 	||(tmp > ptr[1])) ? 0 : release(*ptr, tmp);
 }
+
+void* array_insert1(void* ptr, size_t asize, size_t index, size_t size)
+{
+	asize *= size; index *= size; size_t iDst = index+size;
+	void* dst = ptr+iDst; void* src = ptr+index; 
+	memmove(dst, src, asize-iDst); return src; 
+}

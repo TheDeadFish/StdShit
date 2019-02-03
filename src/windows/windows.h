@@ -6,6 +6,7 @@
 static inline void setTxtMode(FILE* fp, bool ena) {
 	_setmode(fp->_file, ena ? 0x4000 : 0x8000); }
 	
+HMODULE _stdcall getModuleBase();
 HMODULE _stdcall getModuleBase(void* ptr);
 
 // command line escaping

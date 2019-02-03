@@ -5,6 +5,9 @@
 
 void* __thiscall xRngPtr_get(void** ptr, size_t size);
 
+REGCALL(3) void* array_insert1(void* ptr, 
+	size_t asize, size_t index, size_t size);
+
 TMPL(T) struct xRngPtr 
 { 
 	T* data; T* end_; 
@@ -87,6 +90,12 @@ TMPL(T) struct xarray
 	T& xnxalloc() {	return *(T*)xnxalloc2(this, sizeof(T)); }
 	T& ib() { return data[len++]; }
 	
+	// insertion functions
+	T* xinsert(size_t index) { xnxalloc();
+		return (T*)array_insert1(data, size, index, sizeof(T));  }
+	template<typename... Args> T& xInsert(size_t index, 
+		Args... args) { return rNew(*xinsert(index), args...); }
+	
 	// copying functions
 	T* xcopy(const xarray& that) { return xcopy(that.data, that.len); }
 	T* xcopy(const T* di, size_t ci) { len = ci; return (data = xMemdup(di, ci)); }
@@ -126,7 +135,7 @@ struct xvector_ {
 		dataPtr = buff; dataSize = 0; allocSize = buffSize; }
 	void free_() { free_ref(dataPtr); }	
 	void clear_() { free_(); dataSize = 0; allocSize = 0; }
-	Void release_(void) { ::release(dataPtr); }
+	Void release_(void) { return ::release(dataPtr); }
 	Void xalloc_(size_t size);
 	Void xreserve_(size_t size); Void xresize_(size_t size);
 	VoidLen xnxalloc2_(size_t size); VoidLen xrxalloc2_(size_t size);
