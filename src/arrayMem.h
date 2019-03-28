@@ -78,8 +78,8 @@ TMPL(T) struct xarray
 	void Clear() { this->Free(); this->init(); }
 	T* xAlloc(size_t size) { T* ptr = xalloc(size);
 		for(int i = 0; i < size; i++) pNew(ptr+i); }
-	template<typename... Args> T& push_back(Args...
-		args) { return rNew(xnxalloc(), args...); }
+	template<typename... Args> T& push_back(Args&&... args) { 
+		return rNew(xnxalloc(), std::forward<Args>(args)...); }
 	void pop_back(void) { len--; end()->~T(); }
 	T& back(void) { return end()[-1]; }
 	
@@ -93,8 +93,8 @@ TMPL(T) struct xarray
 	// insertion functions
 	T* xinsert(size_t index) { xnxalloc();
 		return (T*)array_insert1(data, size, index, sizeof(T));  }
-	template<typename... Args> T& xInsert(size_t index, 
-		Args... args) { return rNew(*xinsert(index), args...); }
+	template<typename... Args> T& xInsert(size_t index, Args&&... args) {
+		return rNew(*xinsert(index), std::forward<Args>(args)...); }
 	
 	// copying functions
 	T* xcopy(const xarray& that) { return xcopy(that.data, that.len); }
@@ -125,7 +125,15 @@ TMPL(T) struct xArray : xarray<T>
 	xArray() : xarray<T>(0,0) {}
 	~xArray() { this->Free(); }
 	xArray(const xarray<T>& that) : xarray<T>(that) {}
-	xArray(const xArray& that) { this->xCopy(that); }
+	
+	
+	xArray(const xArray& that) { *this = that; }
+	xArray& operator=(const xArray& x) { this->xCopy(x); }
+	
+	xArray(xArray&& that) {	
+		this->init(that.data, that.len); that.init(); }	
+	xArray& operator=(xArray && that) {
+		this->init(that.data, that.len); that.init(); }
 };
 
 struct xvector_ {
