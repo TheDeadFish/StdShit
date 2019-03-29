@@ -24,7 +24,7 @@ __throw_length_error(const char* str) { fatalError(length_error, str); }}
 extern "C" void* emulate_nt_new(unsigned len, const std::nothrow_t& junk) {
 	return malloc(len); }
 extern "C" void* emulate_cc_new(unsigned len) { return xmalloc(len); }
-extern "C" void* emulate_delete(void* p) { free(p); }
+extern "C" void emulate_delete(void* p) { free(p); }
 void* operator new(std::size_t, const std::nothrow_t&) __attribute__((alias("emulate_nt_new")));
 void* operator new[](std::size_t, const std::nothrow_t&) __attribute__((alias("emulate_nt_new")));
 void* operator new  (unsigned len) __attribute__((alias("emulate_cc_new")));

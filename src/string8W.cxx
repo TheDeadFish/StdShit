@@ -126,6 +126,7 @@ CSTRTH1_(getName3) CSTRTH2_(replExt)
 CSTRTH1_(getPath) CSTRTH1_(getName) 
 CSTRTH1_(getName2) CSTRTH1_(getExt)
 CSTRTH2_(pathCat) CSTRTH2_(replName)
+CSTRTH2_(pathCatF)
 CSTRTH2_(fullNameRepl)
 CSTRTH2_(fullNameCat)
 
