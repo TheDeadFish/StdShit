@@ -83,7 +83,7 @@ ASM_FUNC("_isRelPath0"NWTX, "test %eax, %eax; jz 1f;"
 NCSTR getPath(NCSTR str) { int end = str.slen; REGFIX(d, end);
 	while(--end >= 0) { if(str[end] == '\\') goto L1;
 	ARGFIX(*str); if(str[end] == '/') goto L1; } VARFIX(end);
-	if((str.slen > 2)&&(str[1] == ':')) end += 2;
+	if((str.slen >= 2)&&(str[1] == ':')) end += 2;
 	L1: nothing(); return {str.data, end+1}; }
 NCSTR getName(NCSTR str) { NCSTR tmp = getPath(str);
 	return { tmp.end(), str.slen-tmp.slen }; }
