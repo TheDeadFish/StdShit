@@ -53,6 +53,13 @@ TMPL(T) struct cstr_
 	T getr(uint idx) { return  get(idx+slen); }
 	bool sepReq() { return !isPathSep2(getr(-1), '\0'); }
 	
+	// null termination helpers
+	void nterm_(void) { *end() = '\0'; }
+	void trunc_(uint idx) { slen = idx; nterm_(); }
+	
+	
+	
+	
 	// comparison functions
 	int cmp(cstr_ s) { return cstr_cmp(CSTRX(*this), CSTRX(s)); }
 	int icmp(cstr_ s) { return cstr_icmp(CSTRX(*this), CSTRX(s)); }
