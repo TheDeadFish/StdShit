@@ -70,20 +70,22 @@ UTF816CP_(,dn,sn) { MIF(dn, if(ptrdiff_t(dstMax) > 0),) { dst = utf816_cpy_(\
 	dst MIF(dn,(,dstMax),), src MIF(sn,(,len),)); *dst = 0; } return dst; }
 UTF816CP(0,0) UTF816CP(0,1) UTF816CP(1,0) UTF816CP(1,1)
 
-// UTF16 to UTF8 conversion
+// UTF16 to UTF8 size
 ASM_FUNC("_UTF16TO8_LEN1", "orl $-1, %edx; _UTF16TO8_LEN2:"
-	"inc %ebx; cmp $0x800, %ax; jae 1f; 2: ret; 1: inc %ebx;"
+	"inc %ecx; cmp $0x800, %ax; jae 1f; 2: ret; 1: inc %ecx;"
 	"andw $0xFC00, %ax; cmpw $0xD800, %ax; jne 2b; cmpl %edx, %esi;"
 	"jae 2b; movw (%esi), %ax; andw $0xFC00, %ax; cmpw $0xDC00, %ax;"
-	"jne 2b; inc %ebx; inc %esi; inc %esi; ret" );
-ASM_FUNC("__Z11utf816_sizePKw@4", "pushl %esi; pushl %ebx; movl 12(%esp), %esi;"
-	"xorl %ebx, %ebx; 1: lodsw; inc %ebx; cmpw $128, %ax; jae 2f; testb %al, %al;"
-	"jne 1b; movl %ebx, %eax; popl %ebx; movl %esi, %edx; popl %esi; ret $4;"
-	"2: call _UTF16TO8_LEN1; jmp 1b" );
-ASM_FUNC("__Z11utf816_sizePKwi@8", "pushl %ebx; pushl %esi; xorl %ebx, %ebx; pushl %ebp;"
-	"movl 20(%esp), %ebp; movl 16(%esp), %esi; lea (%esi,%ebp,2), %ebp; 1: inc %ebx;cmpl %ebp, %esi;"
-	"jae 3f; lodsw; cmpw $128, %ax; jb 1b;movl %ebp, %edx; call _UTF16TO8_LEN2; jmp 1b;"
-	"3: popl %ebp; movl %esi, %edx; popl %esi; movl %ebx, %eax; popl %ebx; ret $8;" );
+	"jne 2b; inc %ecx; inc %esi; inc %esi; ret" );
+utf816_size_t8 utf816_size(cchw* str) { 
+	size_t sz = 0; asm("1: lodsw; inc %0; cmpw $128, %%ax; jb 2f;"
+	"call _UTF16TO8_LEN1; jmp 1b;" "2: testb %%al, %%al; jne 1b;"
+	: "+c"(sz), "+S"(str) :: "eax", "edx"); return {sz, str}; }	
+utf816_size_t8 utf816_size(cchw* str, int len) { size_t sz = 0; asm(
+	"1: inc %0; cmpl %2, %1; jae 3f; lodsw; cmpw $128, %%ax; jb 1b;"
+	"movl %2, %%edx; call _UTF16TO8_LEN2; jmp 1b; 3:" : "+c"(sz), 
+	"+S"(str) : "b"(str+len) : "eax", "edx"); return {sz, str}; }
+	
+// UTF16 to UTF8 copy
 ASM_FUNC("__Z10utf816_cpyPcPKw@8", "pushl %esi; pushl %edi; movl 16(%esp), %esi;"
 	"movl 12(%esp), %edi; 1: lodsw; cmpw $128, %ax; jae 2f; stosb;"
 	"testb %al, %al; jne 1b; lea -1(%edi), %eax; popl %edi; popl %esi;"
