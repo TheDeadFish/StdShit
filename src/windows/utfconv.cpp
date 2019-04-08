@@ -86,15 +86,13 @@ utf816_size_t8 utf816_size(cchw* str, int len) { size_t sz = 0; asm(
 	"+S"(str) : "b"(str+len) : "eax", "edx"); return {sz, str}; }
 	
 // UTF16 to UTF8 copy
-ASM_FUNC("__Z10utf816_cpyPcPKw@8", "pushl %esi; pushl %edi; movl 16(%esp), %esi;"
-	"movl 12(%esp), %edi; 1: lodsw; cmpw $128, %ax; jae 2f; stosb;"
-	"testb %al, %al; jne 1b; lea -1(%edi), %eax; popl %edi; popl %esi;"
-	"ret $8; 2: call _UTF16_GET1; call _UTF8_PUT2; jmp 1b" );
-ASM_FUNC("__Z10utf816_cpyPcPKwi@12", "pushl %edi; pushl %ebp; pushl %esi; movl 24(%esp), %ebp;"
-	"movl 20(%esp), %esi; movl 16(%esp), %edi; lea (%esi,%ebp,2), %ebp; jmp 1f;"
-	"0: stosb; 1: cmpl %ebp, %esi; jae 3f; lodsw; cmpw $128, %ax; jb 0b;"
-	"movl %ebp, %edx; call _UTF16_GET2; call _UTF8_PUT2; jmp 1b; 3: popl %esi;"
-	"popl %ebp; movb $0, (%edi); movl %edi, %eax;popl %edi; ret $12;" );
+char* utf816_cpy(char* mbs, cchw* ws) { asm("1: lodsw; cmpw $128, %%ax; jb 2f;"
+	"call _UTF16_GET1; call _UTF8_PUT2; jmp 1b; 2: stosb; testb %%al, %%al; jne 1b;"
+	: "+D"(mbs), "+S"(ws) :: "eax", "edx"); return mbs-1; }
+char* utf816_cpy(char* mbs, cchw* ws, int wsz) { asm("jmp 0f; 1: lodsw; "
+	"cmpw $128, %%ax; jb 2f; movl %2, %%edx; call _UTF16_GET2; call _UTF8_PUT2;"
+	"jmp 0f; 2: stosb; 0: cmpl %2, %1; jb 1b;" : "+D"(mbs), "+S"(ws) :
+	"b"(ws+wsz) : "eax", "edx"); *mbs =0; return mbs; }
 
 #define UTF816_DUP(t1, t2, t3) \
 t1 __stdcall utf816_dup(const t3* src) { if(!src) return {0,0};	\
