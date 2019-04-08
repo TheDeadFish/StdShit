@@ -10,7 +10,7 @@ ASM_FUNC("_UTF8_PUT1", "cmp $127, %eax; "
 	"ja _UTF8_PUT2; stosb; ret;" GLOB_LAB("_UTF8_PUT2")
 	"cmpl $2048, %eax; movl %eax, %edx; jae _UTF8_PUT34;"
 	"sar $6, %eax; orb $192, %al; 1: stosb; andb $63, %dl;"
-	"orb $128, %dl; mov %dl, (%edi); inc %edi; ret;"
+	"orb $128, %dl; mov %dl, (ptdi); inc ptdi; ret;"
 	"_UTF8_PUT34: cmpl $65536, %eax; jae _UTF8_PUT4;"
 	"sar $12, %eax; orb $224, %al; 2: stosb; movl %edx, %eax;"
 	"sar $6, %eax; andb $63, %al; orb $128, %al; jmp 1b;"
@@ -19,20 +19,20 @@ ASM_FUNC("_UTF8_PUT1", "cmp $127, %eax; "
 );
 
 // decode UTF8 character
-#define UTF8_GETB(x) "movb " #x "(%esi), %dl; sall	$6, %eax;" \
+#define UTF8_GETB(x) "movb " #x "(ptsi), %dl; sall	$6, %eax;" \
 	"xorb $128, %dl; cmpb $64, %dl; jae _UTF8_GETE; orb %dl, %al;"
-#define UTF8_CHK(x) "cmpl %edx, %esi; je _UTF8_GETE; andb $" #x ", %al;"
-ASM_FUNC("_UTF8_GET1", "orl $-1, %edx;" GLOB_LAB("_UTF8_GET2")
+#define UTF8_CHK(x) "cmp ptdx, ptsi; je _UTF8_GETE; andb $" #x ", %al;"
+ASM_FUNC("_UTF8_GET1", "or $-1, ptdx;" GLOB_LAB("_UTF8_GET2")
 	"cmpb $194, %al; jb _UTF8_GETE; cmpb $224, %al; jae _UTF8_GET34;"
-	UTF8_CHK(31) UTF8_GETB(0) "inc %esi; ret;"
-	"_UTF8_GET34: dec %edx;	cmpb $240, %al; jae _UTF8_GET4;"
+	UTF8_CHK(31) UTF8_GETB(0) "inc ptsi; ret;"
+	"_UTF8_GET34: dec ptdx;	cmpb $240, %al; jae _UTF8_GET4;"
 	UTF8_CHK(15) UTF8_GETB(0) UTF8_GETB(1)
-	"cmpw $2048, %ax; jb _UTF8_GETE; inc %esi; inc %esi; ret;"
+	"cmpw $2048, %ax; jb _UTF8_GETE; pt_inc2 ptsi; ret;"
 	"_UTF8_GETE: movl $63, %eax; ret;"
-	"_UTF8_GET4: dec %edx;" UTF8_CHK(15)
+	"_UTF8_GET4: dec ptdx;" UTF8_CHK(15)
 	UTF8_GETB(0) "cmpl $16, %eax; jb _UTF8_GETE;"
 	"cmpw $272, %ax; jae _UTF8_GETE;"
-	UTF8_GETB(1) UTF8_GETB(2) "lea 3(%esi), %esi; ret"
+	UTF8_GETB(1) UTF8_GETB(2) "lea 3(ptsi), ptsi; ret"
 );
 	
 // UTF16 encode/decode
@@ -41,26 +41,26 @@ ASM_FUNC("_UTF16_PUT1", "cmp $65536, %eax;"
 	"shrl $10, %eax; andw $1023, %dx;"
 	"addw $55232, %ax; addw $56320, %dx;"
 	"stosw; movl %edx, %eax; 1: stosw; ret;" );
-ASM_FUNC("_UTF16_GET1", "orl $-1, %edx; _UTF16_GET2: "
+ASM_FUNC("_UTF16_GET1", "or $-1, ptdx; _UTF16_GET2: "
 	"movzwl %ax, %eax; cmpw $0xD800, %ax; jb 1f; cmpw $0xDC00, %ax;"
-	"jae 1f; cmpl %edx, %esi; je 1f; movzwl (%esi), %edx;"
-	"cmpw $0xDC00, %dx; jb 1f; cmpw $0xE000, %dx; jae 1f; inc %esi;"
-	"inc %esi; sal $10, %eax; lea 0xFCA02400(%eax,%edx), %eax; 1: ret" );
+	"jae 1f; cmp ptdx, ptsi; je 1f; movzwl (ptsi), %edx;"
+	"cmpw $0xDC00, %dx; jb 1f; cmpw $0xE000, %dx; jae 1f; pt_inc2 ptsi;"
+	"sal $10, %eax; lea -0x35FDC00(ptax,ptdx), %eax; 1: ret" );
 
 // UTF8 to UTF16 size
 #define UTF816SZ(z,n) utf816_size_tW __stdcall utf816_size(cch* str MIF(n, \
 	(,int len),)) { int r = 0; asm("1: inc %0;" MIF(n, "cmp %2,%1; " \
 	"jz 3f;",) "movzbl (%1),%%eax; inc %1; testb %%al,%%al;" MIF(z, \
-	"je 3f;",) "jns 1b;" MIF(n, "movl %2,%%edx; call _UTF8_GET2", "call " \
+	"je 3f;",) "jns 1b;" MIF(n, "mov %2,ptdx; call _UTF8_GET2", "call " \
 	"_UTF8_GET1") ";shrl $16, %%eax; je 1b; inc %0; jmp 1b; 3:" : "+b"(r), \
 	"+S"(str) : MIF(n,"c"(str+len),) : "eax", "edx" ); return {r*2,str}; }
 UTF816SZ(1, 0); UTF816SZ(1, 1);
 
 // UTF8 to UTF16 copy
-asm(".macro utf816_cpyw_ sn,dn,sr; jmp 0f; 1:" AMIF(\\dn, "cmp %ecx, %edi; ja 3f",) 
-	"stosw; 0:" AMIF(\\sn, "cmp \\sr,%esi; jz 3f",) "movzbl (%esi),%eax; inc %esi; "
-	"testb %al,%al; je 3f; jns 1b;" AMIF(\\sn, "movl \\sr,%edx; call _UTF8_GET2",
-	"call _UTF8_GET1") AMIF(\\dn, "cmp $65535, %eax; jle 1b; cmp %ecx, %edi; jnb 3f;"
+asm(".macro utf816_cpyw_ sn,dn,sr; jmp 0f; 1:" AMIF(\\dn, "cmp ptcx, ptdi; ja 3f",) 
+	"stosw; 0:" AMIF(\\sn, "cmp \\sr,ptsi; jz 3f",) "movzbl (ptsi),%eax; inc ptsi; "
+	"testb %al,%al; je 3f; jns 1b;" AMIF(\\sn, "mov \\sr,ptdx; call _UTF8_GET2",
+	"call _UTF8_GET1") AMIF(\\dn, "cmp $65535, %eax; jle 1b; cmp ptcx, ptdi; jnb 3f;"
 	"call _UTF16_PUT2", "call _UTF16_PUT1") "jmp 0b; 3:; .endm;");
 	
 #define UTF816CP(dn,sn) NEVER_INLINE UTF816CP_(_,dn,sn) { asm("utf816_cpyw_ \

@@ -17,6 +17,7 @@
  #include "delegates.h"
 #endif
 #include "x86bits.h"
+#include "x64bits.h"
 #include "min_max.h"
 #include "algorithm.h"
 #include "void.h"
