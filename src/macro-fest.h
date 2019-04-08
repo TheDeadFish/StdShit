@@ -127,7 +127,7 @@ static inline UINT32 uDiv6432(UINT64 num, UINT32 dom) { UINT32 result;
 	asm("divl %2" : "=a"(result) : "A"(num), "rm"(dom)); return result; }
 
 // other bits and pieces
-TMPL2(T,U=T) ALWAYS_INLINE T release(T& ptr, U newPtr = 0) {
+TMPL2(T,U=T) ALWAYS_INLINE T release(T& ptr, U newPtr = {}) {
 	T tmpPtr = ptr; ptr = newPtr; return tmpPtr; }
 TMPL2(T,U=T) ALWAYS_INLINE T replace(T& ptr, U newPtr) {
 	free(ptr); return ptr = newPtr; }

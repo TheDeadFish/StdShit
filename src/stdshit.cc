@@ -21,14 +21,14 @@ __attribute__((section(".text$nothrow_t")))
 const nothrow_t nothrow = nothrow_t();
 void __attribute__((__noreturn__))
 __throw_length_error(const char* str) { fatalError(length_error, str); }}
-extern "C" void* emulate_nt_new(unsigned len, const std::nothrow_t& junk) {
+extern "C" void* emulate_nt_new(size_t len, const std::nothrow_t& junk) {
 	return malloc(len); }
-extern "C" void* emulate_cc_new(unsigned len) { return xmalloc(len); }
+extern "C" void* emulate_cc_new(size_t len) { return xmalloc(len); }
 extern "C" void emulate_delete(void* p) { free(p); }
 void* operator new(std::size_t, const std::nothrow_t&) __attribute__((alias("emulate_nt_new")));
 void* operator new[](std::size_t, const std::nothrow_t&) __attribute__((alias("emulate_nt_new")));
-void* operator new  (unsigned len) __attribute__((alias("emulate_cc_new")));
-void* operator new[](unsigned len) __attribute__((alias("emulate_cc_new")));   
+void* operator new  (size_t len) __attribute__((alias("emulate_cc_new")));
+void* operator new[](size_t len) __attribute__((alias("emulate_cc_new")));   
 void  operator delete  (void* p)   __attribute__((alias("emulate_delete")));
 void  operator delete[](void* p)   __attribute__((alias("emulate_delete")));
 ASM_FUNC("___cxa_pure_virtual", "int $3");

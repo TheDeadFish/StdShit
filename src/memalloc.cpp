@@ -12,7 +12,6 @@ ASM_FUNC("_srealloc", ".cfi_startproc; push %ecx; push %edx; push 12(%esp);"
 ASM_FUNC("_xmalloc", ".cfi_startproc; movl 4(%esp), %eax; test %eax,%eax; jz 1f; call "
 	"_smalloc; test %eax,%eax; jnz 1f; call __Z10errorAllocv; 1: ret $4; .cfi_endproc;");
 
-
 SHITCALL uint snapNext(uint val) { if(val&(val-1)) return 0;
 	if(val>=2) return val<<1; return val+1; }
 
@@ -20,7 +19,7 @@ SHITCALL uint snapNext(uint val) { if(val&(val-1)) return 0;
 //SHITCALL void free_ref(Void& ptr) {
 //	if(ptr != NULL) {free(ptr);	ptr = NULL; }}
 SHITCALL int fclose_ref(FILE*& stream) { if(!stream) 
-	return (int)stream; return fclose(release(stream)); }
+	return (int)0; return fclose(release(stream)); }
 #undef fclose
 SHITCALL int fclose_ ( FILE * stream ){
 	if( stream == NULL ) return 0; return fclose(stream); }
