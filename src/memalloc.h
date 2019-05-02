@@ -46,6 +46,7 @@ SHITCALL2 Void xcalloc(size_t size); SHITCALL2 Void xrecalloc(Void& ptr, size_t 
 SHITCALL2 Void xnxalloc(Void& ptr, size_t& count, size_t size);
 SHITCALL2 Void nxalloc(Void& ptr, size_t& count, size_t size);
 __thiscall Void xnxalloc2(void* p, size_t size);
+__thiscall Void xnxcalloc2(void* p, size_t size);
 
 // Memory allocation templates
 TMPL(T) void free_ref(T*& p) {	free_ref(*(Void*)&p); }

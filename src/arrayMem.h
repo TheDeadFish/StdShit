@@ -44,9 +44,9 @@ TMPL(T) struct xRngPtr
 };
 	
 #define XARRAY_COMMON(C, T, len) \
-	C() = default; C(const C& that) = default; \
-	C(const T* d, int l) : data((T*)d), len(l) {} \
-	C(const T* d, const T* e) : data((T*)d), len(e-d) {} \
+	constexpr C() = default; constexpr C(const C& that) = default; \
+	constexpr C(const T* d, int l) : data((T*)d), len(l) {} \
+	constexpr C(const T* d, const T* e) : data((T*)d), len(e-d) {} \
 	template<typename... Args> C& init(Args... args) \
 		{ return *this = C(args...); } void clear() { free(); init(); }\
 	void init(){ data=0; len=0; } void free() { ::free(data); } \
@@ -62,7 +62,9 @@ TMPL(T) struct xRngPtr
 	ALWAYS_INLINE void set(xRngPtr<T> ptr) { init(ptr.data, ptr.end_); } \
 	ALWAYS_INLINE void sete(xRngPtr<T> ptr) { setend(ptr.end_); } \
 	bool ptrInData(void* ptr) { return inRng1 \
-		((byte*)ptr, (byte*)begin(), (byte*)end()); }
+		((byte*)ptr, (byte*)begin(), (byte*)end()); } \
+	TMPL(U) ptrdiff_t findi(const U& that) { return ::findi(data, len, that); } \
+	TMPL(U) T* findp(const U& that) { return ::findp(data, end(), that); }
 	
 TMPL(T) struct xarray 
 {
@@ -88,6 +90,7 @@ TMPL(T) struct xarray
 	T* xcalloc(size_t size) { return data = xCalloc(len = size); }
 	T* xresize(size_t size) { return xRealloc(data, len = size); }
 	T& xnxalloc() {	return *(T*)xnxalloc2(this, sizeof(T)); }
+	T& xnxcalloc() { return *(T*)xnxcalloc2(this, sizeof(T)); }
 	T& ib() { return data[len++]; }
 	
 	// insertion functions
@@ -128,7 +131,7 @@ TMPL(T) struct xArray : xarray<T>
 	
 	
 	xArray(const xArray& that) { *this = that; }
-	xArray& operator=(const xArray& x) { this->xCopy(x); }
+	xArray& operator=(const xArray& x) { this->xCopy(x); return *this; }
 	
 	xArray(xArray&& that) {	
 		this->init(that.data, that.len); that.init(); }	

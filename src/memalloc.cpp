@@ -32,17 +32,17 @@ SHITCALL void freeLst_ref(Void& ptr, int count) {
 #define NXALLOC_RLC1(p,c) ptr2 = xrealloc(p, msize);
 #define NXALLOC_RLC2(p,c) if(!(ptr2 = realloc(p,msize))) \
 	{ return ptr2; c--; } p = ptr2;
-#define NXALLOC_(p, c, rlc) size_t result = c; incml(c); \
+#define NXALLOC_(p, c, rlc,x) size_t result = c; incml(c); \
 	size_t count = result; int count_1 = result-1; \
 	result *= size; Void ptr2; if(likely(count & count_1)) { \
 		ptr2 = p; goto SKIP_ALLOC; } { size_t msize = result << 1; \
-	if(!msize) msize = size; rlc(p,c); } SKIP_ALLOC: return ptr2+result;
+	if(!msize) msize = size; rlc(p,c); } SKIP_ALLOC: x; return ptr2+result;
 	
 // may-fail allocators
 SHITCALL Void calloc (size_t size) { return calloc(1, size); }
 SHITCALL2
 Void nxalloc(Void& ptr, size_t& count_, size_t size) {
-	NXALLOC_(ptr, count_, NXALLOC_RLC2); }
+	NXALLOC_(ptr, count_, NXALLOC_RLC2,); }
 
 // succeed or die allocators
 //SHITCALL2 Void xmalloc(size_t size){ if(size == 0) return NULL;	return errorAlloc( malloc(size) ); }
@@ -60,9 +60,12 @@ SHITCALL2 Void xmemdup32(Void src, int count) {	if(count == 0) return NULL;
 	
 SHITCALL2
 Void xnxalloc(Void& ptr, size_t& count_, size_t size) {
-	NXALLOC_(ptr, count_, NXALLOC_RLC1); }
+	NXALLOC_(ptr, count_, NXALLOC_RLC1,); }
 __thiscall Void xnxalloc2(void* p, size_t size) {
-	NXALLOC_((*(void**)p), PT(p)[1], NXALLOC_RLC1); }
+	NXALLOC_((*(void**)p), PT(p)[1], NXALLOC_RLC1,); }
+__thiscall Void xnxcalloc2(void* p, size_t size) {
+	NXALLOC_((*(void**)p), PT(p)[1], NXALLOC_RLC1,
+		memset(ptr2+result, 0, size)); }
 	
 // xvector
 Void xvector_::xalloc_(size_t size)
