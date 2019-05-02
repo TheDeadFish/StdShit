@@ -13,7 +13,8 @@
 template <class R, class... P>
 struct Delegate
 {
-	Delegate() {} Delegate(void* stub) { stub_ptr = (stub_type)stub; }
+	Delegate() = default;
+	Delegate(void* stub) { stub_ptr = (stub_type)stub; }
 	Delegate(void* object, void* stub) {
 		object_ptr = object; stub_ptr = (stub_type)stub;	}
 	TMPL(T)
