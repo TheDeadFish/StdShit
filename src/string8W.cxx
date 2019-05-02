@@ -36,7 +36,7 @@ CSTR_CMP(cstr_cmp,) CSTR_CMP(cstr_icmp, toLower)
 	NCHR ch2 = *curPos; if(cmp) return curPos-str2; if(!ch2) return -1; }}
 STRCMP2(strcmp2, ch1 != ch2); STRCMP2(stricmp2, !cmpi(ch1, ch2));
 #define STRSCMP(nm, cmp) SHITCALL NCHR* nm(NCCH* str1, NCCH* str2) \
-	{ while(1) { NCHR ch2; lodsx(str2, ch2); if( ch2 == 0 ) \
+	{ if(str1) while(1) { NCHR ch2; lodsx(str2, ch2); if( ch2 == 0 ) \
 	return (NCHR*)str1; cmp(ch2, *str1++, NS); } NS: return NULL; }
 STRSCMP(strScmp, CMPS); STRSCMP(strSicmp, CMPI);
 
@@ -126,7 +126,7 @@ CSTRTH1_(getName3) CSTRTH2_(replExt)
 CSTRTH1_(getPath) CSTRTH1_(getName) 
 CSTRTH1_(getName2) CSTRTH1_(getExt)
 CSTRTH2_(pathCat) CSTRTH2_(replName)
-CSTRTH2_(pathCatF)
+CSTRTH2_(pathCatF) CSTRTH2_(replNameF)
 CSTRTH2_(fullNameRepl)
 CSTRTH2_(fullNameCat)
 
