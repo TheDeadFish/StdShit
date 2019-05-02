@@ -174,7 +174,9 @@
 	{	return std::upper_bound(__first, __first+length, __val, __comp)-__first; }
 	
 	// std::find replacements, iterators suck
-	TMPL2(T, U) int find(T* ptr, int count, const U& value) 
-	{ for(int i = 0; i < count; i++) if(ptr[i] == value) return i; return -1; }
+	TMPL2(T, U) ptrdiff_t findi(T* ptr, size_t count, const U& value) 
+	{ for(size_t i = 0; i < count; i++) if(ptr[i] == value) return i; return -1; }
+	TMPL2(T, U) T* findp(T* ptr, T* end, const U& value) 
+	{ for(; ptr < end; ptr++) if(*ptr == value) return ptr; return 0; }
 
 #endif
