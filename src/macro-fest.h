@@ -45,6 +45,7 @@ union _CAST_{T src; U dst; };
 #define PACK1(...) _Pragma("pack(push, 1)") __VA_ARGS__ _Pragma("pack(pop)")
 #define TMPL(t) template <class t>
 #define TMPL2(t,u) template <class t, class u>
+#define TMPL3(t,u, v) template <class t, class u, class v>
 
 // Macro fest
 #define _MCSE(arg) case arg:

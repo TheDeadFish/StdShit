@@ -36,10 +36,17 @@ REGCALL(1) constexpr static bool isAlpha(int ch) {
 	return unsigned((ch & ~0x20) - 'A') < 26; }	
 	
 // overflow helpers
-template <class T, class U, class V>
-bool ptrAddChk(T p1, U len, V*& p2) { size_t tmp;
-	bool ret = __builtin_add_overflow((size_t)p1, len, &tmp);
-	p2 = (V*)tmp; return ret; }
+TMPL2(T, U) bool ovfAddChk(T& dst, U src, size_t ofs) { 
+	size_t tmp; bool ret = __builtin_add_overflow((size_t)src,
+	ofs, &tmp); dst = (T)tmp; return ret; }
+TMPL2(T, U) bool ovfAddChk(T& dst, U src, size_t ofs, size_t sz) {
+	return __builtin_mul_overflow(ofs, sz, &ofs) || 
+		ovfAddChk(dst, src, ofs); }		
+TMPL3(T, U, V) bool ovfAddChk2(V&& lim, T& dst, U src, size_t ofs) { 
+	return ovfAddChk(dst, src, ofs) || (dst > (T)lim); }
+TMPL3(T, U, V) bool ovfAddChk2(V&& lim, T& dst, U src, size_t ofs, size_t sz) {
+	return ovfAddChk(dst, src, ofs, sz) || (dst > (T)lim); }
+		
 	
 template <class T, class U, class V>
 ALWAYS_INLINE bool ovfchk(T a, U b, V c) { typeof(a) tmp;

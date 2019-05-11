@@ -299,7 +299,7 @@ REGCALL(2) void* memswap(
 
 void* __thiscall xRngPtr_get(void** ptr, size_t size)
 {
-	void* tmp; return (ptrAddChk(*ptr, size, tmp)
+	void* tmp; return (ovfAddChk(tmp, *ptr, size)
 	||(tmp > ptr[1])) ? 0 : release(*ptr, tmp);
 }
 
