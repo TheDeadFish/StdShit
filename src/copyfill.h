@@ -83,3 +83,7 @@ template<class T> void memfillX(T& obj, size_t fill = 0) {
 
 REGCALL(2) void* memswap(
 	void* p1, void* p2, size_t sz);
+	
+REGCALL(2)
+void memncpy(void* d, const void* s, 
+	size_t ds, size_t ss);

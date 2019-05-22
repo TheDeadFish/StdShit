@@ -309,3 +309,10 @@ void* array_insert1(void* ptr, size_t asize, size_t index, size_t size)
 	void* dst = ptr+iDst; void* src = ptr+index; 
 	memmove(dst, src, asize-iDst); return src; 
 }
+
+REGCALL(2)
+void memncpy(void* d, const void* s, size_t ds, size_t ss)
+{
+	if(ss > ds) ss = ds; memcpy(d, s, ss);
+	if(ds-ss) memset(d+ss, 0, ds-ss);
+}
