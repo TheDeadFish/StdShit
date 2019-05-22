@@ -46,6 +46,13 @@ TMPL3(T, U, V) bool ovfAddChk2(V&& lim, T& dst, U src, size_t ofs) {
 	return ovfAddChk(dst, src, ofs) || (dst > (T)lim); }
 TMPL3(T, U, V) bool ovfAddChk2(V&& lim, T& dst, U src, size_t ofs, size_t sz) {
 	return ovfAddChk(dst, src, ofs, sz) || (dst > (T)lim); }
+	
+// pointer overflow
+TMPL3(T=void, V, U) 
+bool ptrAddChk(V*& dst, U* src, size_t len = 1) { 
+	TMPL_ALT(X,T,U); return ovfAddChk(dst, src, len, sizeof(X)); }
+TMPL2(T=void, U) bool ptrAddChk(U*& p, size_t len = 1) {
+	return ptrAddChk<T>(p, p, len); }
 		
 	
 template <class T, class U, class V>
@@ -70,3 +77,9 @@ template <class T, class U, class V = int>
 T* ovfAddPosU(T* p, U o, V s = 1) { 
 	if(ovfAddBosU(RT(&p), RT(&p), o, s)) 
 	return 0; return notNull(p); }
+
+// overflow checked string
+DEF_RETPAIR(ovfStrChk_t, char*, src, void*, pos);
+REGCALL(2) ovfStrChk_t ovfStrChk_(void* limit, void* pos);
+TMPL(T) char* ovfStrChk(T*& pos, void* limit) { auto x 
+	= ovfStrChk_(limit, pos); pos = (T*)x.pos; return x; }

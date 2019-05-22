@@ -316,3 +316,7 @@ void memncpy(void* d, const void* s, size_t ds, size_t ss)
 	if(ss > ds) ss = ds; memcpy(d, s, ss);
 	if(ds-ss) memset(d+ss, 0, ds-ss);
 }
+
+REGCALL(2) ovfStrChk_t ovfStrChk_(void* limit, void* pos) {
+	char* base = (char*)pos; while(pos < limit) {
+	if(!RDI(PC(pos))) return {base, pos}; } nothing(); return {}; }

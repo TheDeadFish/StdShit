@@ -46,6 +46,7 @@ union _CAST_{T src; U dst; };
 #define TMPL(t) template <class t>
 #define TMPL2(t,u) template <class t, class u>
 #define TMPL3(t,u, v) template <class t, class u, class v>
+#define TMPL_ALT(x,t,u) using x = std::conditional_t<std::is_same_v<t, void>, u, t>;
 
 // Macro fest
 #define _MCSE(arg) case arg:
