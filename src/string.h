@@ -171,6 +171,7 @@ TMPL(T) struct xstr_
 		
 	// other helpers
 	void alloc(int len) { data = xMalloc(len+1); }
+	char* xcopy(cch* str);
 };
 
 
@@ -207,3 +208,4 @@ struct xstrfmt_fmtN { enum { FLAG_ABSLEN = 1<<16,
 #include "string8W.h"
 
 TMPL(T) cstr_<T>::cstr_(const T* d) : cstr_(cstr_len(d)) {}
+TMPL(T) char* xstr_<T>::xcopy(cch* str) { return xstrdupr(data, str); }
