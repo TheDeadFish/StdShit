@@ -4,7 +4,8 @@
 #ifndef _X86BITS_H_
 #define _X86BITS_H_
 
-#define REGFIX(r, v) asm("" : "+"#r(v))
+#define REGFIX(r, v) ({ typeof(v) _v; asm \
+	("" : "="#r(_v) : "0"(v)); v = _v; })
 
 // force variable register	 
 #define DEF_EAX(arg) register arg asm ("eax")
@@ -53,7 +54,7 @@
 	: "="#d(dest) : "0"(dest), #s(data)); })
 #define movlx2(dest, data, d, s) ({ asm ("movl %k2, %k0" \
 	: "="#d(dest) : "0"(dest), #s(data)); })
-#define movb2(dest, data) movbx2(dest, data, r, g)
+#define movb2(dest, data) movbx2(dest, data, q, g)
 #define movw2(dest, data) movwx2(dest, data, r, g)
 #define movl2(dest, data) movlx2(dest, data, r, g)
 #define movrb2(reg, dest, data) movbx2(dest, data, reg, g)
