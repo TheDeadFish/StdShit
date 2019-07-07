@@ -64,7 +64,8 @@ TMPL(T) struct xRngPtr
 	bool ptrInData(void* ptr) { return inRng1 \
 		((byte*)ptr, (byte*)begin(), (byte*)end()); } \
 	TMPL(U) ptrdiff_t findi(const U& that) { return ::findi(data, len, that); } \
-	TMPL(U) T* findp(const U& that) { return ::findp(data, end(), that); }
+	TMPL(U) T* findp(const U& that) { return ::findp(data, end(), that); } \
+	C split(int i) { len-=i; auto p = data; data+=i; return {p,i}; }
 	
 TMPL(T) struct xarray 
 {
@@ -205,8 +206,8 @@ struct xvector : xvector_ {
 	size_t getCount() const { return dataSize/sizeof(T); }
 	size_t getAlloc() const { return allocSize/sizeof(T); }	
 	DEF_BEGINEND(T, dataPtr, dataSize);
-	//xarray<T> release(void) { xarray<T> result(dataPtr, getCount());
-	//	this->init(); return result; }
+	xarray<T> release(void) { xarray<T> result(dataPtr, getCount());
+		this->init_(); return result; }
 	xvector<T> release2(void) { xvector<T> result = *this;
 		this->init(); return result; }
 	void Free() { if(std::is_trivially_destructible<T>::value) 
