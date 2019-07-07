@@ -169,5 +169,8 @@ TMPL(T) void pDel(T* ptr) { ptr->~T(); }
 	: "=@ccc"(_ovf_), "+g"(dst) : "ri"(src)); _ovf_; })
 #define _SUBU_OVF_(dst, src) ({ bool _ovf_; asm("sub %2, %1" \
 	: "=@ccc"(_ovf_), "+g"(dst) : "ri"(src)); _ovf_; })
+	
+#define FRAMEP_KEEP __attribute__ ((optimize("no-omit-frame-pointer")))
+#define FRAMEP_KILL __attribute__ ((optimize("omit-frame-pointer")))
 
 #endif
