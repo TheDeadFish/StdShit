@@ -75,6 +75,22 @@ TMPL(T) struct cstr_
 	cstr_ rchr(T ch) { return cstr_rchr(CSTRX(*this), ch); }
 	cstr_ chr2(T ch) { return cstr_chr2(CSTRX(*this), ch); }
 	cstr_ rchr2(T ch) { return cstr_rchr2(CSTRX(*this), ch); }
+
+	
+	cstr_ scmp(const T* s) { return cstr_scmp(CSTRX(*this), s); }
+	cstr_ scmp(cstr_ s) {  return cstr_scmp(CSTRX(*this), CSTRX(s)); }
+	cstr_ parseInt(int* p) { return cstr_parseInt(CSTRX(*this), p); }
+	
+	// self mutation
+	cstr_& rightT(int i) { return (*this = right(i)); }
+	cstr_ chr2T(T ch) { cstr tmp = chr2(ch); rightT(tmp.slen); return tmp; }
+	cstr_& scmpT(const T* s) { return (*this = scmp(s)); }
+	cstr_& scmpT(cstr_ s) { return (*this = scmp(s)); }
+	cstr_& parseIntT(int* p) { return (*this = parseInt(p)); }
+	
+	// whitespace stuff
+	cstr_ lstrip() { return cstr_lstrip(CSTRX(*this)); }
+	cstr_& lstripT() { return (*this = cstr_lstrip(CSTRX(*this))); }
 	
 	// dynamic functions
 	cstr_ xdup(void) const  { return cstr_dup(*this); }

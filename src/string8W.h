@@ -5,6 +5,7 @@ ALWAYS_INLINE bool isNull(NCCH* str) {
 
 ALWAYS_INLINE NCSTR cstr_len(NCCH* si) { NCSTR so; asm("push %1; call "
 	"_cstr_len" MIF(NWIDE, "W", "") : "=A"(so): "g"(si)); return so; }
+REGCALL(1) NCSTR cstr_len(NCCH* si, int n);
 REGCALL(2) NCSTR cstr_dup(NCSTR str);
 
 // cstr: string comparison
@@ -21,6 +22,12 @@ NCSTR SHITCALL cstr_istr(CSTRG(1), NCCH* str2);
 SHITCALL NCSTR cstr_split(cstr& str, NCHR ch);
 CSTRFN4_(cstr_chr) CSTRFN4_(cstr_rchr)
 CSTRFN4_(cstr_chr2) CSTRFN4_(cstr_rchr2)
+
+NCSTR REGCALL(2) cstr_lstrip(CSTRG(1));
+NCSTR SHITCALL cstr_scmp(CSTRG(1), CSTRG(2));
+NCSTR SHITCALL cstr_scmp(CSTRG(1), NCCH* str2);
+
+NCSTR REGCALL(3) cstr_parseInt(CSTRG(1), int* pval);
 
 // String handling
 SHITCALL NCSTR xstrdup(NCCH*);

@@ -8,6 +8,8 @@
 ASM_FUNC("_cstr_len" NWTX, "push %ecx; movl 8(%esp), %eax;"
 	"push %eax; test %eax, %eax; jz 1f; call _" MIF(NWIDE, "wcs", "str") 
 	"len; 1: movl %eax, %edx; pop %eax; pop %ecx; ret $4");
+NCSTR cstr_len(NCSTR str, int n) { 
+	return {str, str ? strnlen(str, n) : 0}; }
 NCSTR cstr_dup(NCSTR str) { NCHR* buff = xMalloc(str.slen+1);
 	*(NCHR*)memcpyX(buff, str.data, str.slen) = '\0'; 
 	return { buff, str.slen }; }
@@ -74,6 +76,29 @@ NCSTR SHITCALL cstr_rchr2(CSTRG(1), NCHR ch) {
 	NCSTR tmp = cstr_rchr(str1, len1, ch);
 	if(tmp) tmp = {str1, tmp.data}; return tmp; }
 	
+NCSTR REGCALL(2) cstr_lstrip(CSTRG(1)) {
+	xRngPtr<NCHR> p(str1, len1); while(p.chk()) {
+		if(uns(p.f()) > ' ') break; INCP(p.data); }
+	return {p.data, p.end_}; }
+	
+	
+NCSTR SHITCALL cstr_scmp(CSTRG(1), CSTRG(2)) {
+	if((len2 > len1)||memcmpT(str1, str2, len2))
+		return {0,0}; return {str1+len2, str1+len1}; }
+NCSTR SHITCALL cstr_scmp(CSTRG(1), NCCH* str2) { xRngPtr<NCHR> p(str1, len1); 
+	while(p.chk()) { NCHR ch2 = *str2; if(!ch2) return {p.data, p.end_};
+		str2++; if(p.f() != ch2) break; INCP(p.data); } return {0,0}; }
+
+NCSTR REGCALL(3) cstr_parseInt(CSTRG(1), int* pval) {
+	xRngPtr<NCHR> p(str1, len1); int val = 0;
+	if(!p.chk()){ ERR: nothing(); return {0,0}; }
+	REGFIX2(D, str1); int ch = *p; if(ch == '-') goto SKIP_CH;
+	while(1){ ch -= '0'; if(uns(ch) >= 10) break; val = val*10+ch;
+		SKIP_CH: INCP(p.data); if(!p.chk()) break; ch = *p; }
+	ARGFIX(*str1); if(*str1 == '-'){ str1++; val = -val; }
+	if(str1 == p.data) goto ERR; *pval = val; return {p.data, p.end_};
+}
+
 // filename handling
 ASM_FUNC("_isRelPath0"NWTX, "test %eax, %eax; jz 1f;"
 	"cmp"MWBW" $0, (%eax); jz 1f; jmp 4f;" GLOB_LAB("_isRelPath" NWTX) 
