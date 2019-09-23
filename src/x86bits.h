@@ -6,6 +6,7 @@
 
 #define REGFIX(r, v) ({ typeof(v) _v; asm \
 	("" : "="#r(_v) : "0"(v)); v = _v; })
+#define REGFIX2(r, v) asm("" : "+"#r(v))
 
 // force variable register	 
 #define DEF_EAX(arg) register arg asm ("eax")
@@ -85,8 +86,10 @@
 	"=@ccz"(c8hR) : "Q"(v), "Kq"(c)); c8hR; })
 
 
-	
-	
+// register pressure helpers
+#define ADDM(ptr, len) asm volatile(".if %c1 == 1;inc %0;.elseif %c1 == -1;" \
+	"dec %0;.else;add %1,%0;.endif" : "+m"(ptr) : "e"(len));
+#define INCPM(ptr) ADDM(ptr, sizeof(*ptr))
 	
 
 /*
