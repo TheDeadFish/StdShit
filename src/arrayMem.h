@@ -2,6 +2,7 @@
 #ifndef _ARRAY_MEM_H_
 #define _ARRAY_MEM_H_
 #define IS_PTR(x) (size_t(x) >= 65536)
+#define CONST_FUNCM(f, ...) const f const {__VA_ARGS__;} f {__VA_ARGS__;}
 
 void* __thiscall xRngPtr_get(void** ptr, size_t size);
 
@@ -65,12 +66,14 @@ TMPL(T) struct xRngPtr
 		((byte*)ptr, (byte*)begin(), (byte*)end()); } \
 	TMPL(U) ptrdiff_t findi(const U& that) { return ::findi(data, len, that); } \
 	TMPL(U) T* findp(const U& that) { return ::findp(data, end(), that); } \
-	C split(int i) { len-=i; auto p = data; data+=i; return {p,i}; }
+	C split(int i) { len-=i; auto p = data; data+=i; return {p,i}; } \
+	size_t dataSize() { return len*sizeof(T); } \
+	CONST_FUNCM(size_t size(), return len )
 	
 TMPL(T) struct xarray 
 {
 	// creation / assignment
-	T* data; union { size_t len; size_t size; };
+	T* data; size_t len;
 	XARRAY_COMMON(xarray, T, len);
 	template<int l> xarray(T(& d)[l]) : xarray((T*)d, l) {}
 	size_t ofsGet(T& ref) { return PTRDIFF(&ref, data); }
@@ -198,6 +201,13 @@ struct xvector : xvector_ {
 	xvector(const xvector<T>& That) { init(That); }
 	xvector(T* di, size_t ci) { init(di, ci); }
 	xvector(T* di, size_t ds, size_t as) { init2(di, ds, as); }
+	
+	
+	// std::vector compatiblity
+	CONST_FUNCM(T* data(), return dataPtr);
+	CONST_FUNCM(size_t size(), return getCount());
+	
+	
 	
 	//
 	int offset(T* ptr) { return ptr - (T*)dataPtr; }
