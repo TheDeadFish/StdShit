@@ -82,7 +82,7 @@ xarray<cParseBlock_t> processFile(FILE* fpOut,
 	cParseBlock_t block; block.parse(file);
 
 	// detect guard band
-	if(!keepGuard && (block.size == 2)
+	if(!keepGuard && (block.len == 2)
 	&&(block[0].cppType() == CPP_IFNDEF)
 	&&(block[1].cppType() == CPP_ENDIF)
 	&&(block[0].cppType(0) == CPP_DEFINE)) { 

@@ -48,8 +48,10 @@ xRngPtr<char> cParseLine(char*& curPos)
 		= ctx.wrPos; ctx.rdPos = rdPos; continue; }
 	case '\0': { if(0) { END: rdPos--; 
 		if((ctx.nlPos != ctx.wrPos)&&((ctx.wsState & 8)
-		||(ctx.wrPos[-1] == '{'))) { ctx.wrPos = ctx.nlPos;
-			rdPos = ctx.rdPos; }} char* end = ctx.wrPos;
+		||(ctx.wrPos[-1] == '{'))) {
+			while(ctx.wrPos > ctx.nlPos) {
+				*--rdPos = *--ctx.wrPos; }
+		}} char* end = ctx.wrPos;
 		*end = 0; return {ctx.base, end}; }
 	case '\\': if(*rdPos == '\n') { rdPos++;
 		ctx.wsState |= 4; continue; } goto OPERATOR;
