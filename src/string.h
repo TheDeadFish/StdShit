@@ -95,6 +95,8 @@ TMPL(T) struct cstr_
 	// dynamic functions
 	cstr_ xdup(void) const  { return cstr_dup(*this); }
 	void free(const T* p) { if(p != data) free(); }
+	cstr_& alloc_(int len) { data = xMalloc(len+1); return *this; }
+	cstr_& alloc_() { return alloc_(slen); }
 };
 
 void test1(cch* x, int len);

@@ -63,7 +63,7 @@ union _CAST_{T src; U dst; };
 static inline size_t ALIGN(size_t arg, size_t bound)
 	{	return ((arg + bound) & ~bound); }
 TMPL(T) T* notNull(T* p) { __assume(p); return p; }	
-#define IFRET(...) if(auto result = __VA_ARGS__) return result;
+#define IFRET(...) ({if(auto result = __VA_ARGS__) return result;})
 
 // array/pointer helpers
 #define PTRADD(ptr, offset) (ptr = Void(ptr)+(offset))
@@ -161,6 +161,7 @@ TMPL(T) struct VaArgFwd { T* pfmt; va_list
 #define pNew(ptr, ...) ({ new(notNull(ptr)) typeof(*(ptr)){__VA_ARGS__}; })
 #define rNew(ref, ...) (*pNew(&ref, __VA_ARGS__))
 TMPL(T) void pDel(T* ptr) { ptr->~T(); }
+TMPL(T) void pRst(T* ptr) { pDel(ptr); pNew(ptr); }
 #define hasDtorT(T) !std::is_trivially_destructible<T>::value
 #define hasDtorp(p) hasDtorT(typeof(*p))
 

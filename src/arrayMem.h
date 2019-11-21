@@ -114,7 +114,7 @@ TMPL(T) struct xarray
 	TMPL(U = T) bool chk(size_t idx, size_t ln = 1) {
 		static_assert(!(sizeof(U)%sizeof(T))); return 
 		(!__builtin_mul_overflow(ln,sizeof(U)/sizeof(T),
-		&ln) && (!ovfchkU(size,idx, ln))); }
+		&ln) && (!ovfchkU(size(),idx, ln))); }
 	TMPL(U = T) U* getp(size_t idx, size_t ln = 1) {
 		return chk<U>(idx, ln) ? notNull((U*)(data+idx)) : 0; }
 	TMPL(U = T) U& getr(size_t idx) { return *(U*)(data+idx); }
@@ -135,12 +135,18 @@ TMPL(T) struct xArray : xarray<T>
 	
 	
 	xArray(const xArray& that) { *this = that; }
-	xArray& operator=(const xArray& x) { this->xCopy(x); return *this; }
+	//
 	
 	xArray(xArray&& that) {	
 		this->init(that.data, that.len); that.init(); }	
-	xArray& operator=(xArray && that) {
-		this->init(that.data, that.len); that.init(); }
+		
+		
+	
+	xArray& operator=(const xarray<T>& x) { this->Free(); this->init(x); return *this; }
+	xArray& operator=(const xArray& x) { this->xCopy(x); return *this; }
+		
+	//xArray& operator=(xArray && that) {
+	//	this->init(that.data, that.len); that.init(); }
 };
 
 struct xvector_ {
