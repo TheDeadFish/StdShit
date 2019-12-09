@@ -150,6 +150,7 @@ TMPL2(T,U=T) ALWAYS_INLINE T replace(T& ptr, U newPtr) {
 DEF_PX(B,BYTE) DEF_PX(C,CHAR) DEF_PX(S,INT16) DEF_PX(W,WORD)
 DEF_PX(I,INT32) DEF_PX(U,DWORD) DEF_PX(L,INT64) DEF_PX(Q,UINT64)
 DEF_PX(T,SIZE_T) DEF_PX(R,SSIZE_T) DEF_PX(F,float) DEF_PX(D,double)
+DEF_PX(B8,char8_t)
 
 // var-args forwarding
 TMPL(T) struct VaArgFwd { T* pfmt; va_list 

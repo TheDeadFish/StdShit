@@ -1,10 +1,22 @@
 // rep movsx memcpy
 
+
+// jesus christ
+template <bool cst, class T>
+auto MOVSNM_(T* p) { using T1 = std::remove_const_t<T>;
+	using T2 = std::conditional_t<std::is_same_v<void, T1>, char, T1>;
+	using T3 = std::conditional_t<cst, std::add_const_t<T2>, T2>;
+	return (T3 (*)[]) p; }
+#define MOVSNR_(p) "m"(*MOVSNM_<1>(p))
+#define MOVSNW_(p) "=m"(*MOVSNM_<0>(p))
+
+
 asm(".macro movsn_ n; .if \\n>=4; movsd; movsn_ \\n-4; .elseif \\n>=2; movsw;"
 	"movsn_ \\n-2; .elseif  \\n>=1; movsb; movsn_ \\n-1; .endif; .endm");
-#define MOVSN_(d, s, n) asm volatile("movsn_ %a2" : "+D"(d), "+S"(s) : "i"(n))
-#define MOVSNX_(d, s, c, n) ({int msnxc_; asm volatile("rep; movsn_ %a3" : \
-	"+D"(d), "+S"(s), "=c"(msnxc_) : "i"(n), "c"(c));})
+#define MOVSN_(d, s, n) asm volatile("movsn_ %a3" : \
+	"+D"(d), "+S"(s), MOVSNW_(d) : "i"(n), MOVSNR_(s))
+#define MOVSNX_(d, s, c, n) ({int msnxc_; asm volatile("rep; movsn_ %a4" : \
+	"+D"(d), "+S"(s), "=c"(msnxc_), MOVSNW_(d) : "i"(n), "c"(c), MOVSNR_(s));})
 
 #define memcpyx_ref(sz, sz2) TMPL2(T,U) \
 	ALWAYS_INLINE void memcpy##sz##_ref(T*& dst, U*& src, size_t count) { \
