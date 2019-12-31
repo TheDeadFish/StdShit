@@ -43,9 +43,9 @@ TMPL2(T, U) bool ovfAddChk(T& dst, U src, size_t ofs, size_t sz) {
 	return __builtin_mul_overflow(ofs, sz, &ofs) || 
 		ovfAddChk(dst, src, ofs); }		
 TMPL3(T, U, V) bool ovfAddChk2(V&& lim, T& dst, U src, size_t ofs) { 
-	return ovfAddChk(dst, src, ofs) || (dst > (T)lim); }
+	IFRET(ovfAddChk(dst, src, ofs)); nothing(); return (dst > (T)lim); }
 TMPL3(T, U, V) bool ovfAddChk2(V&& lim, T& dst, U src, size_t ofs, size_t sz) {
-	return ovfAddChk(dst, src, ofs, sz) || (dst > (T)lim); }
+	IFRET(ovfAddChk(dst, src, ofs, sz)); nothing(); return (dst > (T)lim); }
 	
 // pointer overflow
 TMPL3(T=void, V, U) 
