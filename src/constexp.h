@@ -34,6 +34,15 @@ REGCALL(1) constexpr static T toLower(T ch){ return((ch>='A') &&(ch<='Z'))?ch+32
 _CEXPCHOP_(char) _CEXPCHOP_(int)
 REGCALL(1) constexpr static bool isAlpha(int ch) { 
 	return unsigned((ch & ~0x20) - 'A') < 26; }	
+
+// overflow functions
+TMPL(T) using ptrToSizeT = conditional_t<std::is_pointer_v<T>, size_t, T>;
+TMPL3(T, U, V) bool ovf_add(T& dst, U a, V b) { return __builtin_add_overflow
+	(ptrToSizeT<T>(a), ptrToSizeT<T>(b), (ptrToSizeT<T>*)&dst); }
+TMPL3(T, U, V) bool ovf_sub(T& dst, U a, V b) { return __builtin_sub_overflow
+	(ptrToSizeT<T>(a), ptrToSizeT<T>(b), (ptrToSizeT<T>*)&dst); }
+TMPL3(T, U, V) bool ovf_mul(T& dst, U a, V b) { 
+	return __builtin_mul_overflow(a, b, &dst); }
 	
 // overflow helpers
 TMPL2(T, U) bool ovfAddChk(T& dst, U src, size_t ofs) { 
