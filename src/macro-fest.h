@@ -62,7 +62,7 @@ union _CAST_{T src; U dst; };
 #define ALIGN_PAGE(arg) ALIGN(arg, 4095)
 static inline size_t ALIGN(size_t arg, size_t bound)
 	{	return ((arg + bound) & ~bound); }
-TMPL(T) T* notNull(T* p) { __assume(p); return p; }	
+TMPL(T) T notNull(T p) { __assume(p); return p; }	
 #define IFRET(...) ({if(auto result = __VA_ARGS__) return result;})
 
 // array/pointer helpers
@@ -148,7 +148,7 @@ TMPL2(T,U=T) ALWAYS_INLINE T replace(T& ptr, U newPtr) {
 	TMPL(Z) T& MCAT(R,n)(const Z& p, size_t o=0,size_t n=0) { return ((T*)(((BYTE*)(p))+o))[n]; } \
 	TMPL(Z) T* MCAT(P,n)(const Z& p, size_t o=0,size_t n=0) { return &MCAT(R,n)(p, o, n); }
 DEF_PX(B,BYTE) DEF_PX(C,CHAR) DEF_PX(S,INT16) DEF_PX(W,WORD)
-DEF_PX(I,INT32) DEF_PX(U,DWORD) DEF_PX(L,INT64) DEF_PX(Q,UINT64)
+DEF_PX(I,INT32) DEF_PX(U,u32) DEF_PX(L,INT64) DEF_PX(Q,UINT64)
 DEF_PX(T,SIZE_T) DEF_PX(R,SSIZE_T) DEF_PX(F,float) DEF_PX(D,double)
 DEF_PX(B8,char8_t)
 

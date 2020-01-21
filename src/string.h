@@ -180,7 +180,7 @@ TMPL(T) struct xstr_
 	ALWAYS_INLINE ~xstr_() { free(data); } 
 	xstr_(T* p) : data(p) {} xstr_& operator=
 		(T* p) { reset(p); return *this; }
-	xstr_(const xstr_& u) = delete; xstr_& operator=
+	xstr_(const xstr_& u) : data(u.xdup()) {} xstr_& operator= 
 		(const xstr_& u) { reset(u.xdup()); return *this; }
 	xstr_(xstr_&& u) : data(u.release()) {} xstr_& operator=(
 		xstr_&& u) { reset(u.release()); return *this; } 

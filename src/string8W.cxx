@@ -8,7 +8,7 @@
 ASM_FUNC("_cstr_len" NWTX, "push %ecx; movl 8(%esp), %eax;"
 	"push %eax; test %eax, %eax; jz 1f; call _" MIF(NWIDE, "wcs", "str") 
 	"len; 1: movl %eax, %edx; pop %eax; pop %ecx; ret $4");
-NCSTR cstr_len(NCSTR str, int n) { 
+NCSTR cstr_len(NCCH* str, int n) { 
 	return {str, str ? strnlen(str, n) : 0}; }
 NCSTR cstr_dup(NCSTR str) { NCHR* buff = xMalloc(str.slen+1);
 	*(NCHR*)memcpyX(buff, str.data, str.slen) = '\0'; 

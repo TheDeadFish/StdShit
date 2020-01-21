@@ -43,6 +43,12 @@ TMPL3(T, U, V) bool ovf_sub(T& dst, U a, V b) { return __builtin_sub_overflow
 	(ptrToSizeT<T>(a), ptrToSizeT<T>(b), (ptrToSizeT<T>*)&dst); }
 TMPL3(T, U, V) bool ovf_mul(T& dst, U a, V b) { 
 	return __builtin_mul_overflow(a, b, &dst); }
+
+// overflow overloads
+TMPL2(T, U) bool ovf_add(T& dst, U a) { return ovf_add(dst, dst, a); }
+TMPL2(T, U) bool ovf_sub(T& dst, U a) { return ovf_sub(dst, dst, a); }
+TMPL2(T, U) bool ovf_mul(T& dst, U a) { return ovf_mul(dst, dst, a); }
+
 	
 // overflow helpers
 TMPL2(T, U) bool ovfAddChk(T& dst, U src, size_t ofs) { 
