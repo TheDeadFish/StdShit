@@ -107,6 +107,10 @@ void outputBlocks(FILE* fpOut, xarray<cParseBlock_t> block)
 void processFile(const char* src, 
 	const char* dst, bool isSourceFile)
 {
+	char* progDir = getProgramDir();
+	src = pathCat(progDir, src);
+	dst = pathCat(progDir, dst);
+
 	FILE* fpOut = xfopen(dst, "!wb");
 	fprintf(fpOut, "// stdshit.h: Single file version\n");
 	fprintf(fpOut, "// DeadFish Shitware 2013-2014\n");
