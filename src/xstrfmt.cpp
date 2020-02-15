@@ -20,6 +20,7 @@ struct XFMT : NFMT
 	size_t hex_mode(); size_t cmd_mode();
 	size_t sep_mode(); 
 	size_t flt_mode(NCHR* fmt);
+	size_t char_mode();
 	
 	
 	static REGCALL(1) void slash(void);
@@ -203,6 +204,15 @@ size_t XFMT::sep_mode(void)
 	}
 }
 
+size_t XFMT::char_mode()
+{
+	size_t data = va_arg(ap, size_t);
+	if(dstPosArg == NULL) return 1;
+	else { WRI(dstPosArg, data);
+		return (size_t)dstPosArg;
+	}
+}
+
 XFMT::core_t XFMT::core(NCHR* str)
 {
 	// flag stage
@@ -250,6 +260,7 @@ GET_INT_NEXT: { int result;
 	case 'z': extraLen = cmd_mode(); break;
 	case ':': extraLen = sep_mode(); break;
 	case 'f': extraLen = flt_mode(str); break;
+	case 'c': extraLen = char_mode(); break;
 	
 	default: UNREACH;
 	}
