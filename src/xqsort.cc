@@ -1,6 +1,8 @@
 #define __XQSORT_C_
 #include <stdshit.h>
 //#include "xqsort.h"
+
+XQSORT_DEF();
 	
 void xqsort_short(char *lo, char *hi, size_t width,
 	xqsort_swap swap, xqsort_comp comp, void * context)

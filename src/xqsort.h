@@ -32,12 +32,9 @@ template <class T, class F> __stdcall void xqsort(T* base, size_t num, F comp, v
 	xqsort<sizeof(T)>(base, num, (xqsort_comp)(void*)comp, ctx); }
 
 // common object sizes
-#ifdef __XQSORT_C_
-#define extern
-#endif
-#define XQSORT_INST(N) extern template void xqsort<N>(void*, size_t, xqsort_comp, void*);
-XQSORT_INST(1) XQSORT_INST(2) XQSORT_INST(4) XQSORT_INST(8) XQSORT_INST(16)
-XQSORT_INST(12) XQSORT_INST(24) XQSORT_INST(32)
-#undef extern
+#define XQSORT_INST(x,N) x template void xqsort<N>(void*, size_t, xqsort_comp, void*);
+#define XQSORT_DEF(x) XQSORT_INST(x,1) XQSORT_INST(x,2) XQSORT_INST(x,4) XQSORT_INST(x,8) \
+	XQSORT_INST(x,16) XQSORT_INST(x,12) XQSORT_INST(x,24) XQSORT_INST(x,32)
+XQSORT_DEF(extern);
 
 #endif
