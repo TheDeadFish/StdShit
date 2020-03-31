@@ -69,11 +69,12 @@ size_t XFMT::str_mode(void)
 	REGFIX(b, flags);
 		
 	// output string padding
-	int len = width - strLen;
-	if(len > 0) { //ARGFIX(flags);
+	size_t padPos = strLen;
+	if(width > padPos) { //ARGFIX(flags);
 		NCHR fillCh = getFillCh();
 		do { stosx(dstPos, fillCh);
-		} while(--len > 0);}
+		} while(width > ++padPos);
+	}
 		
 	REGFIX(b, flags);
 		
@@ -82,7 +83,7 @@ size_t XFMT::str_mode(void)
 		utf816_cpy(dstPos, Void(str), precision);
 	} else if(flags & FLAG_DOLAR)
 		memcpy_ref(dstPos, str, strLen);
-	else { while(!isNeg(--strLen)) {
+	else { while(strLen--) {
 		NCHR ch; lodsx(str, ch); if(!ch) 
 		break; stosx(dstPos, ch); }}
 		
@@ -231,7 +232,7 @@ GET_INT_NEXT: { int result;
 				result += tmp; lodsx(str, ch); }
 		} *dst = movfx(D, result);
 	if(dst == &width) {
-		dst = &precision; *dst = 0x7FFFFFFF;
+		dst = &precision; *dst = -1;
 		if(ch == '.') { lodsx(str, ch); 
 			goto GET_INT_NEXT; }
 	}}
