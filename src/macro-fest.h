@@ -175,4 +175,10 @@ TMPL(T) void pRst(T* ptr) { pDel(ptr); pNew(ptr); }
 #define FRAMEP_KEEP __attribute__ ((optimize("no-omit-frame-pointer")))
 #define FRAMEP_KILL __attribute__ ((optimize("omit-frame-pointer")))
 
+// ranged based for macros
+#define FOR_FI(s,r,i, ...) for(size_t i = 0; i < s.size(); i++)  \
+	{ auto& r = s[i]; __VA_ARGS__; }
+#define FOR_RI(s,r,i, ...) for(size_t i = s.size(); i--;)  \
+	{ auto& r = s[i]; __VA_ARGS__; }
+
 #endif
