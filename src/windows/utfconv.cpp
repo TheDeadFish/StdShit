@@ -80,19 +80,27 @@ utf816_size_t8 utf816_size(cchw* str) {
 	size_t sz = 0; asm("1: lodsw; inc %0; cmpw $128, %%ax; jb 2f;"
 	"call _UTF16TO8_LEN1; jmp 1b;" "2: testb %%al, %%al; jne 1b;"
 	: "+c"(sz), "+S"(str) :: "eax", "edx"); return {sz, str}; }	
-utf816_size_t8 utf816_size(cchw* str, int len) { size_t sz = 0; asm(
-	"1: inc %0; cmp %2, %1; jae 3f; lodsw; cmpw $128, %%ax; jb 1b;"
-	"mov %2, ptdx; call _UTF16TO8_LEN2; jmp 1b; 3:" : "+c"(sz), 
-	"+S"(str) : "b"(str+len) : "eax", "edx"); return {sz, str}; }
+	
+utf816_size_t8 utf816_size(cchw* str, int len) { 
+	size_t sz = 0; cchw* end = str+len;
+	while(sz++, str != end) { int ch = *str; str++;
+		if(ch >= 0x80) { cchw* tmp = end; asm("call _UTF16TO8_LEN2"
+			: "+S"(str), "+c"(sz), "+d"(tmp) :: "eax"); 
+		} ei(ch == 0) break; } return {sz, str}; 
+}
 	
 // UTF16 to UTF8 copy
 char* utf816_cpy(char* mbs, cchw* ws) { asm("1: lodsw; cmpw $128, %%ax; jb 2f;"
 	"call _UTF16_GET1; call _UTF8_PUT2; jmp 1b; 2: stosb; testb %%al, %%al; jne 1b;"
 	: "+D"(mbs), "+S"(ws) :: "eax", "edx"); return mbs-1; }
-char* utf816_cpy(char* mbs, cchw* ws, int wsz) { asm("jmp 0f; 1: lodsw; "
-	"cmpw $128, %%ax; jb 2f; mov %2, ptdx; call _UTF16_GET2; call _UTF8_PUT2;"
-	"jmp 0f; 2: stosb; 0: cmp %2, %1; jb 1b;" : "+D"(mbs), "+S"(ws) :
-	"b"(ws+wsz) : "eax", "edx"); *mbs =0; return mbs; }
+	
+char* utf816_cpy(char* mbs, cchw* ws, int wsz) { cchw* end = ws+wsz;
+	while(ws != end) { int ch = *ws; ws++;
+		if(ch >= 0x80) { cchw* tmp = end; asm("call _UTF16_GET2; call _UTF8_PUT2;"
+			: "+D"(mbs), "+S"(ws), "+d"(tmp) :: "eax"); 
+		} else { if(!ch) break; stosb(mbs, ch); }}
+	*mbs =0; return mbs; 
+}
 
 #define UTF816_DUP(t1, t2, t3) \
 t1 __stdcall utf816_dup(const t3* src) { if(!src) return {0,0};	\
