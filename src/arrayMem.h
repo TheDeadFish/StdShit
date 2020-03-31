@@ -233,7 +233,7 @@ struct xvector : xvector_ {
 		for(int i = 0; i < size; i++) pNew(ptr); }
 	T* xReserve(size_t size) { return xreserve_(size*sizeof(T)); }
 	T* xNalloc(size_t size) { T* ptr = xnalloc(size);
-		for(int i = 0; i < size; i++) pNew(ptr+i); }
+		for(int i = 0; i < size; i++) pNew(ptr+i); return ptr; }
 	template<typename... Args>
 	T& push_back(Args... args) { return rNew(*xnalloc(1), args...); }
 	void pop_back(void) { addCount(-1); end()->~T(); }
@@ -261,7 +261,7 @@ struct xvector : xvector_ {
 	T* xCopy(const xarray<T>& That) { return xCopy(That.data, That.len); }
 	T* xCopy(const xvector<T>& That) { return xCopy_(That.dataPtr, That.dataSize); }
 	T* xcopy(const T* di, size_t ci) { return xcopy_(di, ci*sizeof(T)); }
-	T* xcopy(const xarray<T>& That) { return xcopy(That.dataPtr, That.count); }
+	T* xcopy(const xarray<T>& That) { return xcopy(That.data, That.len); }
 	T* xcopy(const xvector<T>& That) { return xcopy_(That.dataPtr, That.dataSize); }
 	
 	// insertion/deletion
