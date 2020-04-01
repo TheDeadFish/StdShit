@@ -5,9 +5,13 @@
 #define MWSZ MIF(NWIDE, "2", "1")
 #define NWRDTX(n, t) NWNM(DEF_RDTEXT)(NWNM(n),t)
 
+#ifndef _WIN64
 ASM_FUNC("_cstr_len" NWTX, "push %ecx; movl 8(%esp), %eax;"
 	"push %eax; test %eax, %eax; jz 1f; call _" MIF(NWIDE, "wcs", "str") 
 	"len; 1: movl %eax, %edx; pop %eax; pop %ecx; ret $4");
+#else
+NCSTR cstr_len(NCCH* si) { return {si, strlen(si)}; }
+#endif
 NCSTR cstr_len(NCCH* str, int n) { 
 	return {str, str ? strnlen(str, n) : 0}; }
 NCSTR cstr_dup(NCSTR str) { NCHR* buff = xMalloc(str.slen+1);

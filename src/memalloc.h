@@ -10,6 +10,7 @@
 #endif
 
 // register preserving allocators
+#ifndef _WIN64
 #define free free_
 #define pcpx(ph, fn) "cfia_ 4; push "#ph"; call "#fn"; cfia_ -4;"
 ALWAYS_INLINE void free_(void* mem) { asm( pcpx(%0, _sfree)
@@ -22,6 +23,11 @@ ALWAYS_INLINE Void realloc_(void* ptr, size_t sz) { Void r;
 	asm(pcpx(%1, _srealloc) : "=a"(r) : "g"(ptr), "d"(sz)); return r; }
 ALWAYS_INLINE Void xmalloc(size_t sz) { Void r; asm(pcpx(%1, _xmalloc)
 	 : "=a"(r) : "g"(sz)); return r; }
+#else
+void free_ref(Void& ptr); Void xmalloc(size_t sz);
+ALWAYS_INLINE Void malloc_(size_t sz){ return malloc(sz); }
+ALWAYS_INLINE Void realloc_(void* ptr, size_t sz){ return realloc(ptr, sz); }
+#endif
 
 static uint snapUpSize(uint val) {	return 2 << (__builtin_clz(val-1)^31); }
 

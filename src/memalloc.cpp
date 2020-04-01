@@ -1,6 +1,7 @@
 #include "stdshit.h"
 
 // register preserving allocators
+#ifndef _WIN64
 ASM_FUNC("_sfree", ".cfi_startproc; push %eax; push %edx; push %ecx; push 16(%esp);"
 	".cfi_def_cfa_offset 20; call _free; add $4, %esp; pop %ecx; pop %edx; pop %eax; ret $4; .cfi_endproc;");
 ASM_FUNC("_sfreer", ".cfi_startproc ;push %eax; movl 8(%esp), %eax; cmp $0, (%eax);"
@@ -11,13 +12,15 @@ ASM_FUNC("_srealloc", ".cfi_startproc; push %ecx; push %edx; push 12(%esp);"
 	".cfi_def_cfa_offset 16; call _realloc; add $4, %esp; pop %edx; pop %ecx; ret $4; .cfi_endproc;");
 ASM_FUNC("_xmalloc", ".cfi_startproc; movl 4(%esp), %eax; test %eax,%eax; jz 1f; call "
 	"_smalloc; test %eax,%eax; jnz 1f; call __Z10errorAllocv; 1: ret $4; .cfi_endproc;");
+#else
+void free_ref(Void& ptr) { if(!ptr) {free(ptr);	ptr = NULL; }}
+Void xmalloc(size_t sz) { return errorAlloc(malloc(sz)); }
+#endif
 
 SHITCALL uint snapNext(uint val) { if(val&(val-1)) return 0;
 	if(val>=2) return val<<1; return val+1; }
 
 // resource freeing functions
-//SHITCALL void free_ref(Void& ptr) {
-//	if(ptr != NULL) {free(ptr);	ptr = NULL; }}
 SHITCALL int fclose_ref(FILE*& stream) { if(!stream) 
 	return (int)0; return fclose(release(stream)); }
 #undef fclose

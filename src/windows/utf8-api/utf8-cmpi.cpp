@@ -1,5 +1,8 @@
 #include "stdshit.h"
 
+#ifndef _WIN64
+
+
 extern "C" NTSYSAPI DWORD NTAPI
 RtlUpcaseUnicodeChar(DWORD);
 
@@ -29,3 +32,5 @@ int utf8_cmpi(cch* s1, int l1, WCHAR* s2)
 		if((ch1 -= ch2)||(!ch2)) return ch1;
 	}
 }
+
+#endif

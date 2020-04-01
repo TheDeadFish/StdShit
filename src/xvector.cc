@@ -1,4 +1,5 @@
 #include "stdshit.h"
+#ifndef _WIN64
 
 void xvectorW__::clear(void) {
 	free_ref(data); size_ = 0; }
@@ -30,3 +31,5 @@ byte* xvectorW__::xnalloc(size_t ds, u32 sz) { ds += size;
 	byte* ret = data+size*sz; size = ds; return ret; }
 byte* xvectorW__::xncalloc(size_t ds, u32 sz) {
 	return (byte*)memset(xnalloc(ds, sz), 0, ds*sz); }
+
+#endif

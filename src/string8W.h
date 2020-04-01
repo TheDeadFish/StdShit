@@ -2,9 +2,12 @@
 ALWAYS_INLINE bool isNull(NCCH* str) {
 	return !str || !str[0]; }
 
-
+#ifndef _WIN64
 ALWAYS_INLINE NCSTR cstr_len(NCCH* si) { NCSTR so; asm("push %1; call "
 	"_cstr_len" MIF(NWIDE, "W", "") : "=A"(so): "g"(si)); return so; }
+#else
+REGCALL(1) NCSTR cstr_len(NCCH* si);
+#endif
 REGCALL(1) NCSTR cstr_len(NCCH* si, int n);
 REGCALL(2) NCSTR cstr_dup(NCSTR str);
 
