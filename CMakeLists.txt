@@ -18,3 +18,8 @@ file(GLOB_RECURSE GSRC src/*.cc src/windows/*.cpp)
 add_library(stdshit STATIC ${GSRC}
 	src/math.cpp src/memalloc.cpp src/string.cpp bin/stdshit.h)
 target_precompile_headers(stdshit PUBLIC bin/stdshit.h)
+
+# build tests
+add_executable(hello tests/hello.cc)
+target_link_libraries(hello stdshit)
+target_precompile_headers(hello REUSE_FROM stdshit)
