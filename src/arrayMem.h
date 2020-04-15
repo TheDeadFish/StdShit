@@ -102,6 +102,11 @@ TMPL(T) struct xarray
 		return (T*)array_insert1(data, size, index, sizeof(T));  }
 	template<typename... Args> T& xInsert(size_t index, Args&&... args) {
 		return rNew(*xinsert(index), std::forward<Args>(args)...); }
+		
+	// remove functions
+	void remove(T* pos) { len--;
+		memcpy(pos, pos+1, PTRDIFF(end(),pos)); }
+	void Remove(T* pos) { pDel(pos); remove(pos); }
 	
 	// copying functions
 	T* xcopy(const xarray& that) { return xcopy(that.data, that.len); }
