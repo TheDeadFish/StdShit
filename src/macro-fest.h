@@ -180,5 +180,21 @@ TMPL(T) void pRst(T* ptr) { pDel(ptr); pNew(ptr); }
 	{ auto& r = s[i]; __VA_ARGS__; }
 #define FOR_RI(s,r,i, ...) for(size_t i = s.size(); i--;)  \
 	{ auto& r = s[i]; __VA_ARGS__; }
+	
+// c++ CONTAINING_RECORD
+template<class P, class M>
+size_t m_offsetof(const M P::*member) {
+	return (size_t) &((P*)(0)->*member); }
+template<class P, class M>
+P* container_of(M* ptr, const M P::*member) {
+	return (P*)( (char*)ptr - m_offsetof(member)); }
+template<class P, class M, class S>
+S* sibling_of(M* ptr, const M P::*member, const S P::*sib) {
+	size_t diff = m_offsetof(sib)-m_offsetof(member);
+	return (S*)( (char*)ptr + diff);  }
+	
+	
+typedef int (*compar_t)(const void*,const void*);
+
 
 #endif
