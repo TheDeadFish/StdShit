@@ -6,7 +6,7 @@
 const char progName[] = "combine";
 cppMacroLst mList;
 
-void buildDate(FILE* fpOut)
+void buildDate(Bstr& fpOut)
 {
 	time_t rawtime;
 	struct tm * timeinfo;
@@ -14,12 +14,12 @@ void buildDate(FILE* fpOut)
 	time (&rawtime);
 	timeinfo = localtime (&rawtime);
 	strftime (buffer,80,"%c",timeinfo);
-	fprintf(fpOut, "// BuildDate: %s\n", buffer);
+	fpOut.fmtcat("// BuildDate: %s\n", buffer);
 }
 
 xarray<cParseBlock_t> processFile(
-	FILE* fpOut, cch* parent, cch* name, bool);
-void processBlock(FILE* fpOut, cch* parent, 
+	Bstr& fpOut, cch* parent, cch* name, bool);
+void processBlock(Bstr& fpOut, cch* parent, 
 	cch* name, cParseBlock_t& block)
 {
 	for(int i = 0; i < block.len; i++) {
@@ -71,7 +71,7 @@ void processBlock(FILE* fpOut, cch* parent,
 	}
 }
 
-xarray<cParseBlock_t> processFile(FILE* fpOut,
+xarray<cParseBlock_t> processFile(Bstr& fpOut,
 	cch* parent, cch* name, bool keepGuard)
 {
 	// load and parse file
@@ -95,13 +95,22 @@ xarray<cParseBlock_t> processFile(FILE* fpOut,
 	return block.release();
 }
 
-void outputBlocks(FILE* fpOut, xarray<cParseBlock_t> block)
+void outputBlocks(Bstr& fpOut, xarray<cParseBlock_t> block)
 {
 	for(auto& blk : block) { {
-	if(blk.str) { fprintf(
-		fpOut, "%s\n", blk.str); }
+	if(blk.str) { 
+		fpOut.fmtcat("%s\n", blk.str); }
 		outputBlocks(fpOut, blk); 
 	}}
+}
+
+void saveFile_OnChange(cch* dst, cstr str)
+{
+	// because cmake is broken
+	auto data = loadFile(dst);
+	if((data.len != str.slen)
+	||(memcmp(data.data+96, str.data+96, str.slen-96)))
+		saveFile(dst, str.data, str.slen);
 }
 
 void processFile(const char* src, 
@@ -111,13 +120,14 @@ void processFile(const char* src,
 	src = pathCat(progDir, src);
 	dst = pathCat(progDir, dst);
 
-	FILE* fpOut = xfopen(dst, "!wb");
-	fprintf(fpOut, "// stdshit.h: Single file version\n");
-	fprintf(fpOut, "// DeadFish Shitware 2013-2014\n");
+	Bstr fpOut;
+	fpOut.fmtcat("// stdshit.h: Single file version\n");
+	fpOut.fmtcat("// DeadFish Shitware 2013-2014\n");
 	buildDate(fpOut);
 	
 	auto blocks = processFile(fpOut, src, src, true);
 	outputBlocks(fpOut, blocks);
+	saveFile_OnChange(dst, fpOut);
 }
 
 int main(int argc, char* argv[])

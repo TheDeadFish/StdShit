@@ -1,3 +1,4 @@
+@combine.exe noasm sect endi comp utf8
 @call cmake_gcc
 
 rem install stdshit
