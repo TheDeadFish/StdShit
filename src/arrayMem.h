@@ -109,6 +109,7 @@ TMPL(T) struct xarray
 	void Remove(T* pos) { pDel(pos); remove(pos); }
 	
 	// copying functions
+	xarray xdup() { return {xMemdup(data, len), len}; }
 	T* xcopy(const xarray& that) { return xcopy(that.data, that.len); }
 	T* xcopy(const T* di, size_t ci) { len = ci; return (data = xMemdup(di, ci)); }
 	T* xCopy(const xarray& that) { return xCopy(that.data, that.len); }
