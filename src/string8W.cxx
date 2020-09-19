@@ -254,4 +254,27 @@ int strmove(NCHR* dst, NCCH* src)
 	return len;
 }
 
+SHITCALL lenExtra_t crlf_len(NCCH* str)
+{
+	int extra = 0; int i = 0;
+	while(NCHR ch = str[i]) { i++; VARFIX(i);
+		if(ch == '\n') goto L1; 
+		if(ch == '\r'){ VARFIX(i); 
+			if(str[i] == '\n') i++; 
+			else { L1: extra++; } }
+	}
+	
+	return {i+extra, extra};
+}
+
+NCHR* crlf_cpy(NCHR* dst, NCCH* src)
+{
+	for(;*dst = *src; dst++) { src++; VARFIX(src);
+		if(*dst == '\n'){ *dst = '\r'; goto L1; }
+		if(*dst == '\r'){ if(*src == '\n') src++; 
+			L1: dst[1] = '\n'; dst++; }
+	}
+	return dst;
+}
+
 #undef NWIDE

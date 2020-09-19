@@ -82,5 +82,10 @@ SHITCALL int strfmt(NCHR* buffer, NCCH* fmt, ...);
 SHITCALL int xstrfmt_len(VaArgFwd<NCCH*> va);
 SHITCALL NCHR* xstrfmt_fill(NCHR* buffer,
 	VaArgFwd<NCCH*> va);
+	
+	
+// newline conversion
+SHITCALL lenExtra_t crlf_len(NCCH* str);
+SHITCALL NCHR* crlf_cpy(NCHR* dst, NCCH* src);
 
 #undef NWIDE

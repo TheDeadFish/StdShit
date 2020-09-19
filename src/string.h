@@ -1,3 +1,5 @@
+DEF_RETPAIR(lenExtra_t, int, len, int, extra);
+
 // forward declarations
 TMPL(T) struct cstr_; typedef cstr_
 <char>cstr; typedef cstr_<WCHAR> cstrW;

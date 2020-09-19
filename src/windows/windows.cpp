@@ -301,3 +301,13 @@ DO_ALLOC:;
 
 BOOL WINAPI setCurrentDirectory(cch* s) {
 	return SetCurrentDirectoryW(widen(s)); }
+	
+LPWSTR WINAPI utf816_crlf_dup(cch* s)
+{
+	int size = utf816_size(s);
+	int extra = crlf_len(s).extra;
+	WCHAR* buff = xmalloc(size+extra*2);
+	utf816_cpy(buff+extra, s);
+	if(extra) crlf_cpy(buff, buff+extra);
+	return buff;
+}

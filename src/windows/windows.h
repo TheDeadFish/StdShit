@@ -32,6 +32,9 @@ cstr narrowFree(LPWSTR s);
 ALWAYS_INLINE wxstr widen(cch* s) {
 	return utf816_dup(s); }
 cstrW ansi_to_wide_dup(cch* ansi, int len);
+LPWSTR WINAPI utf816_crlf_dup(cch* s);
+ALWAYS_INLINE wxstr crlf_widen(cch* s) {
+	return utf816_crlf_dup(s); }
 
 // wide api helpers
 #define W32SARD_(l,g) WCHAR* ws; int sz = l+1; \
