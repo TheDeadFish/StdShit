@@ -42,6 +42,8 @@ TMPL(T) struct xRngPtr
 	ALWAYS_INLINE bool chk2(T* cp) { ARGFIX(end_); return chk(cp); }
 	Void get(size_t len) { return Void(
 		xRngPtr_get((void**)this, len)); }
+	
+	xRngPtr right(size_t x) { return {data+x, end_}; }
 };
 	
 #define XARRAY_COMMON(C, T, len) \
@@ -68,7 +70,10 @@ TMPL(T) struct xRngPtr
 	TMPL(U) T* findp(const U& that) { return ::findp(data, end(), that); } \
 	C split(int i) { len-=i; auto p = data; data+=i; return {p,i}; } \
 	size_t dataSize() { return len*sizeof(T); } \
-	CONST_FUNCM(size_t size(), return len )
+	CONST_FUNCM(size_t size(), return len ) \
+	C right(int i, int e) { return C(data+i, data+e); } \
+	C left(T* end) { return C{data, end}; }
+	
 	
 TMPL(T) struct xarray 
 {
