@@ -157,6 +157,10 @@ char** loadText(FILE* fp, int& LineCount)
 		removeCrap((char*)curPos);
 		curPos = nextPos+1;
 	}
+	
+	// append null to list
+	int tmp = LineCount;
+	xNextAlloc( lineData, tmp ) = 0;
 	return lineData;
 }
 
