@@ -89,9 +89,12 @@ NCSTR REGCALL(2) cstr_lstrip(CSTRG(1)) {
 NCSTR SHITCALL cstr_scmp(CSTRG(1), CSTRG(2)) {
 	if((len2 > len1)||memcmpT(str1, str2, len2))
 		return {0,0}; return {str1+len2, str1+len1}; }
-NCSTR SHITCALL cstr_scmp(CSTRG(1), NCCH* str2) { xRngPtr<NCHR> p(str1, len1); 
-	while(p.chk()) { NCHR ch2 = *str2; if(!ch2) return {p.data, p.end_};
-		str2++; if(p.f() != ch2) break; INCP(p.data); } return {0,0}; }
+
+#define CSTR_SCMP(nm, cmp) \
+NCSTR nm(CSTRG(1), NCCH* str2) { if(str2) { NCCH* end=str1+len1; \
+	while(1) { NCHR ch2 = *str2; str2++; if(!ch2) return {str1, end}; \
+	if(str1 >= end) break; cmp(ch2, *str1++, NS); }} NS: return {0,0}; }
+CSTR_SCMP(cstr_scmp, CMPS) CSTR_SCMP(cstr_scmpi, CMPI)
 
 NCSTR REGCALL(3) cstr_parseInt(CSTRG(1), int* pval) {
 	xRngPtr<NCHR> p(str1, len1); int val = 0;

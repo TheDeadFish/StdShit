@@ -29,6 +29,8 @@ CSTRFN4_(cstr_chr2) CSTRFN4_(cstr_rchr2)
 NCSTR REGCALL(2) cstr_lstrip(CSTRG(1));
 NCSTR SHITCALL cstr_scmp(CSTRG(1), CSTRG(2));
 NCSTR SHITCALL cstr_scmp(CSTRG(1), NCCH* str2);
+NCSTR SHITCALL cstr_scmpi(CSTRG(1), CSTRG(2));
+NCSTR SHITCALL cstr_scmpi(CSTRG(1), NCCH* str2);
 
 NCSTR REGCALL(3) cstr_parseInt(CSTRG(1), int* pval);
 

@@ -68,7 +68,7 @@ TMPL(T) struct cstr_
 	int cmp(const T* s) { return cstr_cmp(CSTRX(*this), s); }
 	int icmp(const T* s) { return cstr_icmp(CSTRX(*this), s); }
 	cstr_ str(cstr_ s) { return cstr_str(CSTRX(*this), CSTRX(s)); }
-	cstr_ istr(cstr_ s) { return cstr_str(CSTRX(*this), CSTRX(s)); }
+	cstr_ istr(cstr_ s) { return cstr_istr(CSTRX(*this), CSTRX(s)); }
 	cstr_ str(const T* s) { return cstr_str(CSTRX(*this), s); }
 	cstr_ istr(const T* s) { return cstr_istr(CSTRX(*this), s); }
 
@@ -81,6 +81,9 @@ TMPL(T) struct cstr_
 	
 	cstr_ scmp(const T* s) { return cstr_scmp(CSTRX(*this), s); }
 	cstr_ scmp(cstr_ s) {  return cstr_scmp(CSTRX(*this), CSTRX(s)); }
+	cstr_ scmpi(const T* s) { return cstr_scmpi(CSTRX(*this), s); }
+	cstr_ scmpi(cstr_ s) {  return cstr_scmpi(CSTRX(*this), CSTRX(s)); }
+
 	cstr_ parseInt(int* p) { return cstr_parseInt(CSTRX(*this), p); }
 	
 	// self mutation
