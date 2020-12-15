@@ -304,6 +304,7 @@ BOOL WINAPI setCurrentDirectory(cch* s) {
 	
 LPWSTR WINAPI utf816_crlf_dup(cch* s)
 {
+	if(!s) return 0;
 	int size = utf816_size(s);
 	int extra = crlf_len(s).extra;
 	WCHAR* buff = xmalloc(size+extra*2);
