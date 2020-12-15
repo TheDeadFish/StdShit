@@ -4,8 +4,8 @@
 #ifndef _WIN64
 ASM_FUNC("_sfree", ".cfi_startproc; push %eax; push %edx; push %ecx; push 16(%esp);"
 	".cfi_def_cfa_offset 20; call _free; add $4, %esp; pop %ecx; pop %edx; pop %eax; ret $4; .cfi_endproc;");
-ASM_FUNC("_sfreer", ".cfi_startproc ;push %eax; movl 8(%esp), %eax; cmp $0, (%eax);"
-	"jz 1f; push (%eax); .cfi_def_cfa_offset 20; call _sfree; and $0, (%eax); 1: pop %eax; ret $4;.cfi_endproc;");
+ASM_FUNC("_sfreer", ".cfi_startproc ;push %eax; movl 8(%esp), %eax; cmpl $0, (%eax);"
+	"jz 1f; push (%eax); .cfi_def_cfa_offset 20; call _sfree; andl $0, (%eax); 1: pop %eax; ret $4;.cfi_endproc;");
 ASM_FUNC("_smalloc", ".cfi_startproc; push %edx; push %ecx; push %eax;"
 	".cfi_def_cfa_offset 16; call _malloc; add $4, %esp; pop %ecx; pop %edx; ret; .cfi_endproc;");
 ASM_FUNC("_srealloc", ".cfi_startproc; push %ecx; push %edx; push 12(%esp);"
