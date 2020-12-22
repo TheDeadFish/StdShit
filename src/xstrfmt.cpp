@@ -255,8 +255,8 @@ GET_INT_NEXT: { int result;
 	case 's': extraLen = str_mode(); break;
 	
 	case 'x': extraLen = hex_mode(); break;
-	case 'd': extraLen = dec_mode(false); break;
-	case 'u': extraLen = dec_mode(true); break;
+	case 'd': extraLen = dec_mode(true); break;
+	case 'u': extraLen = dec_mode(false); break;
 	case 'q': extraLen = ext_mode(); break;
 	case 'z': extraLen = cmd_mode(); break;
 	case ':': extraLen = sep_mode(); break;
