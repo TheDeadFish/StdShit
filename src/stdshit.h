@@ -159,7 +159,7 @@ TMPL2(T, F) void qsort(T& array, F compar)
 TMPL2(T, F) T* bsearch(void* key, T* base, size_t num, F compar)
 {	 typedef int (*qcomp)(const T&, const T&); return (T*)
 	bsearch(key, base, num, sizeof(*base), (Void)(qcomp)compar); }
-TMPL2(T, F)	T* bsearch(void* key, T& array, F compar) {	return 
+TMPL2(T, F)	auto* bsearch(void* key, T& array, F compar) {	return 
 	bsearch(key, std::begin(array), std::end(array)-std::begin(array), compar); }
 	
 // Error handling
