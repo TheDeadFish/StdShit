@@ -97,6 +97,7 @@ TMPL(T) struct xarray
 	T& back(void) { return end()[-1]; }
 	
 	// destructor unsafe ops
+	T* calloc(size_t size) { return data = (T*)::calloc(len = size); }
 	T* xalloc(size_t size) { return data = xMalloc(len = size); }
 	T* xcalloc(size_t size) { return data = xCalloc(len = size); }
 	T* xresize(size_t size) { return xRealloc(data, len = size); }
