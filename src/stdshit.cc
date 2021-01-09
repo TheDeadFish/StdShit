@@ -314,6 +314,13 @@ void* array_insert1(void* ptr, size_t asize, size_t index, size_t size)
 	memmove(dst, src, asize-iDst); return src; 
 }
 
+void* array_insclr(void* end, void* base, size_t size)
+{
+	void* dst = base+size;
+	memmove(dst, base, PTRDIFF(end,dst));
+	return memset(base, 0, size);
+}
+
 REGCALL(2)
 void memncpy(void* d, const void* s, size_t ds, size_t ss)
 {

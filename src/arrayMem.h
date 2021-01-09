@@ -8,6 +8,8 @@ void* __thiscall xRngPtr_get(void** ptr, size_t size);
 
 REGCALL(3) void* array_insert1(void* ptr, 
 	size_t asize, size_t index, size_t size);
+REGCALL(2) void* array_insclr(
+	void* end, void* base, size_t size);
 
 TMPL(T) struct xRngPtr 
 { 
