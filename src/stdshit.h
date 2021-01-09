@@ -10,6 +10,7 @@
 #include <ctype.h>
 #include <assert.h>
 #include <math.h>
+#include <memory>
 #include "compat.h"
 #include "macro-evil.h"
 #include "macro-fest.h"
@@ -194,5 +195,25 @@ SHITCALL xarray<char> loadText(cch* fName);
 SHITCALL char** loadText(const char* fileName, int& LineCount);
 
 extern const char mem_zp4[];
+
+// like unique_ptr, only this is actually usable
+TMPL(T) struct xMem
+{ 
+	// data access
+	operator T*() { return data; }
+	void init(T* p) { data = p; }
+	void reset(T* p = 0) { free(data); init(p); }
+	T* release(T* p = 0) { return ::release(data, p); }
+
+	// ctor/dtor/assignment
+	constexpr xMem() : data(0) {}
+	ALWAYS_INLINE ~xMem() { free(data); } 
+	constexpr xMem(T* p) : data(p) {}
+	xMem& operator=(T* p) { reset(p); return *this; }
+	xMem(xMem&& u) : data(u.release()) {}
+	xMem& operator=(xMem&& u) { reset(u.release()); return *this; }
+
+	T* data;
+};
 
 #endif
