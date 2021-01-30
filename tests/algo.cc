@@ -40,7 +40,31 @@ void bsearch_test(void)
 	test_print("bsearch");
 }
 
+void bsearch_lower_check(int* base, int key, int iKey)
+{
+	int i = bsearch_lower((void*)key, base, 20, bsearch_compar)-base;
+	test_enter();
+	if(i != iKey) {
+		cch* name = sorted_buff_name(base);
+		printf("bsearch_lower: %d, %d, %d, %s\n", key, iKey, i, name);
+		test_fail();
+	}
+}
+
+void bsearch_lower_test(void)
+{
+	#define TEST2(k, n1, n2) \
+		bsearch_lower_check(sorted_buff1, k, n1);\
+		bsearch_lower_check(sorted_buff2, k, n2);
+	TEST2(1, 0, 0); TEST2(2, 3, 1); TEST2(3, 4, 3); TEST2(5, 10, 9);
+	TEST2(6, 11, 10); TEST2(7, 14, 12); TEST2(8, 17, 16); TEST2(9, 19, 17);
+	TEST2(-1, 0, 0); TEST2(11, 20, 20);
+
+	test_print("bsearch_lower");
+}
+
 int main()
 {
 	bsearch_test();
+	bsearch_lower_test();
 }

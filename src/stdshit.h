@@ -171,6 +171,12 @@ TMPL2(T, F) xRngPtr<T> bsearch2(const void* key, T* base, size_t num, F compar)
 TMPL2(T, F) auto bsearch2(const void* key, T& array, F compar) { return
 	bsearch2(key, std::begin(array), std::end(array)-std::begin(array), compar); }
 
+// lower_bound
+byte* bsearch_lower (const void*, const void*, size_t, size_t, compar_t);
+TMPL2(T, F) T* bsearch_lower(const void* key, T* base, size_t num, F compar)
+{ return (T*)(bsearch_lower(key, base, num, sizeof(*base), (Void)compar)); }
+TMPL2(T, F) auto bsearch_lower(const void* key, T& array, F compar) { return
+	bsearch_lower(key, std::begin(array), std::end(array)-std::begin(array), compar); }
 
 // Error handling
 extern const char progName[];

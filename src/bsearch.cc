@@ -14,3 +14,23 @@ xRngPtr<byte> bsearch2 (
 	}
 	return {x, y};
 }
+
+byte* bsearch_lower (
+	const void* key, const void* first,
+  size_t count, size_t size, compar_t compar)
+{
+	const void* it;
+	size_t step;
+
+	while (ssize_t(count) > 0) {
+		step = count / 2;
+		it = Void(first, step*size);
+		if (compar(key, it) > 0) {
+			first = Void(it, size);
+			count -= step + 1;
+		}
+		else
+			count = step;
+	}
+	return (byte*)first;
+}
