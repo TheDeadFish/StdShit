@@ -12,6 +12,10 @@ add_library(stdshit STATIC ${GSRC}
 target_precompile_headers(stdshit PUBLIC bin/stdshit.h)
 
 # build tests
-add_executable(hello tests/hello.cc)
-target_link_libraries(hello stdshit)
-target_precompile_headers(hello REUSE_FROM stdshit)
+macro(def_test)
+	add_executable(${ARGV0} tests/${ARGV0}.cc)
+	target_link_libraries(${ARGV0} stdshit)
+	target_precompile_headers(${ARGV0} REUSE_FROM stdshit)
+endmacro(def_test)
+def_test(hello)
+def_test(algo)
