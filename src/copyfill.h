@@ -100,6 +100,9 @@ REGCALL(2)
 void memncpy(void* d, const void* s, 
 	size_t ds, size_t ss);
 
+REGCALL(2)
+void memncpy(void* d, const void* s,
+	size_t ds, size_t ss, int fill);
 	
 TMPL(T) int memcmpT(const T* ptr1, const void* ptr2, size_t cnt) {
 	return memcmp(ptr1, ptr2, sizeof(T)*cnt); }
