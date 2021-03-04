@@ -90,7 +90,7 @@ TMPL(T) struct xarray
 	void Free() { for(auto& ref : *this) ref.~T(); this->free(); }
 	void Clear() { this->Free(); this->init(); }
 	T* xAlloc(size_t size) { T* ptr = xalloc(size);
-		for(int i = 0; i < size; i++) pNew(ptr+i); }
+		for(int i = 0; i < size; i++) pNew(ptr+i); return ptr; }
 	template<typename... Args> T& push_back(Args&&... args) { 
 		return rNew(xnxalloc(), std::forward<Args>(args)...); }
 	void pop_back(void) { len--; end()->~T(); }
