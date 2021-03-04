@@ -96,5 +96,5 @@ T* ovfAddPosU(T* p, U o, V s = 1) {
 // overflow checked string
 DEF_RETPAIR(ovfStrChk_t, char*, src, void*, pos);
 REGCALL(2) ovfStrChk_t ovfStrChk_(void* limit, void* pos);
-TMPL(T) char* ovfStrChk(T*& pos, void* limit) { auto x 
-	= ovfStrChk_(limit, pos); pos = (T*)x.pos; return x; }
+TMPL(T) char* ovfStrChk(T& pos, void* limit) { auto x 
+	= ovfStrChk_(limit, (void*)pos); pos = (T)x.pos; return x; }
