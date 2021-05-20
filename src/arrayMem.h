@@ -85,6 +85,9 @@ TMPL(T) struct xarray
 	template<int l> xarray(T(& d)[l]) : xarray((T*)d, l) {}
 	size_t ofsGet(T& ref) { return PTRDIFF(&ref, data); }
 	T& ofsRef(size_t ofs) { return*(T*)Void(data, ofs); }
+
+	void initb(xarray<byte> xa) {
+		init((T*)xa.data, xa.len / sizeof(T)); }
 		
 	// destructor safe ops
 	void Free() { for(auto& ref : *this) ref.~T(); this->free(); }
@@ -104,6 +107,8 @@ TMPL(T) struct xarray
 	T& xnxalloc() {	return *(T*)xnxalloc2(this, sizeof(T)); }
 	T& xnxcalloc() { return *(T*)xnxcalloc2(this, sizeof(T)); }
 	T& ib() { return data[len++]; }
+
+	xarray& rightT(int i) { return (*this = right(i)); }
 	
 	// insertion functions
 	T* xinsert(size_t index) { xnxalloc();
