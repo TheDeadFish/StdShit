@@ -38,6 +38,7 @@ SHITCALL void freeLst_ref(Void& ptr, int count);
 #define fclose fclose_
 SHITCALL int fclose_ ( FILE * stream );
 SHITCALL int fclose_ref( FILE*& stream );
+REGCALL(1) void free_ref(void* ptr, void* repl);
 
 // Memory allocation wrappers
 SHITCALL Void calloc (size_t size);

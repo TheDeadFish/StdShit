@@ -30,6 +30,8 @@ SHITCALL void freeLst(Void ptr, int count) { if(!ptr) return;
 	for(int i = 0; i < count; i++) free((void*)ptr.sizet(i)); }
 SHITCALL void freeLst_ref(Void& ptr, int count) {
 	freeLst(ptr, count); free_ref(ptr); }
+REGCALL(1) void free_ref(void* ptr, void* repl) {
+	free(*(void**)ptr); *(void**)ptr = repl; }
 	
 // xNextAlloc implementation
 #define NXALLOC_RLC1(p,c) ptr2 = xrealloc(p, msize);
