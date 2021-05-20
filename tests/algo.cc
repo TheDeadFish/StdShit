@@ -7,7 +7,7 @@ int sorted_buff2[] = { 1, 2, 2, 3, 3, 3, 4, 4, 4, 5, 6, 6, 7, 7, 7, 7, 8, 9, 9, 
 
 int bsearch_compar(const void* key, const void* elem)
 {
-	return (int)key - RI(elem);
+	return (size_t)key - RI(elem);
 }
 
 cch* sorted_buff_name(int* base) {
