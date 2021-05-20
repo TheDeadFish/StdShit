@@ -176,6 +176,8 @@ size_t XFMT::hex_mode(void)
 
 size_t XFMT::cmd_mode(void)
 {
+#ifndef _WIN64
+
 	// map commands
 	NCHR cmdFlag = 0;
 	if(flags & FLAG_LBRACE) cmdFlag |= ESC_ENTQUOT;
@@ -195,6 +197,9 @@ size_t XFMT::cmd_mode(void)
 	if(dstPosArg == NULL) return cmd_escape_len(src, maxLen, cmdFlag);
 	else { size_t dstPos = (size_t)cmd_escape(dstPosArg, src, maxLen,
 		cmdFlag); if(flags & FLAG_HASH) free(src); return dstPos; }
+#else
+	__builtin_trap();
+#endif
 }
 
 size_t XFMT::sep_mode(void)
