@@ -22,6 +22,7 @@ TMPL(T) struct xstr_; typedef xstr_
 
 
 
+extern const char mem_zp4[];
 
 typedef const char cch;
 typedef const WCHAR cchw;
@@ -195,6 +196,7 @@ TMPL(T) struct xstr_
 	// other helpers
 	void alloc(int len) { data = xMalloc(len+1); }
 	char* xcopy(cch* str);
+	const T* safe() { return data ?: (T*)mem_zp4; }
 };
 
 
