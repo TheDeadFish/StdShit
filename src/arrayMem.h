@@ -86,6 +86,8 @@ TMPL(T) struct xarray
 	size_t ofsGet(T& ref) { return PTRDIFF(&ref, data); }
 	T& ofsRef(size_t ofs) { return*(T*)Void(data, ofs); }
 
+	void initb(byte* data, size_t len) {
+		init((T*)data, len / sizeof(T)); }
 	void initb(xarray<byte> xa) {
 		init((T*)xa.data, xa.len / sizeof(T)); }
 		
